@@ -18,7 +18,7 @@ import {
 import * as Tooltip from "@radix-ui/react-tooltip";
 
 interface EditorToolbarProps {
-  imageInputRef: RefObject<HTMLInputElement>;
+  imageInputRef: RefObject<HTMLInputElement | null>;
   insertImage: (file: File) => void;
   insertTextAtCursor: (text: string, selectStartOffset?: number, selectEndOffset?: number) => void;
 }

@@ -2,7 +2,7 @@
 "use client";
 
 import { RefObject } from "react";
-import MarkdownViewer from "@/components/MarkdownViewer";
+import MarkdownViewer from "@/components/Post/MarkdownViewer";
 
 export default function ReactMDEEditor({
   value,
@@ -11,7 +11,7 @@ export default function ReactMDEEditor({
 }: {
   value: string;
   onChange: (val: string) => void;
-  textareaRef: RefObject<HTMLTextAreaElement>;
+  textareaRef: RefObject<HTMLTextAreaElement | null>;
 }) {
   const handleDrop = (e: React.DragEvent<HTMLTextAreaElement>) => {
     e.preventDefault();

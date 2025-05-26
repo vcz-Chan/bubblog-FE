@@ -22,8 +22,8 @@ export default function MarkdownViewer({ value }: { value: string }) {
           li: ({ node, ...props }) => <li className="ml-2" {...props} />,
           blockquote: ({ node, ...props }) => <blockquote className="border-l-4 pl-4 italic text-gray-600" {...props} />,
           hr: () => <hr className="my-4 border-t border-gray-300" />,
-          code: ({ node, inline, className, children, ...props }) => (
-            <code className={`bg-gray-200 px-1 py-0.5 rounded text-sm ${inline ? '' : 'block whitespace-pre overflow-auto p-2'}`} {...props}>
+          code: ({ node, className, children, ...props }) => (
+            <code className={`bg-gray-200 px-1 py-0.5 rounded text-sm`} {...props}>
               {children}
             </code>
           ),

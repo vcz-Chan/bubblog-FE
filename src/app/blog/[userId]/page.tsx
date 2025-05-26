@@ -1,118 +1,141 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { Dialog } from "@headlessui/react";
-import { myPosts } from "@/mocks/posts";
+import { useState, useEffect } from 'react'
+import { useParams } from 'next/navigation'
+import { useAuth } from '@/contexts/AuthContext'
+import { getUserProfile, UserProfile } from '@/services/userService'
+import { getPostsByUser, Blog } from '@/services/blogService'
+import { getCategoryTree, CategoryNode } from '@/services/categoryService'
+import { CategorySelector } from '@/components/Category/CategorySelector'
 
-interface Post {
-  id: number;
-  title: string;
-  summary: string;
-}
+import { UserProfileHeader } from '@/components/Blog/UserProfileHeader'
+import { BlogControls }     from '@/components/Blog/BlogControls'
+import { CategoryFilterButton }      from '@/components/Category/CategoryFilterButton'
+import { PostsGrid }         from '@/components/Blog/PostsGrid'
+import { DeleteModal }       from '@/components/Blog/DeleteModal'
 
 export default function BlogPage() {
-  const params = useParams();
-  const userId = params.userId as string;
+  const { userId: authUserId, isAuthenticated } = useAuth()
+  const { userId: paramUserId } = useParams<{ userId: string }>()
 
-  const currentUserId = "123"; // 실제 로그인 유저 ID (나중에 인증 붙으면 수정)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [loadingUser, setLoadingUser] = useState(true)
+  const [errorUser, setErrorUser] = useState<string | null>(null)
 
-  const isMyBlog = userId === currentUserId;
+  const [postsAll, setPostsAll] = useState<Blog[]>([])
+  const [posts, setPosts]       = useState<Blog[]>([])
+  const [loadingPosts, setLoadingPosts] = useState(true)
+  const [errorPosts, setErrorPosts]     = useState<string | null>(null)
 
-  const [posts, setPosts] = useState<Post[]>(myPosts);
+  const [categories, setCategories] = useState<CategoryNode[]>([])
+  const [loadingCats, setLoadingCats] = useState(true)
+  const [errorCats, setErrorCats]     = useState<string | null>(null)
 
-  const [deleteTarget, setDeleteTarget] = useState<Post | null>(null);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<number | null>(null)
+
+  const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null)
+
+  const isMyBlog = paramUserId === authUserId
+
+  useEffect(() => {
+    if (!paramUserId) return
+    setLoadingUser(true)
+    getUserProfile(paramUserId)
+      .then(p => setProfile(p))
+      .catch(err => setErrorUser(err.message))
+      .finally(() => setLoadingUser(false))
+  }, [paramUserId])
+
+  useEffect(() => {
+    if (!paramUserId) return
+    setLoadingPosts(true)
+    getPostsByUser(paramUserId)
+      .then(data => {
+        setPostsAll(data)
+        setPosts(data)
+        setErrorPosts(null)
+      })
+      .catch(err => setErrorPosts(err.message))
+      .finally(() => setLoadingPosts(false))
+  }, [paramUserId])
+
+  useEffect(() => {
+    if (!paramUserId) return
+    setLoadingCats(true)
+    getCategoryTree(paramUserId)
+      .then(data => {
+        setCategories(data)
+        setErrorCats(null)
+      })
+      .catch(err => setErrorCats(err.message))
+      .finally(() => setLoadingCats(false))
+  }, [paramUserId])
+
+  useEffect(() => {
+    setPosts(
+      selectedCategory == null
+        ? postsAll
+        : postsAll.filter(() => false)
+    )
+  }, [selectedCategory, postsAll])
 
   const handleDelete = (id: number) => {
-    setPosts((prev) => prev.filter((post) => post.id !== id));
-    setDeleteTarget(null);
-  };
+    setDeleteTarget(postsAll.find(p => p.id === id) ?? null)
+  }
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return
+    setPosts(prev => prev.filter(p => p.id !== deleteTarget.id))
+    setDeleteTarget(null)
+  }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-8">
-        {isMyBlog ? "내 블로그" : `${userId}님의 블로그`}
-      </h1>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {loadingUser
+        ? <p>프로필 로딩 중…</p>
+        : errorUser
+        ? <p className="text-red-500">{errorUser}</p>
+        : profile && (
+          <UserProfileHeader
+            profile={profile}
+            isMyBlog={isMyBlog}
+          />
+        )
+      }
 
-      {isMyBlog && (
-        <div className="flex gap-4 mb-6">
-          <Link href="/write">
-            <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
-              ✏️ 새 글 작성
-            </button>
-          </Link>
-          <Link href="/settings">
-            <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
-              ⚙️ 블로그 설정
-            </button>
-          </Link>
-        </div>
-      )}
+      {isMyBlog && <BlogControls />}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-white p-6 rounded-lg shadow hover:shadow-lg transition-shadow flex flex-col justify-between"
-          >
-            <div>
-              <div className="h-32 bg-gray-100 rounded mb-4" />
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">{post.title}</h3>
-              <p className="text-gray-600 mb-4">{post.summary}</p>
-            </div>
+      <CategoryFilterButton
+        selectedCategory={selectedCategory}
+        onOpen={() => setIsCatModalOpen(true)}
+      />
 
-            <div className="flex justify-between items-center">
-              <Link href={`/post/${post.id}`} className="text-blue-500 hover:underline text-sm">
-                더 보기 →
-              </Link>
+      {loadingPosts
+        ? <p className="text-center">로딩 중…</p>
+        : errorPosts
+        ? <p className="text-center text-red-500">{errorPosts}</p>
+        : <PostsGrid
+            posts={posts}
+            isMyBlog={isMyBlog}
+            onDelete={handleDelete}
+          />
+      }
 
-              {isMyBlog && (
-                <div className="flex gap-2 text-sm">
-                  <Link href={`/edit/${post.id}`} className="text-green-600 hover:underline">
-                    수정
-                  </Link>
-                  <button
-                    className="text-red-500 hover:underline"
-                    onClick={() => setDeleteTarget(post)}
-                  >
-                    삭제
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+      <DeleteModal
+        isOpen={!!deleteTarget}
+        title={deleteTarget?.title}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={confirmDelete}
+      />
 
-      {/* 삭제 모달 */}
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} className="relative z-50">
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
-            <Dialog.Title className="text-lg font-bold mb-4">
-              삭제 확인
-            </Dialog.Title>
-            <p className="text-gray-700 mb-6">
-              "{deleteTarget?.title}" 글을 정말 삭제하시겠습니까?
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setDeleteTarget(null)}
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-              >
-                취소
-              </button>
-              <button
-                onClick={() => handleDelete(deleteTarget!.id)}
-                className="px-4 py-2 rounded bg-red-500 text-white hover:bg-red-600"
-              >
-                삭제
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
+      <CategorySelector
+        userId={paramUserId}
+        isOpen={isCatModalOpen}
+        onClose={() => setIsCatModalOpen(false)}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+      />
     </div>
-  );
+  )
 }
