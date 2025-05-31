@@ -4,7 +4,6 @@ import Link from "next/link"
 export interface ContextItem {
   post_id: string
   post_title: string
-  post_chunk: string
 }
 
 interface Props {

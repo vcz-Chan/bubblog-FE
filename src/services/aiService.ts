@@ -1,7 +1,6 @@
 export interface ContextItem {
   post_id: string
   post_title: string
-  post_chunk: string
 }
 
 export interface ChatMessage {
@@ -18,7 +17,7 @@ export async function askChat(
   onContext: (items: ContextItem[]) => void,
   onAnswerChunk: (chunk: string) => void
 ): Promise<void> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL}/ask`, {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_AI_API_URL}/ai/ask`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, user_id: userId, category_id: categoryId?.toString() ?? null }),
@@ -54,7 +53,15 @@ export async function askChat(
         if (txt.startsWith('[')) {
           try {
             const items = JSON.parse(txt) as ContextItem[];
-            onContext(items);
+            // 중복 제거
+            const seen = new Set<string>();
+            const deduped = items.filter(item => {
+              if (seen.has(item.post_id)) return false;
+              seen.add(item.post_id);
+              return true;
+            });
+
+            onContext(deduped);
             contextDone = true;
           } catch {}
         }
