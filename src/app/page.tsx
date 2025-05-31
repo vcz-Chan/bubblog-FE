@@ -38,7 +38,7 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto px-4 py-8 space-y-12">
         <section>
-          <h2 className="text-2xl font-semibold text-gray-800 mb-6">내 블로그</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">인기 블로그</h2>
           <PostList posts={posts} />
         </section>
       </main>
