@@ -4,7 +4,7 @@ import WritePostClient from './WritePostClient';
 export default async function WritePage({
   searchParams,
 }: {
-  searchParams: { postId?: string };
+  searchParams: Promise<{ postId?: string }>;  
 }) {
   // searchParams 전체를 먼저 await
   const params = await searchParams;

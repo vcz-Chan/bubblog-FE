@@ -18,7 +18,7 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-vars": "warn",        // 에러 → 경고
       "@typescript-eslint/no-explicit-any": "off",         // any 허용
       "jsx-a11y/alt-text": "warn",                         // alt 경고만
-      "next/next/no-img-element": "warn",                  // img도 경고만
+      "next/next/no-img-element": "off",                  
     },
   },
 ];
