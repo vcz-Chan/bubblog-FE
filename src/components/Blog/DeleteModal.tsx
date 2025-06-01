@@ -19,7 +19,7 @@ export function DeleteModal({ isOpen, title, onCancel, onConfirm }: Props) {
             삭제 확인
           </Dialog.Title>
           <p className="text-gray-700 mb-6">
-            "{title}" 글을 정말 삭제하시겠습니까?
+            &quot;{title}&quot; 글을 정말 삭제하시겠습니까?
           </p>
           <div className="flex justify-end gap-2">
             <button
