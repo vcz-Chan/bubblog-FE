@@ -26,7 +26,7 @@ export function ContextViewer({ items, visible, onToggle }: Props) {
       {visible && (
         <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
           {items.map(ctx => (
-            <Link href={`/post/${ctx.post_id}`}>
+            <Link href={`/post/${ctx.post_id}`} key={ctx.post_id}>
               <div className="font-semibold">{ctx.post_title}</div>
             </Link>
           ))}
