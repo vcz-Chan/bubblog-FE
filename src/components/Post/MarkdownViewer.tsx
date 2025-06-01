@@ -27,9 +27,10 @@ export default function MarkdownViewer({ value }: { value: string }) {
               {children}
             </code>
           ),
-          img: ({ node, ...props }) => (
-            <img {...props} className="rounded max-w-full h-auto" />
-          ),
+          img: ({ node, ...props }) => {
+            if (!props.src) return null; // src가 없거나 빈 문자열이면 렌더링하지 않음
+            return <img {...props} className="rounded max-w-full h-auto" />;
+          },
           a: ({ node, ...props }) => (
             <a className="text-blue-600 underline" target="_blank" rel="noopener noreferrer" {...props} />
           ),

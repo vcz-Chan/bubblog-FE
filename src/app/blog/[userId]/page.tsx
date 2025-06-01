@@ -15,7 +15,7 @@ import { PostsGrid }         from '@/components/Blog/PostsGrid'
 import { DeleteModal }       from '@/components/Blog/DeleteModal'
 
 export default function BlogPage() {
-  const { userId: authUserId, isAuthenticated } = useAuth()
+  const { userId: authUserId } = useAuth()
   const { userId: paramUserId } = useParams<{ userId: string }>()
 
   const [profile, setProfile] = useState<UserProfile | null>(null)

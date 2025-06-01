@@ -1,7 +1,9 @@
+// app/write/page.tsx (또는 pages/write.tsx)
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { CategorySelector } from '@/components/Category/CategorySelector';
 import ReactMDEEditor from '@/components/Post/ReactMDEEditor';
 import { EditorToolbar } from '@/components/Post/EditorToolbar';
@@ -13,23 +15,26 @@ import {
   BlogDetail,
 } from '@/services/blogService';
 
+import ThumbnailUploader from '@/components/Post/ThumbnailUploader';
+import { getPresignedUrl, uploadToS3 } from '@/services/uploadService';
+
 export default function WritePostPage() {
   const searchParams = useSearchParams();
   const postId = searchParams.get('postId');
-  const {userId} = useAuth();
+  const { userId } = useAuth();
   const isEdit = Boolean(postId);
   const router = useRouter();
 
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [isCatOpen, setIsCatOpen] = useState(false)
+  const [isCatOpen, setIsCatOpen] = useState(false);
   const [markdown, setMarkdown] = useState('# 여기에 글을 작성하세요\n');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [publicVisible, setPublicVisible] = useState(true);
 
-  const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // 편집 모드라면 기존 데이터 불러오기
   useEffect(() => {
@@ -50,8 +55,8 @@ export default function WritePostPage() {
   }, [isEdit, postId, router]);
 
   const handleSave = async () => {
-    if (!title || !summary || !selectedCategory) {
-      alert('제목, 요약, 카테고리는 필수입니다.');
+    if (!title || !summary || !selectedCategory || !thumbnailUrl) {
+      alert('제목, 요약, 카테고리, 썸네일은 필수입니다.');
       return;
     }
 
@@ -79,11 +84,7 @@ export default function WritePostPage() {
     }
   };
 
-  const insertImage = (file: File) => {
-    const url = URL.createObjectURL(file);
-    insertTextAtCursor(`\n![이미지](${url})\n`);
-  };
-
+  // 마크다운 커서 위치에 텍스트 삽입
   const insertTextAtCursor = (
     text: string,
     selectStartOffset = 0,
@@ -106,7 +107,40 @@ export default function WritePostPage() {
     }, 0);
   };
 
-  // 단축키 등 기존 로직 생략…
+  // ─── 핵심: 본문 에디터 드래그&드롭 핸들러 ───
+  const handleEditorDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
+
+    for (const file of imageFiles) {
+      try {
+        // S3에 저장할 키(폴더/타임스탬프_파일명)
+        const timestamp = Date.now();
+        const sanitized = file.name.replace(/\s+/g, '_');
+        const key = `content-images/${timestamp}_${sanitized}`;
+
+        // Presigned URL 얻기
+        const { url: presignedUrl } = await getPresignedUrl(
+          key,
+          file.type
+        );
+
+        // S3에 업로드
+        await uploadToS3(presignedUrl, file);
+
+        // 최종 접근 가능한 URL (쿼리 문자열 제거)
+        const s3Url = presignedUrl.split('?')[0];
+
+        // 마크다운으로 삽입
+        insertTextAtCursor(`\n![이미지](${s3Url})\n`);
+      } catch (err: any) {
+        console.error(err);
+        alert(err.message || '이미지 업로드 중 오류가 발생했습니다.');
+      }
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -114,70 +148,96 @@ export default function WritePostPage() {
         {isEdit ? '글 수정하기' : '글 작성하기'}
       </h1>
 
+      {/* 제목 입력 */}
       <div className="mb-4">
         <label>제목</label>
         <input
           className="w-full border p-2"
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={(e) => setTitle(e.target.value)}
         />
       </div>
 
+      {/* 요약 입력 */}
       <div className="mb-4">
         <label>요약</label>
         <textarea
           className="w-full border p-2"
           value={summary}
-          onChange={e => setSummary(e.target.value)}
+          onChange={(e) => setSummary(e.target.value)}
         />
       </div>
 
-      
-      <CategorySelector
-        userId = {userId}
-        isOpen={isCatOpen}
-        onClose={() => setIsCatOpen(false)}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
-      <button onClick={() => setIsCatOpen(true)}>
-        {selectedCategory ? `카테고리: ${selectedCategory}` : '카테고리 선택'}
-      </button>
-
+      {/* 카테고리 선택 */}
       <div className="mb-4">
-        <label>썸네일 URL</label>
-        <input
-          className="w-full border p-2"
-          value={thumbnailUrl}
-          onChange={e => setThumbnailUrl(e.target.value)}
+        <button
+          onClick={() => setIsCatOpen(true)}
+          className="px-3 py-1 bg-indigo-600 text-white rounded-full"
+        >
+          {selectedCategory
+            ? `카테고리: ${selectedCategory}`
+            : '카테고리 선택'}
+        </button>
+        <CategorySelector
+          userId={userId}
+          isOpen={isCatOpen}
+          onClose={() => setIsCatOpen(false)}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
         />
       </div>
 
-      <div className="mb-4">
+      {/* 썸네일 업로더 */}
+      <div className="mb-6">
+        <label className="block mb-1">썸네일</label>
+        <ThumbnailUploader
+          initialUrl={thumbnailUrl}
+          onChange={(url) => setThumbnailUrl(url)}
+        />
+      </div>
+
+      {/* 공개 여부 */}
+      <div className="mb-6">
         <label>
           <input
             type="checkbox"
             checked={publicVisible}
-            onChange={e => setPublicVisible(e.target.checked)}
+            onChange={(e) => setPublicVisible(e.target.checked)}
           />
-          공개 여부
+          {' '}공개 여부
         </label>
       </div>
 
-      <EditorToolbar
-        imageInputRef={imageInputRef}
-        insertImage={insertImage}
-        insertTextAtCursor={insertTextAtCursor}
-      />
+      {/* ─── 에디터 툴바 ─── */}
+      <div className="mb-4 flex items-center gap-2">
+        <EditorToolbar
+          imageInputRef={imageInputRef}
+          insertImage={(url: string) =>
+            insertTextAtCursor(`\n![이미지](${url})\n`)
+          }
+          insertTextAtCursor={insertTextAtCursor}
+        />
+      </div>
 
-      <ReactMDEEditor
-        value={markdown}
-        onChange={setMarkdown}
-        textareaRef={textareaRef}
-      />
+      {/* ─── 드래그&드롭을 처리하기 위해 감싸는 <div> ─── */}
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleEditorDrop}
+        className="border border-gray-300 rounded-md p-2"
+      >
+        <ReactMDEEditor
+          value={markdown}
+          onChange={setMarkdown}
+          textareaRef={textareaRef}
+        />
+        <div className="mt-1 text-sm text-gray-500">
+          * 이미지를 드래그&드롭하거나 툴바의 “이미지” 버튼을 눌러 업로드할 수 있습니다.
+        </div>
+      </div>
 
+      {/* 저장 버튼 */}
       <button
-        className="mt-6 px-6 py-3 bg-purple-600 text-black rounded-full shadow hover:bg-purple-700 transition-all"
+        className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-full shadow hover:bg-purple-700 transition-all"
         onClick={handleSave}
       >
         저장하기
