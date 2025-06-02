@@ -21,9 +21,8 @@ export default function ImageUploader({ onUploaded, folder }: Props) {
         const timestamp = Date.now();
         const sanitizedFilename = file.name.replace(/\s+/g, '_');
         const key = `${folder}/${timestamp}_${sanitizedFilename}`;
-        const { url: presignedUrl } = await getPresignedUrl(key, file.type);
+        const { fileUrl: s3Url, uploadUrl: presignedUrl } = await getPresignedUrl(key, file.type);
         await uploadToS3(presignedUrl, file);
-        const s3Url = presignedUrl.split('?')[0];
         onUploaded(s3Url);
       } catch (err: any) {
         console.error(err);

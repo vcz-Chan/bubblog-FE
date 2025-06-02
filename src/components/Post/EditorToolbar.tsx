@@ -78,10 +78,9 @@ export function EditorToolbar({
       const sanitizedFilename = file.name.replace(/\s+/g, '_');
       const key = `content-images/${timestamp}_${sanitizedFilename}`;
 
-      const { url: presignedUrl } = await getPresignedUrl(key, file.type);
+      const { fileUrl: s3Url, uploadUrl: presignedUrl } = await getPresignedUrl(key, file.type);
       await uploadToS3(presignedUrl, file);
-
-      const s3Url = presignedUrl.split('?')[0];
+      
       insertImage(s3Url);
     } catch (err: any) {
       console.error(err);

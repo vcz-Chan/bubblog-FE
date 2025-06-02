@@ -1,8 +1,8 @@
 import { apiClient } from './apiClient';
 
 interface PresignedResponse {
-  url: string;        // presigned URL
-  key: string;        // S3에 실제 저장될 객체 키 (예: images/1637851234_my.png)
+  uploadUrl: string;        // presigned URL
+  fileUrl: string;        // S3에 실제 저장될 객체 url
 }
 
 // 1) Presigned URL 요청하기

@@ -131,10 +131,8 @@ export default function WritePostClient({ postId, initialData }: Props) {
         const sanitized = file.name.replace(/\s+/g, '_');
         const key = `content-images/${timestamp}_${sanitized}`;
 
-        const { url: presignedUrl } = await getPresignedUrl(key, file.type);
+        const { fileUrl: s3Url, uploadUrl: presignedUrl } = await getPresignedUrl(key, file.type);
         await uploadToS3(presignedUrl, file);
-
-        const s3Url = presignedUrl.split('?')[0];
         insertTextAtCursor(`\n![이미지](${s3Url})\n`);
       } catch (err: any) {
         console.error(err);
