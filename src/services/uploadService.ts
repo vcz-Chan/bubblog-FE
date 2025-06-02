@@ -10,9 +10,12 @@ export async function getPresignedUrl(
   fileName: string,
   contentType: string
 ): Promise<PresignedResponse> {
-  // fileName과 contentType은 URL 인코딩한 상태여야 합니다.
   const res = await apiClient<PresignedResponse>(
-    `/uploads/presigned-url?fileName=${encodeURIComponent(fileName)}&contentType=${encodeURIComponent(contentType)}`
+    `/api/uploads/presigned-url`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ fileName, contentType }),
+    }
   );
   if (!res.success || !res.data) {
     throw new Error(res.message || 'presigned URL을 가져오는데 실패했습니다.');
