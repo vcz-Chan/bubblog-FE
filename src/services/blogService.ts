@@ -33,13 +33,42 @@ export interface UserPostsResponse {
   posts: Blog[]
 }
 
-// 인기글을 가져옴 (배열만 반환)
-export async function getBlogs(): Promise<Blog[]> {
+// 유저별 게시글 페이징 응답 타입
+export interface UserPostsPage<T> {
+  userId: string;
+  nickname: string;
+  posts: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
+
+// 전체 PageResponse를 그대로 반환
+export async function getBlogsPage(
+  page = 0,
+  size = 6,
+  sort = 'createdAt,DESC',
+): Promise<PageResponse<Blog>> {
   const res: APIResponse<PageResponse<Blog>> = await apiClient('/api/blogs', {
     method: 'GET',
+    params: { page, size, sort },
   })
-  if (!res.success) throw new Error(res.message)
-  return res.data!.content
+  if (!res.success) {
+    throw new Error(res.message)
+  }
+  return res.data!
+}
+
+// content만 가져오는 함수
+export async function getBlogs(
+  page = 0,
+  size = 6,
+  sort = 'createdAt,DESC',
+): Promise<Blog[]> {
+  const pageData = await getBlogsPage(page, size, sort)
+  return pageData.content
 }
 
 // 아이디에 해당하는 글을 가져옴
@@ -84,12 +113,46 @@ export async function deleteBlog(id: number): Promise<void> {
   if (!res.success) throw new Error(res.message)
 }
 
-// 유저의 모든 글을 가져옴
-export async function getPostsByUser(userId: string): Promise<Blog[]> {
-  const res: APIResponse<UserPostsResponse> = await apiClient(
+// 유저의 게시글을 페이지네이션으로 가져옴 (카테고리 필터 추가)
+export async function getPostsByUserPage(
+  userId: string,
+  page = 0,
+  size = 6,
+  sort = 'createdAt,DESC',
+  categoryId?: number,
+): Promise<UserPostsPage<Blog>> {
+  // 기본 params
+  const params: Record<string, string | number> = { page, size, sort };
+  // categoryId가 있으면 추가
+  if (categoryId !== undefined) {
+    params.categoryId = categoryId;
+  }
+
+  const res: APIResponse<UserPostsPage<Blog>> = await apiClient(
     `/api/blogs/users/${userId}`,
-    { method: 'GET' }
-  )
-  if (!res.success) throw new Error(res.message)
-  return res.data!.posts
+    {
+      method: 'GET',
+      params,
+    }
+  );
+  if (!res.success) throw new Error(res.message);
+  return res.data!;
+}
+
+// 유저의 게시글 중 content만 반환 (카테고리 필터 추가)
+export async function getPostsByUserContent(
+  userId: string,
+  page = 0,
+  size = 6,
+  sort = 'createdAt,DESC',
+  categoryId?: number,
+): Promise<Blog[]> {
+  const pageData = await getPostsByUserPage(
+    userId,
+    page,
+    size,
+    sort,
+    categoryId,
+  );
+  return pageData.posts;
 }

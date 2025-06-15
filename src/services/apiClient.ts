@@ -6,6 +6,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 interface FetchOptions extends Omit<RequestInit, 'headers'> {
   retry?: boolean;
+  params?: Record<string, string | number>;
 }
 
 // api 요청을 처리(토큰 만료 처리 포함)
@@ -13,7 +14,15 @@ export async function apiClient<T = any>(
   path: string,
   options: FetchOptions = {}
 ): Promise<APIResponse<T>> {
-  const { retry = true, ...init } = options;
+  const { retry = true, params, ...init } = options;
+
+  // url 생성(쿼리 파라미터 포함)
+  const url = new URL(`${BASE_URL}${path}`);
+  if (params) {
+    Object.entries(params).forEach(([key, val]) =>
+      url.searchParams.append(key, String(val))
+    );
+  }
 
   // Access Token 헤더 추가
   const token = localStorage.getItem('accessToken');
@@ -23,7 +32,7 @@ export async function apiClient<T = any>(
   };
 
   // 서버로 요청
-  const res = await fetch(`${BASE_URL}${path}`, {
+  const res = await fetch(url.toString(), {
     ...init,
     headers,
     credentials: 'include',

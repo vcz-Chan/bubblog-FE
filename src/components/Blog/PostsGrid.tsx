@@ -6,12 +6,12 @@ import { PostCard } from '../Post/PostCard'
 import Link from 'next/link'
 
 interface Props {
-  posts: Blog[]
+  posts?: Blog[]
   isMyBlog: boolean
   onDelete: (id: number) => void
 }
 
-export function PostsGrid({ posts, isMyBlog, onDelete }: Props) {
+export function PostsGrid({ posts = [], isMyBlog, onDelete }: Props) {
   if (posts.length === 0) {
     return <p className="text-center text-gray-500">등록된 글이 없습니다.</p>
   }
