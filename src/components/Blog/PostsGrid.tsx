@@ -1,4 +1,3 @@
-// components/BlogPage/PostsGrid.tsx
 'use client'
 
 import { Blog } from '@/services/blogService'

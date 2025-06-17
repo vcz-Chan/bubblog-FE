@@ -1,4 +1,3 @@
-// services/categoryService.ts
 import { apiClient } from './apiClient'
 import { APIResponse } from '@/utils/types'
 

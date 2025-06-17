@@ -14,10 +14,12 @@ export function PostList({ posts }: PostListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {posts.map(post => (
-        <PostCard key={post.id} post={post} />
+    <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+      {posts.map((post) => (
+        <li key={post.id} className="w-full">
+          <PostCard post={post} />
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }

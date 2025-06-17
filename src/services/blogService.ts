@@ -1,4 +1,3 @@
-// services/blogService.ts
 import { apiClient } from './apiClient'
 import { APIResponse, PageResponse } from '@/utils/types'
 
@@ -119,12 +118,12 @@ export async function getPostsByUserPage(
   page = 0,
   size = 6,
   sort = 'createdAt,DESC',
-  categoryId?: number,
+  categoryId?: number | null,
 ): Promise<UserPostsPage<Blog>> {
   // 기본 params
   const params: Record<string, string | number> = { page, size, sort };
   // categoryId가 있으면 추가
-  if (categoryId !== undefined) {
+  if (categoryId !== undefined && categoryId !== null) {
     params.categoryId = categoryId;
   }
 

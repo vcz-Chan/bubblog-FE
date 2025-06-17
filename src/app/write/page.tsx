@@ -6,9 +6,8 @@ export default async function WritePage({
 }: {
   searchParams: Promise<{ postId?: string }>;  
 }) {
-  // searchParams 전체를 먼저 await
   const params = await searchParams;
-  const postId = params.postId;  // 이제 에러 없음
+  const postId = params.postId; 
 
   let blog = null;
   if (postId) {
