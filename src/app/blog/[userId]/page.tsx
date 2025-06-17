@@ -38,7 +38,7 @@ export default function BlogPage() {
   // --- 정렬 · 페이지 · 카테고리 필터 상태 ---
   const [sort, setSort] = useState('createdAt,DESC');
   const [page, setPage] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null);
 
   // --- 삭제 모달 상태 ---
   const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null);
@@ -47,7 +47,7 @@ export default function BlogPage() {
 
   const size = 6;
 
-  // 1) 프로필 로드
+  // 프로필 로드
   useEffect(() => {
     if (!paramUserId) return;
     setLoadingUser(true);
@@ -57,7 +57,7 @@ export default function BlogPage() {
       .finally(() => setLoadingUser(false));
   }, [paramUserId]);
 
-  // 2) 카테고리 트리 로드
+  // 카테고리 트리 로드
   useEffect(() => {
     if (!paramUserId) return;
     setLoadingCats(true);
@@ -67,7 +67,7 @@ export default function BlogPage() {
       .finally(() => setLoadingCats(false));
   }, [paramUserId]);
 
-  // 3) 게시글 페이지 로드 함수
+  // 게시글 페이지 로드 함수
   const loadPostsPage = useCallback(async (pageNum: number) => {
     if (!paramUserId) return;
     setLoadingPosts(true);
@@ -78,7 +78,7 @@ export default function BlogPage() {
         pageNum,
         size,
         sort,
-        selectedCategory ?? undefined
+        selectedCategory?.id ?? null
       );
       setPosts(data.posts);
       setPageData(data);
@@ -89,19 +89,19 @@ export default function BlogPage() {
     }
   }, [paramUserId, sort, selectedCategory]);
 
-  // 4) 정렬·카테고리·유저 변경 시 첫 페이지부터 로드
+  // 정렬·카테고리·유저 변경 시 첫 페이지부터 로드
   useEffect(() => {
     setPage(0);
     loadPostsPage(0);
   }, [paramUserId, sort, selectedCategory, loadPostsPage]);
 
-  // 5) 페이지 변경 핸들러
+  // 페이지 변경 핸들러
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
     loadPostsPage(newPage);
   };
 
-  // 6) 삭제 핸들러
+  // 삭제 핸들러
   const handleDelete = (id: number) => {
     const t = posts.find(p => p.id === id) ?? null;
     setDeleteTarget(t);
@@ -119,7 +119,7 @@ export default function BlogPage() {
    return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
-      {isMyBlog && <BlogControls />}
+      {isMyBlog && <BlogControls userId={paramUserId} />}
 
       <div className="flex flex-wrap items-center justify-between gap-4">
         <CategoryFilterButton
