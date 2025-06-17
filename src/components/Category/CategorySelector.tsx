@@ -1,4 +1,3 @@
-// components/CategorySelector.tsx
 'use client'
 
 import type { JSX } from 'react'
@@ -26,8 +25,8 @@ interface Props {
   userId: string | null
   isOpen: boolean
   onClose: () => void
-  selectedCategory: number | null
-  setSelectedCategory: (id: number) => void
+  selectedCategory: CategoryNode | null
+  setSelectedCategory: (category: CategoryNode | null) => void
 }
 
 export function CategorySelector({
@@ -128,8 +127,8 @@ export function CategorySelector({
   }
 
   // 선택
-  const selectNode = (id: number) => {
-    setSelectedCategory(id)
+  const selectNode = (category: CategoryNode) => {
+    setSelectedCategory(category)
     onClose()
   }
 
@@ -209,8 +208,6 @@ export function CategorySelector({
     await updateCategory(id, { newParentId: undefined })
     loadTree()
   }
-
-  
 
   // 트리 렌더링 (재귀)
   const renderNodes = (
@@ -298,9 +295,9 @@ export function CategorySelector({
           ) : (
             <>
               <button
-                onClick={() => selectNode(node.id)}
+                onClick={() => selectNode(node)}
                 className={`flex-1 text-left text-sm py-1 ${
-                  selectedCategory === node.id
+                  selectedCategory?.id === node.id
                     ? 'font-bold underline text-purple-700'
                     : 'hover:underline text-gray-800'
                 }`}
@@ -396,7 +393,7 @@ export function CategorySelector({
   }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-10 overflow-y-auto">
       <div
         className="fixed inset-0 bg-black/40"
         onDragOver={onDragOver}

@@ -1,11 +1,16 @@
 'use client'
 
-interface Props {
-  selectedCategory: number | null
+import { CategoryNode } from "@/services/categoryService"
+
+interface CategoryFilterButtonProps {
+  selectedCategory: CategoryNode | null
   onOpen: () => void
 }
 
-export function CategoryFilterButton({ selectedCategory, onOpen }: Props) {
+export function CategoryFilterButton({
+  selectedCategory,
+  onOpen
+}: CategoryFilterButtonProps) {
   return (
     <div className="mb-6">
       <button
@@ -13,7 +18,7 @@ export function CategoryFilterButton({ selectedCategory, onOpen }: Props) {
         className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition"
       >
         {selectedCategory
-          ? `카테고리 필터: ${selectedCategory}`
+          ? `카테고리: ${selectedCategory.name}`
           : '카테고리 필터 열기'}
       </button>
     </div>
