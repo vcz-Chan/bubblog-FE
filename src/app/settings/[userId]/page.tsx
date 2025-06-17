@@ -9,6 +9,7 @@ import {
   UserProfile
 } from '@/services/userService'
 import { PersonaManager } from '@/components/Persona/PersonaManager'
+import ImageUploader from '@/components/Common/ImageUploader'
 
 export default function SettingsPage() {
   const { userId } = useAuth()
@@ -77,12 +78,20 @@ export default function SettingsPage() {
               />
             </div>
             <div>
-              <label className="block mb-1">프로필 이미지 URL</label>
-              <input
-                className="w-full border px-3 py-2 rounded"
-                value={profileImageUrl}
-                onChange={e => setProfileImageUrl(e.target.value)}
-              />
+              <label className="block mb-1">프로필 이미지</label>
+              <div className="flex flex-col items-start gap-2">
+                {profileImageUrl && (
+                  <img
+                    src={profileImageUrl}
+                    alt="프로필 미리보기"
+                    className="w-32 h-32 object-cover rounded-md border"
+                  />
+                )}
+                <ImageUploader
+                  folder="profile-images"
+                  onUploaded={(url: string) => setProfileImageUrl(url)}
+                />
+              </div>
             </div>
             <div className="flex gap-2">
               <button
