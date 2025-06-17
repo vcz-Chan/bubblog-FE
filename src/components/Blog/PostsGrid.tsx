@@ -22,7 +22,7 @@ export function PostsGrid({ posts = [], isMyBlog, onDelete }: Props) {
           {isMyBlog && (
             <>
               <Link
-                href={`/edit/${post.id}`}
+                href={`/write?postId=${post.id}`}
                 className="text-green-600 hover:underline text-sm"
               >
                 수정

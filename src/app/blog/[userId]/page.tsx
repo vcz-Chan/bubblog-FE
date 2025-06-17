@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { getUserProfile, UserProfile } from '@/services/userService';
-import { getPostsByUserPage, UserPostsPage, Blog } from '@/services/blogService';
+import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/services/blogService';
 import { getCategoryTree, CategoryNode } from '@/services/categoryService';
 
 import { UserProfileHeader } from '@/components/Blog/UserProfileHeader';
@@ -106,8 +106,14 @@ export default function BlogPage() {
     const t = posts.find(p => p.id === id) ?? null;
     setDeleteTarget(t);
   };
-  const confirmDelete = () => {
+
+  const confirmDelete = async () => {
     if (!deleteTarget) return;
+    try {
+      await deleteBlog(deleteTarget.id);
+    } catch {
+      alert('삭제에 실패했습니다.');
+    }
     setPosts(prev => prev.filter(p => p.id !== deleteTarget.id));
     setDeleteTarget(null);
   };
