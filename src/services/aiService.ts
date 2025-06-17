@@ -130,7 +130,7 @@ export async function askChat(
         continue;
       }
       if (eventName === 'answer') {
-        let chunk = raw.replace(/^'+|'+$/g, '');
+        const chunk = raw.replace(/^'+|'+$/g, '');
         const t = chunk.trim();
         if (!['{"', '}', 'text', '":"', '\\"'].includes(t)) {
           onAnswerChunk(chunk === '\\"' ? ' "' : chunk);
