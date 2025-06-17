@@ -20,6 +20,7 @@ import {
   MinusSmallIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Props {
   userId: string | null
@@ -36,6 +37,8 @@ export function CategorySelector({
   selectedCategory,
   setSelectedCategory,
 }: Props) {
+  const { userId: authUserId } = useAuth()
+  const isOwner = authUserId === userId
   const [tree, setTree] = useState<CategoryNode[]>([])
   const [filteredTree, setFilteredTree] = useState<CategoryNode[]>([])
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set())
@@ -127,7 +130,7 @@ export function CategorySelector({
   }
 
   // 선택
-  const selectNode = (category: CategoryNode) => {
+  const selectNode = (category: CategoryNode | null) => {
     setSelectedCategory(category)
     onClose()
   }
@@ -145,9 +148,19 @@ export function CategorySelector({
       setCreatingParentId(null)
       return
     }
-    await createCategory({ name, parentId: creatingParentId ?? undefined })
+    await createCategory({
+      name,
+      parentId: creatingParentId === null ? undefined : creatingParentId,
+    })
+    cancelCreate()
     loadTree()
     setCreatingParentId(null)
+  }
+
+  // 루트 생성 시작
+  const startCreatingRoot = () => {
+    setCreatingParentId(null)
+    setNewName('')
   }
 
   // 생성 취소
@@ -205,7 +218,7 @@ export function CategorySelector({
   const onDropRoot = async (e: DragEvent) => {
     e.preventDefault()
     const id = Number(e.dataTransfer.getData('categoryId'))
-    await updateCategory(id, { newParentId: undefined })
+    await updateCategory(id, { newParentId: 0 }) // 0은 최상위로 이동
     loadTree()
   }
 
@@ -226,6 +239,16 @@ export function CategorySelector({
       // 현재 생성 중인 자식
       const isCreatingHere = creatingParentId === node.id
 
+      // 드래그 가능 여부
+      const dragProps = isOwner
+        ? {
+            draggable: true,
+            onDragStart: (e: DragEvent) => onDragStart(e, node),
+            onDragOver,
+            onDrop: (e: DragEvent) => onDropNode(e, node),
+          }
+        : {}
+
       // 공통 컨테이너 스타일: 테두리, 배경, 패딩, rounded
       const containerClass =
         'flex items-center space-x-2 mb-1 border border-gray-300 rounded-lg px-1 py-3 bg-white hover:bg-gray-50'
@@ -239,9 +262,7 @@ export function CategorySelector({
           style={indentStyle}
           className={containerClass}
           draggable
-          onDragStart={(e) => onDragStart(e, node)}
-          onDragOver={onDragOver}
-          onDrop={(e) => onDropNode(e, node)}
+          {...dragProps}
         >
           {/* 확장/접기 아이콘 */}
           {hasChildren ? (
@@ -305,27 +326,30 @@ export function CategorySelector({
                 {node.name}
               </button>
               {/* 인라인 생성/수정/삭제 아이콘 */}
-              <button
-                onClick={() => startCreating(node.id)}
-                className="w-6 h-6 flex items-center justify-center text-green-600 hover:text-green-800"
-                aria-label="하위 카테고리 추가"
-              >
-                <PlusCircleIcon className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => startEditing(node)}
-                className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-blue-800"
-                aria-label="카테고리 이름 수정"
-              >
-                <PencilSquareIcon className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => deleteNodeById(node)}
-                className="w-6 h-6 flex items-center justify-center text-red-600 hover:text-red-800"
-                aria-label="카테고리 삭제"
-              >
-                <TrashIcon className="w-5 h-5" />
-              </button>
+              {isOwner && (
+              <>
+                <button
+                  onClick={() => startCreating(node.id)}
+                  className="w-6 h-6 flex items-center justify-center text-green-600 hover:text-green-800"
+                  aria-label="하위 카테고리 추가"
+                >
+                  <PlusCircleIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => startEditing(node)}
+                  className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-blue-800"
+                  aria-label="카테고리 이름 수정"
+                >
+                  <PencilSquareIcon className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => deleteNodeById(node)}
+                  className="w-6 h-6 flex items-center justify-center text-red-600 hover:text-red-800"
+                  aria-label="카테고리 삭제"
+                >
+                  <TrashIcon className="w-5 h-5" />
+                </button>
+               </>)}
             </>
           )}
         </div>
@@ -375,23 +399,6 @@ export function CategorySelector({
     })
   }
 
-  // 루트 레벨에서 생성 버튼과 인라인 폼
-  const renderRootCreation = (): JSX.Element | null => {
-    if (creatingParentId !== null) return null
-
-    return (
-      <div className="flex items-center space-x-2 mb-2">
-        <button
-          onClick={() => startCreating(null)}
-          className="flex items-center space-x-1 text-green-600 hover:text-green-800"
-        >
-          <PlusCircleIcon className="w-5 h-5" />
-          <span className="text-sm">최상위 추가</span>
-        </button>
-      </div>
-    )
-  }
-
   return (
     <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-10 overflow-y-auto">
       <div
@@ -431,24 +438,80 @@ export function CategorySelector({
 
           {!loading && !error && (
             <div>
-              {/* 최상위 드롭 영역 */}
-              <div className="mb-2">
-                <div
-                  className="border border-dashed border-gray-300 p-2 text-center text-sm text-gray-600"
-                  onDragOver={onDragOver}
-                  onDrop={onDropRoot}
+              <div className="mb-4">
+                <button
+                  onClick={() => selectNode(null)}
+                  className={`
+                    w-full
+                    px-5 py-2
+                    rounded-full
+                    text-sm font-medium
+                    transition
+                    ${selectedCategory
+                      ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    }
+                  `}
                 >
-                  여기에 드롭 시 최상위로 이동
-                </div>
+                  {selectedCategory ? '클릭 시 카테고리 선택 해제' : '전체 카테고리 선택 중'}
+                </button>
               </div>
+              {isOwner && (
+                <div className="mb-2">
+                  <div
+                    className="border border-dashed border-gray-300 p-2 text-center text-sm text-gray-600"
+                    onDragOver={onDragOver}
+                    onDrop={onDropRoot}
+                  >
+                    여기에 드롭 시 최상위로 이동
+                  </div>
+                </div>
+              )}
 
               {/* 최상위 생성 버튼 */}
-              {renderRootCreation()}
+              {isOwner && creatingParentId === undefined && (
+                <div className="flex items-center mb-2">
+                  <button
+                    onClick={startCreatingRoot}
+                    className="text-green-600 hover:text-green-800"
+                  >
+                    최상위 추가
+                  </button>
+                </div>
+              )}
 
               {/* 트리 목록 */}
               <div>
                 {renderNodes(filteredTree.length ? filteredTree : tree)}
               </div>
+
+              {/* 인라인 생성 폼 (루트 카테고리용) */}
+              {isOwner &&creatingParentId === null && (
+                <div
+                  key="create-root"
+                  className="mt-8 flex items-center space-x-2 mb-2 border rounded p-2 bg-white"
+                >
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    placeholder="새 루트 카테고리 추가"
+                    className="flex-1 border px-2 py-1 rounded text-sm"
+                  />
+                  <button
+                    onClick={confirmCreate}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    확인
+                  </button>
+                  <button
+                    onClick={cancelCreate}
+                    className="text-gray-600 hover:text-gray-800"
+                  >
+                    취소
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
