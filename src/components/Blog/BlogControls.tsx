@@ -4,7 +4,7 @@ import Link from 'next/link'
 
 export function BlogControls({userId}: { userId?: string }) {
   return (
-    <div className="flex gap-4 mb-6">
+    <div className="flex gap-4">
       <Link href="/write">
         <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
           새 글 작성

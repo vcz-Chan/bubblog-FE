@@ -118,9 +118,10 @@ export default function BlogPage() {
 
    return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
-      {isMyBlog && <BlogControls userId={paramUserId} />}
-
+      <div className='flex flex-col md:flex-row items-start md:items-center justify-between'>
+        {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
+        {isMyBlog && <BlogControls userId={paramUserId} />}
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-4">
         <CategoryFilterButton
           selectedCategory={selectedCategory}

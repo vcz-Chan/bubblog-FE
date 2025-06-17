@@ -11,7 +11,7 @@ interface Props {
 
 export function UserProfileHeader({ profile, isMyBlog }: Props) {
   return (
-    <div className="flex items-center gap-4 mb-6">
+    <div className="flex items-center gap-4">
       {profile.profileImageUrl ? (
         <Image
           src={profile.profileImageUrl}

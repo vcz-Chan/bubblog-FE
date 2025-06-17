@@ -14,6 +14,7 @@ import {
 } from '@/services/blogService';
 import ThumbnailUploader from '@/components/Post/ThumbnailUploader';
 import { getPresignedUrl, uploadToS3 } from '@/services/uploadService';
+import { CategoryNode } from '@/services/categoryService';
 
 interface Props {
   postId?: string;
@@ -30,32 +31,33 @@ export default function WritePostClient({ postId, initialData }: Props) {
   const [markdown, setMarkdown] = useState(
     initialData?.content ?? '# 여기에 글을 작성하세요\n'
   );
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(
-    initialData?.categoryId ?? null
+  const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(
+    initialData?.categoryId != null
+      ? { id: initialData.categoryId, name: '', children: [], root: false }
+      : null
   );
   const [thumbnailUrl, setThumbnailUrl] = useState(initialData?.thumbnailUrl ?? '');
   const [publicVisible, setPublicVisible] = useState(initialData?.publicVisible ?? true);
 
-  // 카테고리 모달 열림 상태
   const [isCatOpen, setIsCatOpen] = useState(false);
 
-  // 에디터 관련 ref
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
-  // 편집 모드라면 추가로 서버에서 불러오기 (초기Data가 없을 때)
   useEffect(() => {
-    if (!isEdit) return;
-    // initialData가 이미 넘어왔으면 이 useEffect는 생략해도 되지만,
-    // 혹시 서버 fetch 결과가 없을 경우를 대비해 남겨둡니다.
-    if (initialData) return;
+    if (!isEdit || initialData) return;
 
     getBlogById(Number(postId))
       .then((data: BlogDetail) => {
         setTitle(data.title);
         setSummary(data.summary);
         setMarkdown(data.content);
-        setSelectedCategory(data.categoryId);
+        setSelectedCategory({
+          id: data.categoryId,
+          name: '',
+          children: [],
+          root: false,
+        });
         setThumbnailUrl(data.thumbnailUrl);
         setPublicVisible(data.publicVisible);
       })
@@ -66,7 +68,7 @@ export default function WritePostClient({ postId, initialData }: Props) {
   }, [isEdit, postId, initialData, router]);
 
   const handleSave = async () => {
-    if (!title || !summary || !selectedCategory || !thumbnailUrl) {
+    if (!title || !summary || !selectedCategory?.id || !thumbnailUrl) {
       alert('제목, 요약, 카테고리, 썸네일은 필수입니다.');
       return;
     }
@@ -75,7 +77,7 @@ export default function WritePostClient({ postId, initialData }: Props) {
       title,
       summary,
       content: markdown,
-      categoryId: selectedCategory,
+      categoryId: selectedCategory.id,
       thumbnailUrl,
       publicVisible,
     };
@@ -95,7 +97,6 @@ export default function WritePostClient({ postId, initialData }: Props) {
     }
   };
 
-  // 마크다운 커서 위치에 텍스트 삽입
   const insertTextAtCursor = (
     text: string,
     selectStartOffset = 0,
@@ -118,19 +119,16 @@ export default function WritePostClient({ postId, initialData }: Props) {
     }, 0);
   };
 
-  // ─── 본문 에디터 드래그&드롭 핸들러 ───
   const handleEditorDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((f) => f.type.startsWith('image/'));
-    if (imageFiles.length === 0) return;
+    const images = files.filter((f) => f.type.startsWith('image/'));
+    if (images.length === 0) return;
 
-    for (const file of imageFiles) {
+    for (const file of images) {
       try {
         const timestamp = Date.now();
-        const sanitized = file.name.replace(/\s+/g, '_');
-        const key = `content-images/${timestamp}_${sanitized}`;
-
+        const key = `content-images/${timestamp}_${file.name.replace(/\s+/g, '_')}`;
         const { fileUrl: s3Url, uploadUrl: presignedUrl } = await getPresignedUrl(key, file.type);
         await uploadToS3(presignedUrl, file);
         insertTextAtCursor(`\n![이미지](${s3Url})\n`);
@@ -142,81 +140,91 @@ export default function WritePostClient({ postId, initialData }: Props) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6 ">
       <h1 className="text-3xl font-bold mb-6 text-purple-700">
         {isEdit ? '글 수정하기' : '글 작성하기'}
       </h1>
+      <div className="space-y-6 mb-6">
+        <div>
+          <label htmlFor="title" className="block mb-1 text-sm font-medium text-gray-700">
+            제목
+          </label>
+          <input
+            id="title"
+            type="text"
+            placeholder="제목을 입력하세요"
+            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
 
-      {/* 제목 입력 */}
-      <div className="mb-4">
-        <label>제목</label>
-        <input
-          className="w-full border p-2"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
+        <div className="flex flex-col md:flex-row">
+          <div className='flex-1 mr-0 md:mr-4 mb-4 md:mb-0'>
+            <label htmlFor="summary" className="block mb-1 text-sm font-medium text-gray-700">
+              요약
+            </label>
+            <textarea
+              id="summary"
+              placeholder="간단한 요약을 입력하세요"
+              className="block w-full border border-gray-300 rounded-md px-3 py-2 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="block mb-1 text-sm font-medium text-gray-700">썸네일</label>
+            <ThumbnailUploader
+              initialUrl={thumbnailUrl}
+              onChange={(url) => setThumbnailUrl(url)}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* 요약 입력 */}
-      <div className="mb-4">
-        <label>요약</label>
-        <textarea
-          className="w-full border p-2"
-          value={summary}
-          onChange={(e) => setSummary(e.target.value)}
-        />
-      </div>
-
-      {/* 카테고리 선택 */}
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-8">
         <button
           onClick={() => setIsCatOpen(true)}
           className="px-3 py-1 bg-indigo-600 text-white rounded-full"
         >
-          {selectedCategory ? `카테고리: ${selectedCategory}` : '카테고리 선택'}
+          {selectedCategory
+            ? `카테고리: ${selectedCategory.name || selectedCategory.id}`
+            : '카테고리 선택'}
         </button>
         <CategorySelector
           userId={userId}
           isOpen={isCatOpen}
           onClose={() => setIsCatOpen(false)}
           selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
+          setSelectedCategory={(cat) =>
+            setSelectedCategory(
+              cat ? {
+                id: cat.id,
+                name: '',
+                children: [],
+                root: false,
+              } : null
+            )
+          }
         />
-      </div>
-
-      {/* 썸네일 업로더 */}
-      <div className="mb-6">
-        <label className="block mb-1">썸네일</label>
-        <ThumbnailUploader
-          initialUrl={thumbnailUrl}
-          onChange={(url) => setThumbnailUrl(url)}
-        />
-      </div>
-
-      {/* 공개 여부 */}
-      <div className="mb-6">
         <label>
           <input
             type="checkbox"
             checked={publicVisible}
             onChange={(e) => setPublicVisible(e.target.checked)}
-          />
-          {' '}공개 여부
+          />{' '}
+          공개 여부
         </label>
       </div>
 
-      {/* ─── 에디터 툴바 ─── */}
       <div className="mb-4 flex items-center gap-2">
         <EditorToolbar
           imageInputRef={imageInputRef}
-          insertImage={(url: string) =>
-            insertTextAtCursor(`\n![이미지](${url})\n`)
-          }
+          insertImage={(url: string) => insertTextAtCursor(`\n![이미지](${url})\n`)}
           insertTextAtCursor={insertTextAtCursor}
         />
       </div>
 
-      {/* ─── 드래그&드롭을 처리하기 위해 감싸는 <div> ─── */}
       <div
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleEditorDrop}
@@ -232,7 +240,6 @@ export default function WritePostClient({ postId, initialData }: Props) {
         </div>
       </div>
 
-      {/* 저장 버튼 */}
       <button
         className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-full shadow hover:bg-purple-700 transition-all"
         onClick={handleSave}
