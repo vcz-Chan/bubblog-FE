@@ -15,7 +15,7 @@ export async function askChat(
   question: string,
   userId: string,
   categoryId: number | null,
-  personaId: string | -1, 
+  personaId: number | -1, 
   onContext: (items: ContextItem[]) => void,
   onAnswerChunk: (chunk: string) => void,
   retry = true  // 재시도 가능 여부 플래그
@@ -34,7 +34,7 @@ export async function askChat(
       body: JSON.stringify({
         question,
         user_id: userId,
-        category_id: categoryId?.toString() ?? null,
+        category_id: categoryId ?? null,
         speech_tone: personaId,
       }),
     }

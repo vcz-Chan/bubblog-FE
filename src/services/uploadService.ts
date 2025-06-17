@@ -5,7 +5,6 @@ interface PresignedResponse {
   fileUrl: string;        // S3에 실제 저장될 객체 url
 }
 
-// 1) Presigned URL 요청하기
 export async function getPresignedUrl(
   fileName: string,
   contentType: string

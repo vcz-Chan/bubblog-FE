@@ -21,7 +21,7 @@ export function PersonaManager({ userId }: Props) {
   const [list, setList] = useState<Persona[]>([])
   const [newName, setNewName] = useState('')
   const [newDesc, setNewDesc] = useState('')
-  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [editName, setEditName] = useState('')
   const [editDesc, setEditDesc] = useState('')
   const [loading, setLoading] = useState(false)
@@ -47,7 +47,7 @@ export function PersonaManager({ userId }: Props) {
     }
   }
 
-  const save = async (id: string) => {
+  const save = async (id: number) => {
     try {
       const updated = await updatePersona(id, { name: editName, description: editDesc })
       setList(prev => prev.map(p => p.id === id ? updated : p))
@@ -57,7 +57,7 @@ export function PersonaManager({ userId }: Props) {
     }
   }
 
-  const remove = async (id: string) => {
+  const remove = async (id: number) => {
     try {
       await deletePersona(id)
       setList(prev => prev.filter(p => p.id !== id))

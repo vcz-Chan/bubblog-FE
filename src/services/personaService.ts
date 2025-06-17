@@ -2,7 +2,7 @@ import { apiClient } from './apiClient'
 import { APIResponse } from '@/utils/types'
 
 export interface Persona {
-  id: string
+  id: number
   name: string
   description: string
 }
@@ -36,7 +36,7 @@ export async function createPersona(params: {
 }
 
 export async function updatePersona(
-  personaId: string,
+  personaId: number,
   params: { name: string; description: string }
 ): Promise<Persona> {
   const res: APIResponse<Persona> = await apiClient(
@@ -52,7 +52,7 @@ export async function updatePersona(
   return res.data!
 }
 
-export async function deletePersona(personaId: string): Promise<void> {
+export async function deletePersona(personaId: number): Promise<void> {
   const res: APIResponse<null> = await apiClient(
     `/api/personas/${personaId}`,
     { method: 'DELETE' }
