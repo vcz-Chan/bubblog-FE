@@ -25,7 +25,7 @@ export async function updateUserProfile(params: {
   const res: APIResponse<UserProfile> = await apiClient(
     `/api/users/me`,
     {
-      method: 'PATCH',
+      method: 'PUT',
       body: JSON.stringify(params),
     }
   )
