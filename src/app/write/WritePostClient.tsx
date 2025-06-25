@@ -21,6 +21,7 @@ interface Props {
   initialData?: BlogDetail | null;
 }
 
+
 export default function WritePostClient({ postId, initialData }: Props) {
   const router = useRouter();
   const { userId } = useAuth();

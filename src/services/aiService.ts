@@ -1,3 +1,5 @@
+// ai서버에 질문을 보내고 답변을 받는 서비스
+// 토큰 만료시 재발급 후 재시도
 import { reissueToken, logout as logoutAPI } from './auth';
 
 export interface ContextItem {

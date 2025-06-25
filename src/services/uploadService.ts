@@ -1,3 +1,4 @@
+// 이미지 업로드 서비스
 import { apiClient } from './apiClient';
 
 interface PresignedResponse {

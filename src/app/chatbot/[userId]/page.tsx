@@ -120,7 +120,7 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className="flex flex-col max-w-3xl mx-auto p-6 h-full">
+    <div className="max-w-3xl p-6 w-full bg-white rounded-4xl">
       <ProfileHeader profile={profile} />
 
       <div className="flex gap-2 mb-4">

@@ -1,3 +1,4 @@
+// 리액트의 useContext를 이용해 사용자 인증 상태를 관리
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';

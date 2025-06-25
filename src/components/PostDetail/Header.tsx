@@ -7,6 +7,7 @@ interface Props {
   post: BlogDetail
 }
 
+// 블로그 글 상세 페이지의 헤더 컴포넌트
 export function PostDetailHeader({ post }: Props) {
   return (
     <header className="space-y-4 mb-8">

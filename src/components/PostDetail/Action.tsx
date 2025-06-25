@@ -8,6 +8,7 @@ interface Props {
   postId: number
 }
 
+// 블로그 글 상세 페이지의 액션 컴포넌트 
 export function PostDetailActions({ postId }: Props) {
   const router = useRouter()
 

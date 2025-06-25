@@ -1,3 +1,4 @@
+// 인증 관련 서비스
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // 회원 가입

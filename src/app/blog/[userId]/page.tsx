@@ -45,7 +45,7 @@ export default function BlogPage() {
   
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
 
-  const size = 6;
+  const size = 8;
 
   // 프로필 로드
   useEffect(() => {
@@ -123,84 +123,87 @@ export default function BlogPage() {
   if (errorUser)  return <p className="text-red-500">{errorUser}</p>;
 
    return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      <div className='flex flex-col md:flex-row items-start md:items-center justify-between'>
-        {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
-        {isMyBlog && <BlogControls userId={paramUserId} />}
-      </div>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <CategoryFilterButton
-          selectedCategory={selectedCategory}
-          onOpen={() => setIsCatModalOpen(true)}
-        />
-        <div className="flex items-center gap-3">
-          <select
-            value={sort}
-            onChange={e => setSort(e.target.value)}
-            className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="createdAt,DESC">🆕 최신순</option>
-            <option value="createdAt,ASC">📜 오래된순</option>
-            <option value="title,ASC">🔤 가나다순</option>
-          </select>
+    <div>
+      <main className="flex-1 w-full px-5 md:px-16 py-8">
+
+        <div className='flex flex-col md:flex-row items-start md:items-center justify-between'>
+          {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
+          {isMyBlog && <BlogControls userId={paramUserId} />}
         </div>
-      </div>
+        <div className="flex flex-wrap items-center justify-between my-2">
+          <CategoryFilterButton
+            selectedCategory={selectedCategory}
+            onOpen={() => setIsCatModalOpen(true)}
+          />
+          <div className="flex items-center gap-3">
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value)}
+              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="createdAt,DESC">최신순</option>
+              <option value="createdAt,ASC">오래된순</option>
+              <option value="title,ASC">가나다순</option>
+            </select>
+          </div>
+        </div>
 
-      {loadingPosts ? (
-        <p className="text-center">로딩 중…</p>
-      ) : errorPosts ? (
-        <p className="text-center text-red-500">{errorPosts}</p>
-      ) : (
-        <>
-          <PostsGrid posts={posts} isMyBlog={isMyBlog} onDelete={handleDelete} />
+        {loadingPosts ? (
+          <p className="text-center">로딩 중…</p>
+        ) : errorPosts ? (
+          <p className="text-center text-red-500">{errorPosts}</p>
+        ) : (
+          <>
+            <PostsGrid posts={posts} isMyBlog={isMyBlog} onDelete={handleDelete} />
 
-          {/* 페이지네이션 */}
-          {pageData && (
-            <nav className="py-4 flex justify-center space-x-2">
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 0}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                이전
-              </button>
-              {Array.from({ length: pageData.totalPages }, (_, idx) => (
+            {/* 페이지네이션 */}
+            {pageData && (
+              <nav className="py-4 flex justify-center space-x-2">
                 <button
-                  key={idx}
-                  onClick={() => handlePageChange(idx)}
-                  className={`px-3 py-1 border rounded ${
-                    idx === page ? 'font-bold underline text-blue-600' : ''
-                  }`}
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 0}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
                 >
-                  {idx + 1}
+                  이전
                 </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={pageData.last}
-                className="px-3 py-1 border rounded disabled:opacity-50"
-              >
-                다음
-              </button>
-            </nav>
-          )}
-        </>
-      )}
+                {Array.from({ length: pageData.totalPages }, (_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handlePageChange(idx)}
+                    className={`px-3 py-1 border rounded ${
+                      idx === page ? 'font-bold underline text-blue-600' : ''
+                    }`}
+                  >
+                    {idx + 1}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={pageData.last}
+                  className="px-3 py-1 border rounded disabled:opacity-50"
+                >
+                  다음
+                </button>
+              </nav>
+            )}
+          </>
+        )}
 
-      <DeleteModal
-        isOpen={!!deleteTarget}
-        title={deleteTarget?.title}
-        onCancel={() => setDeleteTarget(null)}
-        onConfirm={confirmDelete}
-      />
+        <DeleteModal
+          isOpen={!!deleteTarget}
+          title={deleteTarget?.title}
+          onCancel={() => setDeleteTarget(null)}
+          onConfirm={confirmDelete}
+        />
 
-      <CategorySelector
-        userId={paramUserId!}
-        isOpen={isCatModalOpen}
-        onClose={() => setIsCatModalOpen(false)}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+        <CategorySelector
+          userId={paramUserId!}
+          isOpen={isCatModalOpen}
+          onClose={() => setIsCatModalOpen(false)}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      </main>
     </div>
   );
 }

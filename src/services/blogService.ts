@@ -1,3 +1,4 @@
+// 블로그 글을 가져오고 생성, 수정, 삭제하는 서비스
 import { apiClient } from './apiClient'
 import { APIResponse, PageResponse } from '@/utils/types'
 
@@ -7,6 +8,8 @@ export interface Blog {
   summary: string
   thumbnailUrl: string
   createdAt: string
+  viewCount: number,
+  likeCount: number,
   userId: string
 }
 
@@ -47,7 +50,7 @@ export interface UserPostsPage<T> {
 // 전체 PageResponse를 그대로 반환
 export async function getBlogsPage(
   page = 0,
-  size = 6,
+  size = 8,
   sort = 'createdAt,DESC',
 ): Promise<PageResponse<Blog>> {
   const res: APIResponse<PageResponse<Blog>> = await apiClient('/api/blogs', {
@@ -63,7 +66,7 @@ export async function getBlogsPage(
 // content만 가져오는 함수
 export async function getBlogs(
   page = 0,
-  size = 6,
+  size = 8,
   sort = 'createdAt,DESC',
 ): Promise<Blog[]> {
   const pageData = await getBlogsPage(page, size, sort)
@@ -116,7 +119,7 @@ export async function deleteBlog(id: number): Promise<void> {
 export async function getPostsByUserPage(
   userId: string,
   page = 0,
-  size = 6,
+  size = 8,
   sort = 'createdAt,DESC',
   categoryId?: number | null,
 ): Promise<UserPostsPage<Blog>> {
@@ -142,7 +145,7 @@ export async function getPostsByUserPage(
 export async function getPostsByUserContent(
   userId: string,
   page = 0,
-  size = 6,
+  size = 8,
   sort = 'createdAt,DESC',
   categoryId?: number,
 ): Promise<Blog[]> {

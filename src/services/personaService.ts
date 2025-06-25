@@ -1,3 +1,4 @@
+// 챗봇 말투(인격)을 관리하는 서비스
 import { apiClient } from './apiClient'
 import { APIResponse } from '@/utils/types'
 

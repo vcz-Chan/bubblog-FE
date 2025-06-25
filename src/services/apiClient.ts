@@ -1,3 +1,4 @@
+// 서버에 api 요청을 보내고, 토큰 만료 시 재발급 처리하는 클라이언트 함수
 import { reissueToken, logout as logoutAPI } from './auth';
 import { APIResponse } from '@/utils/types';
 

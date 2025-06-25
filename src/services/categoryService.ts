@@ -1,3 +1,4 @@
+// 카테고리를 생성, 수정, 삭제하는 서비스
 import { apiClient } from './apiClient'
 import { APIResponse } from '@/utils/types'
 

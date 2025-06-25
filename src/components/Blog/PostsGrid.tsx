@@ -16,14 +16,14 @@ export function PostsGrid({ posts = [], isMyBlog, onDelete }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 lg:grid-cols-4 lg:gap-6">
       {posts.map(post => (
         <PostCard key={post.id} post={post}>
           {isMyBlog && (
             <>
               <Link
                 href={`/write?postId=${post.id}`}
-                className="text-green-600 hover:underline text-sm"
+                className="m-0 text-green-600 hover:underline text-sm"
               >
                 수정
               </Link>

@@ -55,7 +55,7 @@ export default function SearchBar() {
   }, []);
 
   return (
-    <div ref={ref} className="relative w-full max-w-md">
+    <div ref={ref} className="relative w-full max-w-md pr-2">
       <form
         onSubmit={handleSubmit}
         className="flex items-center bg-white rounded-full px-4 py-2"

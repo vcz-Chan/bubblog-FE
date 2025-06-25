@@ -139,7 +139,7 @@ export function EditorToolbar({
         <HrIcon size={20} />
       </ButtonWithTooltip>
 
-      {/* 이미지 업로드 버튼 (이 버튼만 클릭 시 파일선택창이 뜹니다) */}
+      {/* 이미지 업로드 버튼 (이 버튼 클릭 시 파일선택창) */}
       <Tooltip.Provider>
         <Tooltip.Root>
           <Tooltip.Trigger asChild>
@@ -165,7 +165,7 @@ export function EditorToolbar({
         </Tooltip.Root>
       </Tooltip.Provider>
 
-      {/* 실제 input[type="file"]: 화면에는 보이지 않으며, 오로지 ‘이미지’ 버튼을 통해 클릭된다 */}
+      {/* 실제 input[type="file"]: 화면에는 보이지 않으며, 오로지 ‘이미지’ 버튼을 통해 클릭 */}
       <input
         type="file"
         accept="image/*"
