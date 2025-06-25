@@ -1,46 +1,68 @@
 'use client'
 
 import Link from 'next/link'
-import { BlogDetail } from '@/services/blogService'
+import {
+  EyeIcon,
+  HandThumbUpIcon,
+  UserIcon,
+  ArrowTopRightOnSquareIcon,
+} from '@heroicons/react/24/outline'
+import type { BlogDetail } from '@/services/blogService'
 
 interface Props {
   post: BlogDetail
 }
 
-// 블로그 글 상세 페이지의 헤더 컴포넌트
 export function PostDetailHeader({ post }: Props) {
   return (
-    <header className="space-y-4 mb-8">
+    <header className="mb-10 space-y-4">
       {/* 제목 */}
-      <h1 className="text-3xl font-bold text-gray-800">{post.title}</h1>
+      <h1 className="text-4xl font-extrabold text-gray-900">
+        {post.title}
+      </h1>
 
-      {/* 작성자·방문 버튼·날짜 */}
-      <div className="flex items-center text-sm text-gray-500 space-x-3">
-        <span className="flex items-center space-x-2">
-          <span>{post.nickname}</span>
-          <Link
-            href={`/blog/${post.userId}`}
-            className="
-              text-xs font-medium
-              px-2 py-1
-              bg-blue-100 text-blue-600
-              rounded
-              hover:bg-blue-200
-              transition
-            "
-          >
-            블로그 방문
-          </Link>
-        </span>
-        <span>•</span>
-        <time dateTime={post.createdAt}>
-          {new Date(post.createdAt).toLocaleString()}
-        </time>
+      {/* 작성자 & 블로그 방문 */}
+      <div className="flex flex-wrap justify-end items-center gap-4 text-sm text-gray-600">
+        <div className="flex items-center gap-2">
+          <UserIcon className="h-6 w-6 text-gray-400" />
+          <span className="font-medium text-gray-700">
+            {post.nickname}
+          </span>
+        </div>
+        <Link
+          href={`/blog/${post.userId}`}
+          className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 transition"
+        >
+          블로그 방문
+          <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+        </Link>
       </div>
 
-      {/* 카테고리 */}
-      <div className="text-sm text-gray-600">
-        카테고리: {post.categoryList.join(' > ')}
+      {/* 카테고리 & 통계 정보 */}
+      <div className="
+        flex flex-col md:flex-row md:items-center
+        justify-between text-sm text-gray-500
+        space-y-2 md:space-y-0
+      ">
+        {/* 카테고리 */}
+        <div className="text-gray-600">
+          카테고리: {post.categoryList.join(' > ')}
+        </div>
+
+        {/* 조회수 · 좋아요 · 날짜 */}
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-1">
+            <EyeIcon className="h-5 w-5 text-gray-600" />
+            <span>{post.viewCount}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <HandThumbUpIcon className="h-5 w-5 text-gray-600" />
+            <span>{post.likeCount}</span>
+          </div>
+          <time dateTime={post.createdAt} className="whitespace-nowrap">
+            {new Date(post.createdAt).toLocaleString()}
+          </time>
+        </div>
       </div>
     </header>
   )

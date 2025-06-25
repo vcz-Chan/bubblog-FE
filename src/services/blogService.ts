@@ -158,3 +158,17 @@ export async function getPostsByUserContent(
   );
   return pageData.posts;
 }
+
+// 조회수 증가
+export async function putPostView(postId: number): Promise<void> {
+  await apiClient(`/api/blogs/${postId}/view`, {
+    method: 'PUT',
+  })
+}
+
+// 좋아요 증가
+export async function putPostLike(postId: number): Promise<void> {
+  await apiClient(`/api/blogs/${postId}/like`, {
+    method: 'PUT',
+  })
+}

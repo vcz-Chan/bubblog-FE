@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
-import { getBlogById, BlogDetail } from '@/services/blogService'
+import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/services/blogService'
 
 import { PostDetailHeader } from '@/components/PostDetail/Header'
 import { PostDetailBody }   from '@/components/PostDetail/Body'
 import { PostDetailActions } from '@/components/PostDetail/Action'
+import { PostNavbar } from '@/components/PostDetail/PostNavbar'
 
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
@@ -17,6 +18,7 @@ export default function PostDetailPage() {
   const [post, setPost] = useState<BlogDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [liked, setLiked]     = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -30,6 +32,35 @@ export default function PostDetailPage() {
       .finally(() => setLoading(false))
   }, [isAuthenticated, postId])
 
+  // 조회수
+  useEffect(() => {
+    if (!post) return
+
+    const timer = setTimeout(() => {
+      putPostView(post.id).catch(console.error)
+    }, 30000)
+
+    return () => clearTimeout(timer)
+  }, [post])
+
+const handleLike = async () => {
+    if (!post) return
+
+    try {
+      if (liked) {
+        await putPostLike(post.id)
+        setPost({ ...post, likeCount: post.likeCount - 1 })
+        setLiked(false)
+      } else {
+        await putPostLike(post.id)
+        setPost({ ...post, likeCount: post.likeCount + 1 })
+        setLiked(true)
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   if (!isAuthenticated) return <p className="text-center py-20">로그인 중…</p>
   if (loading)           return <p className="text-center py-20">로딩 중…</p>
   if (error)             return <p className="text-center py-20 text-red-500">{error}</p>
@@ -38,8 +69,9 @@ export default function PostDetailPage() {
   const isMyPost = post.userId === userId
 
   return (
-    <article className="max-w-4xl mx-auto p-6 space-y-8">
+    <article className="w-full p-8 lg:px-40">
       <PostDetailHeader post={post} />
+      <PostNavbar post={post} liked={liked} onLike={handleLike} />
       <PostDetailBody    content={post.content} />
       {isMyPost && <PostDetailActions postId={post.id} />}
     </article>
