@@ -1,19 +1,30 @@
 'use client'
 
 import Link from 'next/link'
+import { Button } from "@/components/Common/Button"
+import {
+  PencilIcon,
+  Cog6ToothIcon
+} from '@heroicons/react/24/outline'
 
 export function BlogControls({userId}: { userId?: string }) {
   return (
     <div className="flex gap-4">
       <Link href="/write">
-        <button className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition">
+        <Button
+          variant='outline'
+        >
+          <PencilIcon className="h-5 w-5 mr-2" />
           새 글 작성
-        </button>
+        </Button>
       </Link>
       <Link href={`/settings/${userId}`}>
-        <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition">
+        <Button
+          variant='outline'
+        >
+          <Cog6ToothIcon className="h-5 w-5 mr-2" />
           블로그 설정
-        </button>
+        </Button>
       </Link>
     </div>
   )

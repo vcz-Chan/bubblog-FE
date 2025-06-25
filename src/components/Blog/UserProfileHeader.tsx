@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { UserProfile } from '@/services/userService'
+import { Button } from '../Common/Button'
 
 interface Props {
   profile: UserProfile
@@ -29,10 +30,12 @@ export function UserProfileHeader({ profile, isMyBlog }: Props) {
         {isMyBlog ? '내 블로그' : `${profile.nickname}님의 블로그`}
       </h1>
       <Link
-        href={`/chatbot/${profile.userId}`}
-        className="text-sm px-2 py-1 bg-indigo-100 text-indigo-600 rounded hover:bg-indigo-200 transition"
+        href={`/chatbot/${profile.userId}`} 
       >
+        <Button
+        className='bg-indigo-600 text-black'>
         챗봇 방문
+        </Button>
       </Link>
     </div>
   )

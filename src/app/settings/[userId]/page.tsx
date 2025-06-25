@@ -1,6 +1,7 @@
+// components/SettingsPage.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, FormEvent } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import {
   getUserProfile,
@@ -10,16 +11,23 @@ import {
 } from '@/services/userService'
 import { PersonaManager } from '@/components/Persona/PersonaManager'
 import ImageUploader from '@/components/Common/ImageUploader'
+import { Button } from '@/components/Common/Button'
+import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
-  const { userId } = useAuth()
+  const { userId, logout } = useAuth()
+  const router = useRouter()
 
-  // --- 프로필 ---
+  // 프로필 상태
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [nickname, setNickname] = useState('')
   const [profileImageUrl, setProfileImageUrl] = useState('')
   const [loadingProfile, setLoadingProfile] = useState(false)
   const [errorProfile, setErrorProfile] = useState<string | null>(null)
+
+  // 탈퇴 확인 모달 상태
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
   // 프로필 로드
   useEffect(() => {
@@ -49,72 +57,118 @@ export default function SettingsPage() {
   }
 
   // 계정 삭제
-  const withdraw = async () => {
+  const handleWithdraw = async () => {
     try {
       await deleteUserAccount()
-      // 로그아웃 처리하거나 리디렉션
+      await logout()
+      router.replace('/')
     } catch (e: any) {
       setErrorProfile(e.message)
     }
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-12">
-      {/* 프로필 섹션 */}
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">프로필 설정</h2>
+    <div className="max-w-3xl mx-auto p-6 space-y-8">
+      {/* 프로필 설정 섹션 */}
+      <section className="bg-white rounded-xl shadow-md p-6">
+        <h2 className="text-2xl font-bold mb-4 border-b pb-2">
+          프로필 설정
+        </h2>
+
         {loadingProfile ? (
-          <p>로딩 중…</p>
+          <p className="text-center text-gray-500">로딩 중…</p>
         ) : errorProfile ? (
           <p className="text-red-600">{errorProfile}</p>
-        ) : profile && (
-          <div className="space-y-4">
-            <div>
-              <label className="block mb-1">닉네임</label>
-              <input
-                className="w-full border px-3 py-2 rounded"
-                value={nickname}
-                onChange={e => setNickname(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block mb-1">프로필 이미지</label>
-              <div className="flex flex-col items-start gap-2">
+        ) : profile ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* 닉네임 입력 */}
+              <div>
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  닉네임
+                </label>
+                <input
+                  type="text"
+                  value={nickname}
+                  onChange={e => setNickname(e.target.value)}
+                  className="
+                    w-full rounded-md border border-gray-200
+                    px-4 py-2 text-gray-800
+                    focus:outline-none focus:ring-2 focus:ring-blue-300
+                  "
+                />
+              </div>
+
+              {/* 프로필 이미지 업로더 */}
+              <div className="flex flex-col items-start">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  프로필 이미지
+                </label>
                 {profileImageUrl && (
-                  <img
+                  <Image
                     src={profileImageUrl}
                     alt="프로필 미리보기"
-                    className="w-32 h-32 object-cover rounded-md border"
+                    width={100}
+                    height={100}
+                    className="rounded-full object-cover border mb-2"
                   />
                 )}
                 <ImageUploader
                   folder="profile-images"
-                  onUploaded={(url: string) => setProfileImageUrl(url)}
+                  onUploaded={url => setProfileImageUrl(url)}
                 />
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                className="px-4 py-2 bg-blue-600 text-white rounded"
-                onClick={saveProfile}
-              >
-                저장
-              </button>
-              <button
-                className="px-4 py-2 bg-red-600 text-white rounded"
-                onClick={withdraw}
+
+            {/* 저장 / 탈퇴 버튼 */}
+            <div className="flex justify-end gap-4">
+              <Button
+                variant="outline"
+                className="text-red-600 hover:bg-red-50"
+                onClick={() => setConfirmOpen(true)}
               >
                 탈퇴
-              </button>
+              </Button>
+              <Button onClick={saveProfile}>저장</Button>
             </div>
           </div>
-        )}
+        ) : null}
       </section>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">페르소나 설정</h2>
+      {/* 페르소나 설정 섹션 */}
+      <section className="bg-white rounded-xl shadow-md p-6">
+        <h2 className="text-2xl font-bold mb-4 border-b pb-2">
+          페르소나 설정
+        </h2>
         {userId && <PersonaManager userId={userId} />}
       </section>
+
+      {/* 탈퇴 확인 모달 */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg p-6 w-80 space-y-4">
+            <h3 className="text-lg font-semibold">정말 계정을 삭제하시겠습니까?</h3>
+            <p className="text-sm text-gray-600">
+              삭제된 계정은 복구할 수 없습니다.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="text-gray-700 hover:bg-gray-100"
+                onClick={() => setConfirmOpen(false)}
+              >
+                취소
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700"
+                onClick={handleWithdraw}
+              >
+                삭제
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

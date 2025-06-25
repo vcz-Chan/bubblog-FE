@@ -9,6 +9,13 @@ import {
   Persona
 } from '@/services/personaService'
 import { useAuth } from '@/contexts/AuthContext'
+import { Button } from '@/components/Common/Button'
+import {
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 
 interface Props {
   userId: string
@@ -27,11 +34,12 @@ export function PersonaManager({ userId }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // load personas
   useEffect(() => {
     if (!userId) return
     setLoading(true)
     getPersonasByUser(userId)
-      .then(data => setList(data))
+      .then(setList)
       .catch(err => setError(err.message))
       .finally(() => setLoading(false))
   }, [userId])
@@ -70,87 +78,135 @@ export function PersonaManager({ userId }: Props) {
   if (error)   return <p className="text-red-600">{error}</p>
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4 py-4">
       {isOwner && (
-        <div className="flex space-x-2">
-          <input
-            className="flex-1 border px-3 py-2 rounded"
-            placeholder="이름"
-            value={newName}
-            onChange={e => setNewName(e.target.value)}
-          />
-          <input
-            className="flex-2 border px-3 py-2 rounded"
-            placeholder="설명"
-            value={newDesc}
-            onChange={e => setNewDesc(e.target.value)}
-          />
-          <button
-            className="px-4 py-2 bg-green-600 text-white rounded"
-            onClick={add}
-          >
-            추가
-          </button>
+        <div className="flex flex-col md:flex-row items-start">
+          <div className="w-full md:w-1/3 md:pr-4">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              이름
+            </label>
+            <input
+              type="text"
+              placeholder="새 페르소나 이름"
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              className="
+                w-full bg-gray-100 rounded-md border-transparent
+                px-4 py-2 text-gray-800
+                focus:bg-white focus:ring-2 focus:ring-blue-300
+              "
+            />
+          </div>
+          <div className="w-full pt-4 md:w-2/3 md:pr-4 md:pt-0">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              설명
+            </label>
+            <input
+              type="text"
+              placeholder="설명 입력"
+              value={newDesc}
+              onChange={e => setNewDesc(e.target.value)}
+              className="
+                w-full bg-gray-100 rounded-md border-transparent
+                px-4 py-2 text-gray-800
+                focus:bg-white focus:ring-2 focus:ring-blue-300
+              "
+            />
+          </div>
+          <div className="flex-shrink-0 self-end">
+            <Button
+              onClick={add}
+              className="flex items-center gap-1"
+            >
+              <PlusIcon className="h-5 w-5" />
+              추가
+            </Button>
+          </div>
         </div>
       )}
 
-      <ul className="space-y-2">
+      <div className="flex flex-col gap-4">
         {list.map(p => (
-          <li key={p.id} className="flex items-center space-x-2">
+          <div
+            key={p.id}
+            className="
+              group relative bg-gray-50 p-4 rounded-lg shadow-sm
+              hover:shadow-md transition
+            "
+          >
             {editingId === p.id ? (
               <>
                 <input
-                  className="border px-2 py-1 rounded"
                   value={editName}
                   onChange={e => setEditName(e.target.value)}
+                  className="
+                    w-full mb-2 bg-white border border-gray-200
+                    px-3 py-2 rounded-md
+                    focus:outline-none focus:ring-2 focus:ring-blue-300
+                  "
                 />
                 <input
-                  className="flex-1 border px-2 py-1 rounded"
                   value={editDesc}
                   onChange={e => setEditDesc(e.target.value)}
+                  className="
+                    w-full mb-4 bg-white border border-gray-200
+                    px-3 py-2 rounded-md
+                    focus:outline-none focus:ring-2 focus:ring-blue-300
+                  "
                 />
-                <button
-                  className="px-3 py-1 bg-blue-500 text-white rounded"
-                  onClick={() => save(p.id)}
-                >
-                  저장
-                </button>
-                <button
-                  className="px-3 py-1 bg-gray-400 text-white rounded"
-                  onClick={() => setEditingId(null)}
-                >
-                  취소
-                </button>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    className="flex items-center gap-1"
+                    onClick={() => setEditingId(null)}
+                  >
+                    <XMarkIcon className="h-5 w-5" />
+                    취소
+                  </Button>
+                  <Button
+                    className="flex items-center gap-1"
+                    onClick={() => save(p.id)}
+                  >
+                    <PlusIcon className="h-5 w-5 rotate-45" />
+                    저장
+                  </Button>
+                </div>
               </>
             ) : (
               <>
-                <span className="font-medium">{p.name}</span>
-                <span className="text-gray-600 flex-1">{p.description}</span>
-                {isOwner && (
-                  <>
-                    <button
-                      className="px-2 py-1 bg-yellow-500 text-white rounded"
-                      onClick={() => {
-                        setEditingId(p.id)
-                        setEditName(p.name)
-                        setEditDesc(p.description)
-                      }}
-                    >
-                      수정
-                    </button>
-                    <button
-                      className="px-2 py-1 bg-red-500 text-white rounded"
-                      onClick={() => remove(p.id)}
-                    >
-                      삭제
-                    </button>
-                  </>
-                )}
+                <div className="flex justify-between items-start">
+                  <h3 className="text-lg font-semibold text-gray-800">
+                    {p.name}
+                  </h3>
+                  {isOwner && (
+                    <div className="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
+                      <button
+                        onClick={() => {
+                          setEditingId(p.id)
+                          setEditName(p.name)
+                          setEditDesc(p.description)
+                        }}
+                        aria-label="수정"
+                      >
+                        <PencilIcon className="h-5 w-5 text-gray-600 hover:text-blue-600" />
+                      </button>
+                      <button
+                        onClick={() => remove(p.id)}
+                        aria-label="삭제"
+                      >
+                        <TrashIcon className="h-5 w-5 text-gray-600 hover:text-red-600" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 text-gray-600">
+                  {p.description || <span className="italic text-gray-400">설명 없음</span>}
+                </p>
               </>
             )}
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   )
 }

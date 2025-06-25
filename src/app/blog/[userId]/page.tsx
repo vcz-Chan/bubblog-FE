@@ -126,7 +126,7 @@ export default function BlogPage() {
     <div>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
 
-        <div className='flex flex-col md:flex-row items-start md:items-center justify-between'>
+        <div className='flex flex-col md:flex-row gap-4 items-start md:items-center justify-between'>
           {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
           {isMyBlog && <BlogControls userId={paramUserId} />}
         </div>

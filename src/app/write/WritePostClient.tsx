@@ -141,8 +141,8 @@ export default function WritePostClient({ postId, initialData }: Props) {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 ">
-      <h1 className="text-3xl font-bold mb-6 text-purple-700">
+    <div className="w-full p-8 lg:px-40 ">
+      <h1 className="text-3xl font-bold mb-6">
         {isEdit ? '글 수정하기' : '글 작성하기'}
       </h1>
       <div className="space-y-6 mb-6">
