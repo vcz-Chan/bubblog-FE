@@ -8,7 +8,7 @@ interface Props {
   onChange: (v: string) => void
   onSubmit: (e: FormEvent) => void
   disabled: boolean
-  children: any
+  children: React.ReactNode
 }
 
 export function ChatInput({
@@ -41,9 +41,11 @@ export function ChatInput({
           "
         />
         <div className='flex items-center justify-between'>
+          {children && (
           <div>
             {children}
           </div>
+          )}
           <button
             type="submit"
             disabled={disabled}

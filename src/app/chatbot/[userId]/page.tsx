@@ -154,8 +154,8 @@ export default function ChatPage() {
         onChange={setInput}
         onSubmit={handleSubmit}
         disabled={isSending}
-        children={
-        <div className='flex gap-4 items-center'>
+      >
+         <div className='flex gap-4 items-center'>
           <CategoryFilterButton
           selectedCategory={selectedCategory}
           onOpen={() => setIsCatOpen(true)}
@@ -165,9 +165,7 @@ export default function ChatPage() {
             onOpen={() => setIsPersonaOpen(true)}
           />
         </div>
-        }
-      />
-
+      </ChatInput>
     </div>
   )
 }
