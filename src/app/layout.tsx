@@ -27,9 +27,12 @@ export default function RootLayout({
       <body
         className={`${nanumGothic.variable} font-nanum antialiased`}
       >
+        {/* 최상위에서 Provider로 감싸 인증 context를 모든 컴포넌트에 주입 */}
         <AuthProvider>
           <NavBar />
-          {children}  
+          <div className="min-h-screen bg-[rgb(244,246,248)] flex flex-col items-center">
+            {children}  
+          </div>
         </AuthProvider>
       </body>
     </html>

@@ -6,8 +6,7 @@ import { getBlogsPage, Blog } from '@/services/blogService';
 import { PageResponse } from '@/utils/types';
 import { PostList } from '@/components/Post/PostList';
 import {
-  ArrowDownCircleIcon,
-  ArrowUpCircleIcon,
+  ChevronDownIcon,
   Bars3BottomLeftIcon,
 } from '@heroicons/react/24/outline';
 
@@ -20,7 +19,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState('createdAt,DESC');
 
-  const size = 6;
+  const size = 8;
 
   const loadPage = async (pageNum: number, currentSort = sort) => {
     setLoading(true);
@@ -56,12 +55,12 @@ export default function Home() {
   const { content, number, totalPages, first, last } = pageData;
 
   return (
-    <div className="min-h-screen bg-white flex flex-col items-center">
+    <div >
       <main className="flex-1 w-full px-5 md:px-16 py-8">
         {/* 상단 정렬 선택 UI */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold text-gray-900">
-            <Bars3BottomLeftIcon className="inline w-6 h-6 text-blue-500 mr-2" />
+            <Bars3BottomLeftIcon className="inline w-6 h-6 mr-2" />
             <p className='hidden md:inline'>게시글 모아보기</p>
           </h2>
 
@@ -69,30 +68,31 @@ export default function Home() {
             <select
               value={sort}
               onChange={(e) => {
-                const selected = e.target.value;
-                setSort(selected);
-                loadPage(0, selected);
+                const selected = e.target.value
+                setSort(selected)
+                loadPage(0, selected)
               }}
-              className="block appearance-none w-48 px-3 py-2 pr-8 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-gray-800"
+              className="
+                block w-full cursor-pointer appearance-none rounded-md border border-gray-300
+                bg-white px-4 py-2 pr-10 text-sm text-gray-800 shadow-sm
+                transition focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-200
+                hover:border-gray-400
+              "
             >
-              <option value="createdAt,DESC">🔽 최신순</option>
-              <option value="createdAt,ASC">🔼 오래된순</option>
-              <option value="title,ASC">🔠 제목순</option>
+              <option value="createdAt,DESC">최신순</option>
+              <option value="createdAt,ASC">오래된순</option>
+              <option value="title,ASC">제목순</option>
+              <option value="viewCount,DESC">조회순</option>
+              <option value="likes,DESC">좋아요순</option>
             </select>
 
-            <div className="pointer-events-none absolute inset-y-0 right-2 flex items-center text-gray-600">
-              <svg
-                className="w-4 h-4"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.08 1.04l-4.25 4.25a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+            {/* 커스텀 화살표 아이콘 */}
+            <ChevronDownIcon
+              className="
+                pointer-events-none absolute right-3 top-1/2 h-5 w-5
+                -translate-y-1/2 text-gray-400
+              "
+            />
           </div>
         </div>
 

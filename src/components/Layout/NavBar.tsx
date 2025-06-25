@@ -35,18 +35,19 @@ export default function NavBar() {
   };
 
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      <div className="mx-2 md:mx-10 md:px-4 py-3 flex justify-between items-center">
+    <header className="bg-[rgb(244,246,248)] shadow-md sticky top-0 z-50">
+      <div className="md:px-16 p-5 flex justify-between items-center">
         {/* 로고 */}
         <Link href="/" className="hidden md:flex items-center mr-16">
-          <Image
+          {/* <Image
             src="/logo.jpeg"
             alt="서비스 로고"
             width={150}
             height={70}
             className="w-[150px] h-[70px] object-contain"
             priority
-          />
+          /> */}
+          <div className="text-center text-2xl font-bold text-gray-800">Bubblog</div>
         </Link>
         
         {/* 검색창 */}
