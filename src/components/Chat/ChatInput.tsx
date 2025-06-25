@@ -1,32 +1,67 @@
 'use client'
 
 import { FormEvent } from 'react'
+import { PaperAirplaneIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface Props {
   input: string
   onChange: (v: string) => void
   onSubmit: (e: FormEvent) => void
   disabled: boolean
+  children: any
 }
 
-export function ChatInput({ input, onChange, onSubmit, disabled }: Props) {
+export function ChatInput({
+  input,
+  onChange,
+  onSubmit,
+  disabled,
+  children
+}: Props) {
   return (
-    <form onSubmit={onSubmit} className="flex gap-2">
-      <input
-        type="text"
-        className="flex-1 p-3 border rounded-full focus:outline-none"
-        placeholder="메시지를 입력하세요"
-        value={input}
-        onChange={e => onChange(e.target.value)}
-        disabled={disabled}
-      />
-      <button
-        type="submit"
-        disabled={disabled}
-        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full disabled:opacity-50 transition"
+    <div className="sticky bottom-0p-4 z-10">
+      <form
+        onSubmit={onSubmit}
+        className="
+          relative mx-auto flex flex-col w-full max-w-3xl 
+          border border-gray-200 bg-white
+          rounded-3xl shadow px-4 py-2
+        "
       >
-        {disabled ? '전송 중…' : '보내기'}
-      </button>
-    </form>
+        <input
+          type="text"
+          value={input}
+          onChange={e => onChange(e.target.value)}
+          disabled={disabled}
+          placeholder="메시지를 입력하세요"
+          className="
+            flex-1 bg-transparent text-gray-700 placeholder-gray-400
+            outline-none border-none py-2 px-3
+            pr-12
+          "
+        />
+        <div className='flex items-center justify-between'>
+          <div>
+            {children}
+          </div>
+          <button
+            type="submit"
+            disabled={disabled}
+            className="
+              p-2 rounded-full
+              bg-purple-600 hover:bg-purple-700
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition
+            "
+          >
+            {disabled ? (
+              <ArrowPathIcon className="h-5 w-5 text-white animate-spin" />
+            ) : (
+              <PaperAirplaneIcon className="h-5 w-5 text-white rotate-90" />
+            )}
+          </button>
+        </div>
+      </form>
+    </div>
   )
 }

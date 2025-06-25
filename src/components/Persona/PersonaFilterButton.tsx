@@ -1,6 +1,8 @@
 'use client'
 
 import { Persona } from '@/services/personaService'
+import { Button } from '@/components/Common/Button'
+import { SpeakerWaveIcon } from '@heroicons/react/24/outline'
 
 interface PersonaFilterButtonProps {
   selectedPersona: Persona | null
@@ -9,18 +11,19 @@ interface PersonaFilterButtonProps {
 
 export function PersonaFilterButton({
   selectedPersona,
-  onOpen
+  onOpen,
 }: PersonaFilterButtonProps) {
   return (
-    <div className="mb-6 flex items-center space-x-2">
-      <button
+    <div className="flex items-center">
+      <Button
         onClick={onOpen}
-        className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+        variant="ghost"
       >
+        <SpeakerWaveIcon className="h-5 w-5 mr-1" />
         {selectedPersona
-          ? '말투: ' + selectedPersona.name
+          ? `말투: ${selectedPersona.name}`
           : '말투 선택'}
-      </button>
+      </Button>
     </div>
   )
 }

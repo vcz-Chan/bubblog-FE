@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import type { JSX } from 'react'
 import { useState, useEffect, DragEvent, ChangeEvent } from 'react'
 import { Dialog } from '@headlessui/react'

@@ -29,9 +29,7 @@ export default function ChatPage() {
   const [loadingUser, setLoadingUser] = useState(true)
   const [errorUser, setErrorUser] = useState<string | null>(null)
 
-  const [messages, setMessages] = useState<ServiceChatMessage[]>([
-    { id: 1, role: 'bot', content: '안녕하세요! 무엇을 도와드릴까요?' },
-  ])
+  const [messages, setMessages] = useState<ServiceChatMessage[]>([])
   const [input, setInput] = useState('')
   const [contextList, setContextList] = useState<ContextItem[]>([])
   const [showContext, setShowContext] = useState(false)
@@ -120,18 +118,9 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className="max-w-3xl p-6 w-full bg-white rounded-4xl">
-      <ProfileHeader profile={profile} />
-
-      <div className="flex gap-2 mb-4">
-        <CategoryFilterButton
-          selectedCategory={selectedCategory}
-          onOpen={() => setIsCatOpen(true)}
-        />
-        <PersonaFilterButton
-          selectedPersona={selectedPersona}
-          onOpen={() => setIsPersonaOpen(true)}
-        />
+    <div className="px-16 pt-6 w-full">
+      <div className="flex gap-4 mb-4">
+        <ProfileHeader profile={profile} />
       </div>
 
       <CategorySelector
@@ -156,12 +145,27 @@ export default function ChatPage() {
         visible={showContext}
         onToggle={() => setShowContext(v => !v)}
       />
+      { messages.length === 0 && <div className='flex justify-center items-center h-[20vh]'>
+        <span className='text-4xl'>블로그에 대해 물어보세요</span>
+      </div>}
 
       <ChatInput
         input={input}
         onChange={setInput}
         onSubmit={handleSubmit}
         disabled={isSending}
+        children={
+        <div className='flex gap-4 items-center'>
+          <CategoryFilterButton
+          selectedCategory={selectedCategory}
+          onOpen={() => setIsCatOpen(true)}
+          />
+          <PersonaFilterButton
+            selectedPersona={selectedPersona}
+            onOpen={() => setIsPersonaOpen(true)}
+          />
+        </div>
+        }
       />
 
     </div>

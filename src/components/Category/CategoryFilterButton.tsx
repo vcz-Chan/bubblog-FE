@@ -1,6 +1,8 @@
 'use client'
 
 import { CategoryNode } from "@/services/categoryService"
+import { Button } from "@/components/Common/Button"
+import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline'
 
 interface CategoryFilterButtonProps {
   selectedCategory: CategoryNode | null
@@ -9,18 +11,19 @@ interface CategoryFilterButtonProps {
 
 export function CategoryFilterButton({
   selectedCategory,
-  onOpen
+  onOpen,
 }: CategoryFilterButtonProps) {
   return (
-    <div >
-      <button
+    <div className="flex items-center">
+      <Button
         onClick={onOpen}
-        className="px-4 py-2 bg-indigo-500 text-white rounded hover:bg-indigo-600 transition"
+        variant="ghost"
       >
+        <Bars3BottomLeftIcon className="h-5 w-5 mr-1" />
         {selectedCategory
           ? `카테고리: ${selectedCategory.name}`
-          : '카테고리 필터 열기'}
-      </button>
+          : '카테고리 선택'}
+      </Button>
     </div>
   )
 }
