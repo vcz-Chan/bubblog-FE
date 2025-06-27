@@ -29,9 +29,11 @@ export default function RootLayout({
       >
         {/* 최상위에서 Provider로 감싸 인증 context를 모든 컴포넌트에 주입 */}
         <AuthProvider>
-          <NavBar />
-          <div className="min-h-screen bg-[rgb(244,246,248)] flex flex-col items-center">
-            {children}  
+          <div className="flex flex-col h-screen">
+            <NavBar />
+            <div className="flex-1 bg-[rgb(244,246,248)] flex flex-col items-center">
+              {children}  
+            </div>
           </div>
         </AuthProvider>
       </body>

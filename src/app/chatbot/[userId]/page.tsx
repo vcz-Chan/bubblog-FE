@@ -37,7 +37,6 @@ export default function ChatPage() {
   const [isCatOpen, setIsCatOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null)
 
-  // 새로 추가: 페르소나 선택 모달
   const [isPersonaOpen, setIsPersonaOpen] = useState(false)
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null)
 
@@ -138,16 +137,23 @@ export default function ChatPage() {
         onClose={() => setIsPersonaOpen(false)}
       />
 
-      <ChatMessages messages={messages} chatEndRef={chatEndRef} />
-
-      <ContextViewer
-        items={contextList}
-        visible={showContext}
-        onToggle={() => setShowContext(v => !v)}
-      />
-      { messages.length === 0 && <div className='flex justify-center items-center h-[20vh]'>
-        <span className='text-4xl'>블로그에 대해 물어보세요</span>
-      </div>}
+      {/* 채팅 메시지 구간 (스크롤) */}
+      <div className="flex-1 overflow-y-auto px-16 space-y-4">
+        <ChatMessages messages={messages} chatEndRef={chatEndRef} />
+        <ContextViewer
+          items={contextList}
+          visible={showContext}
+          onToggle={() => setShowContext(v => !v)}
+        />
+        {messages.length === 0 && (
+          <div className="flex justify-center items-center h-[20vh]">
+            <span className="text-4xl text-gray-800">
+              블로그에 대해 물어보세요
+            </span>
+          </div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
 
       <ChatInput
         input={input}

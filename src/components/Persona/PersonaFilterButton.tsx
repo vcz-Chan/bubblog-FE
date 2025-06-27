@@ -16,6 +16,7 @@ export function PersonaFilterButton({
   return (
     <div className="flex items-center">
       <Button
+        type="button"
         onClick={onOpen}
         variant="ghost"
       >
