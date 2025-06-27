@@ -21,9 +21,16 @@ export function PersonaFilterButton({
         variant="ghost"
       >
         <SpeakerWaveIcon className="h-5 w-5 mr-1" />
+        <span className="hidden md:inline">
         {selectedPersona
           ? `말투: ${selectedPersona.name}`
           : '말투 선택'}
+        </span>
+        <span className=" text-xs inline md:hidden">
+          {selectedPersona
+          ? `${selectedPersona.name}`
+          : '말투'}
+        </span>
       </Button>
     </div>
   )

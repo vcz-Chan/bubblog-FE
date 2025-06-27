@@ -31,7 +31,7 @@ export default function RootLayout({
         <AuthProvider>
           <div className="flex flex-col h-screen">
             <NavBar />
-            <div className="flex-1 bg-[rgb(244,246,248)] flex flex-col items-center">
+            <div className="flex-1  overflow-auto bg-[rgb(244,246,248)] flex flex-col items-center">
               {children}  
             </div>
           </div>

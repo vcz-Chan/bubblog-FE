@@ -117,8 +117,8 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className="px-16 pt-6 w-full">
-      <div className="flex gap-4 mb-4">
+    <div className="flex flex-col items-center px-16 pt-6 w-full">
+      <div className="w-full lg:w-6xl mb-4">
         <ProfileHeader profile={profile} />
       </div>
 
@@ -138,7 +138,6 @@ export default function ChatPage() {
       />
 
       {/* 채팅 메시지 구간 (스크롤) */}
-      <div className="flex-1 overflow-y-auto px-16 space-y-4">
         <ChatMessages messages={messages} chatEndRef={chatEndRef} />
         <ContextViewer
           items={contextList}
@@ -146,14 +145,14 @@ export default function ChatPage() {
           onToggle={() => setShowContext(v => !v)}
         />
         {messages.length === 0 && (
-          <div className="flex justify-center items-center h-[20vh]">
-            <span className="text-4xl text-gray-800">
+          <div className="flex justify-center items-center h-[25vh]">
+            <span className="text-4xl text-gray-800 text-center">
               블로그에 대해 물어보세요
             </span>
           </div>
         )}
         <div ref={chatEndRef} />
-      </div>
+
 
       <ChatInput
         input={input}
@@ -161,7 +160,7 @@ export default function ChatPage() {
         onSubmit={handleSubmit}
         disabled={isSending}
       >
-         <div className='flex gap-4 items-center'>
+         <div className='flex md:gap-4 items-center md:mr-4'>
           <CategoryFilterButton
           selectedCategory={selectedCategory}
           onOpen={() => setIsCatOpen(true)}

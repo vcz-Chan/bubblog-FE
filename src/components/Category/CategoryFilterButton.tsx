@@ -21,9 +21,16 @@ export function CategoryFilterButton({
         variant="ghost"
       >
         <Bars3BottomLeftIcon className="h-5 w-5 mr-1" />
-        {selectedCategory
-          ? `카테고리: ${selectedCategory.name}`
-          : '카테고리 선택'}
+        <span className="hidden md:inline">
+          {selectedCategory
+            ? `카테고리: ${selectedCategory.name}`
+            : '카테고리 선택'}
+        </span>
+        <span className=" text-xs inline md:hidden">
+          {selectedCategory
+            ? `${selectedCategory.name}`
+            : '카테고리'}
+        </span>
       </Button>
     </div>
   )

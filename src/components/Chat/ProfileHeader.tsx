@@ -8,8 +8,8 @@ interface Props {
 
 export function ProfileHeader({ profile }: Props) {
   return (
-    <div className="flex items-center mb-4">
-      <h1 className="text-2xl font-bold">
+    <div className="flex items-center">
+      <h1 className="text-3xl font-bold">
         {profile.nickname}의 챗봇
       </h1>
     </div>
