@@ -14,15 +14,21 @@ export function ChatViewButton({ userId, onClick }: Props) {
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 640px)')
-    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
+    const update = (e: MediaQueryListEvent) => setIsMobile(e.matches)
     setIsMobile(mql.matches)
-    mql.addEventListener
-      ? mql.addEventListener('change', handler)
-      : mql.addListener(handler)
+
+    if (mql.addEventListener) {
+      mql.addEventListener('change', update)
+    } else {
+      mql.addListener(update)
+    }
+
     return () => {
-      mql.removeEventListener
-        ? mql.removeEventListener('change', handler)
-        : mql.removeListener(handler)
+      if (mql.removeEventListener) {
+        mql.removeEventListener('change', update)
+      } else {
+        mql.removeListener(update)
+      }
     }
   }, [])
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { signup } from '@/services/auth'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
+import ImageUploader from '@/components/Common/ImageUploader'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -32,66 +33,83 @@ export default function SignupPage() {
   }
 
   return (
-  <form
-    onSubmit={onSubmit}
-    className="max-w-md mx-auto mt-16 p-6 bg-white rounded-lg shadow-md"
-  >
-    <h2 className="text-2xl font-semibold text-center mb-6">회원가입</h2>
+    <form
+      onSubmit={onSubmit}
+      className="w-full max-w-md mt-8 bg-white rounded-2xl shadow-xl p-8 sm:p-10"
+    >
+      <h2 className="text-3xl font-bold text-gray-800 text-center mb-6">
+        회원가입
+      </h2>
 
-    {error && (
-      <p className="text-sm text-red-500 text-center mb-4">
-        {error}
-      </p>
-    )}
+      {error && (
+        <p className="text-sm text-red-500 text-center mb-4">
+          {error}
+        </p>
+      )}
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1">이메일</label>
-      <input
-        name="email"
-        type="email"
-        value={form.email}
-        onChange={onChange}
-        required
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-      />
-    </div>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">이메일</label>
+        <input
+          name="email"
+          type="email"
+          value={form.email}
+          onChange={onChange}
+          required
+          placeholder="you@example.com"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+        />
+      </div>
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1">비밀번호</label>
-      <input
-        name="password"
-        type="password"
-        value={form.password}
-        onChange={onChange}
-        required
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-      />
-    </div>
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">비밀번호</label>
+        <input
+          name="password"
+          type="password"
+          value={form.password}
+          onChange={onChange}
+          required
+          placeholder="••••••••"
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+        />
+      </div>
 
-    <div className="mb-4">
-      <label className="block text-sm font-medium mb-1">닉네임</label>
-      <input
-        name="nickname"
-        value={form.nickname}
-        onChange={onChange}
-        required
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-      />
-    </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">닉네임</label>
+          <input
+            name="nickname"
+            value={form.nickname}
+            onChange={onChange}
+            required
+            placeholder="닉네임을 입력하세요"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition"
+          />
+        </div>
 
-    <div className="mb-6">
-      <label className="block text-sm font-medium mb-1">프로필 이미지 URL</label>
-      <input
-        name="profileImageUrl"
-        value={form.profileImageUrl}
-        onChange={onChange}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-200"
-      />
-    </div>
+        <div className="flex flex-col">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            프로필 이미지
+          </label>
+          <ImageUploader
+            folder="profile-images"
+            onUploaded={url => setForm(prev => ({ ...prev, profileImageUrl: url }))}
+          />
+          {form.profileImageUrl && (
+            <img
+              src={form.profileImageUrl}
+              alt="프로필 이미지 미리보기"
+              className="mt-2 w-20 h-20 rounded-full object-cover border"
+            />
+          )}
+        </div>
+      </div>
 
-    <Button type="submit">
-      회원가입
-    </Button>
-  </form>
-)
+      <Button
+        type="submit"
+        className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 active:bg-blue-800 transition"
+      >
+        회원가입
+      </Button>
+    </form>
+  )
 }
