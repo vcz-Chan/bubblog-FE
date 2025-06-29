@@ -1,5 +1,6 @@
 // 인증 관련 서비스
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+import { apiClient } from './apiClient'
 
 // 회원 가입
 export async function signup({
@@ -47,10 +48,9 @@ export async function reissueToken() {
 
 // 로그아웃
 export async function logout() {
-  const res = await fetch(`${BASE_URL}/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include', // 쿠키 포함 필수
+  const res = await apiClient(`/api/auth/logout`, {
+    method: 'POST'
   });
 
-  return await res.json(); // { success, code, message }
+  return await res; // { success, code, message }
 }
