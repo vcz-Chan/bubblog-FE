@@ -2,8 +2,14 @@
 
 import { Rnd } from 'react-rnd'
 import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import {
+  ArrowsPointingOutIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline'
 
 interface DraggableModalProps {
+  path: string
   children: React.ReactNode
   onClose: () => void
   initialWidth?: number
@@ -11,23 +17,24 @@ interface DraggableModalProps {
 }
 
 export function DraggableModal({
+  path,
   children,
   onClose,
   initialWidth = 600,
-  initialHeight = 500,
+  initialHeight = 400,
 }: DraggableModalProps) {
   const [pos, setPos] = useState<{ x: number; y: number } | null>(null)
 
   useEffect(() => {
-    const x = (window.innerWidth - initialWidth)
-    const y = (window.innerHeight - initialHeight) 
+    const x = (window.innerWidth - initialWidth) / 2
+    const y = (window.innerHeight - initialHeight) / 2
     setPos({ x, y })
   }, [initialWidth, initialHeight])
 
   if (!pos) return null
 
   return (
-    <div className="fixed inset-0 pointer-events-none z-100">
+    <div className="fixed inset-0 pointer-events-none z-50">
       <Rnd
         default={{
           x: pos.x,
@@ -43,10 +50,9 @@ export function DraggableModal({
           topRight: true, bottomRight: true, bottomLeft: true, topLeft: true,
         }}
         dragHandleClassName="modal-header"
-        className="pointer-events-auto bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
+        className="pointer-events-auto bg-[rgb(244,246,248)] border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
         style={{ zIndex: 1000 }}
       >
-        {/* 헤더 바 (드래그 핸들) */}
         <div
           className="
             modal-header flex items-center justify-between
@@ -54,9 +60,15 @@ export function DraggableModal({
             px-4 py-2 cursor-move select-none
           "
         >
-          <span className="text-lg font-medium text-gray-800">
-            블로그 글
-          </span>
+          <Link
+            href={path}
+            className="flex items-center gap-1 text-gray-800 hover:text-gray-900"
+          >
+            <ArrowsPointingOutIcon className="h-5 w-5" />
+            <span className="text-lg font-medium">
+              전체보기
+            </span>
+          </Link>
           <button
             onClick={onClose}
             className="
@@ -65,7 +77,7 @@ export function DraggableModal({
             "
             aria-label="닫기"
           >
-            ✕
+            <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
 

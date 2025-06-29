@@ -8,7 +8,7 @@ interface Props {
   onChange: (v: string) => void
   onSubmit: (e: FormEvent) => void
   disabled: boolean
-  children: React.ReactNode
+  children?: React.ReactNode
 }
 
 export function ChatInput({

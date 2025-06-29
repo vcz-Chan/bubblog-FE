@@ -9,6 +9,9 @@ import { PostDetailHeader } from '@/components/PostDetail/Header'
 import { PostDetailBody }   from '@/components/PostDetail/Body'
 import { PostDetailActions } from '@/components/PostDetail/Action'
 import { PostNavbar } from '@/components/PostDetail/PostNavbar'
+import { DraggableModal }   from '@/components/Common/DraggableModal'
+import { ChatViewButton  }   from '@/components/Chat/ChatViewButton'
+import { ChatWindow }       from '@/components/Chat/ChatWindow'
 
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
@@ -19,6 +22,7 @@ export default function PostDetailPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [liked, setLiked]     = useState(false)
+  const [showChat, setShowChat] = useState(false)
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -70,8 +74,20 @@ const handleLike = async () => {
 
   return (
     <article className="w-full p-8 lg:px-40">
-      <PostDetailHeader post={post} />
+      <PostDetailHeader post={post} >
+      <ChatViewButton userId={post.userId} onClick={() => setShowChat(true)}/>
+      </PostDetailHeader>
       <PostNavbar post={post} liked={liked} onLike={handleLike} />
+      {showChat && (
+        <DraggableModal
+          path= {`/chatbot/${post.userId}`}
+          onClose={() => setShowChat(false)}
+        >
+          {/* author의 userId로 채팅창 */}
+          <ChatWindow userId={post.userId} />
+        </DraggableModal>
+      )}
+        
       <PostDetailBody    content={post.content} />
       {isMyPost && <PostDetailActions postId={post.id} />}
     </article>

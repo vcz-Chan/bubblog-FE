@@ -401,7 +401,7 @@ export function CategorySelector({
   }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-10 overflow-y-auto">
+    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-100 overflow-y-auto">
       <div
         className="fixed inset-0 bg-black/40"
         onDragOver={onDragOver}

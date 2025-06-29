@@ -13,6 +13,9 @@ import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton
 import { CategorySelector } from '@/components/Category/CategorySelector';
 import { PostsGrid } from '@/components/Blog/PostsGrid';
 import { DeleteModal } from '@/components/Blog/DeleteModal';
+import { DraggableModal }   from '@/components/Common/DraggableModal'
+import { ChatWindow }       from '@/components/Chat/ChatWindow'
+import { ChatViewButton }       from '@/components/Chat/ChatViewButton'
 
 export default function BlogPage() {
   const { userId: authUserId } = useAuth();
@@ -44,6 +47,9 @@ export default function BlogPage() {
   const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null);
   
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+
+  // 챗봇 팝업
+  const [showChat, setShowChat] = useState(false);
 
   const size = 8;
 
@@ -126,9 +132,21 @@ export default function BlogPage() {
     <div>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
 
-        <div className='flex flex-col md:flex-row gap-4 items-start md:items-center justify-between'>
-          {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
+        <div className='flex flex-col lg:flex-row gap-4 items-start justify-between'>
+          <div className='flex flex-row gap-4 items-center justify-between'>
+            {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
+            <ChatViewButton userId={paramUserId} onClick={() => setShowChat(true)}/>
+          </div>
           {isMyBlog && <BlogControls userId={paramUserId} />}
+          {showChat && (
+            <DraggableModal
+              path= {`/chatbot/${paramUserId}`}
+              onClose={() => setShowChat(false)}
+            >
+              {/* author의 userId로 채팅창 */}
+              <ChatWindow userId={paramUserId} />
+            </DraggableModal>
+          )}
         </div>
         <div className="flex flex-wrap items-center justify-between my-2">
           <CategoryFilterButton

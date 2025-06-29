@@ -75,7 +75,7 @@ export function PersonaSelectorModal({
     <Dialog
       open={isOpen}
       onClose={onClose}
-      className="fixed inset-0 z-10 overflow-y-auto"
+      className="fixed inset-0 z-100 overflow-y-auto"
     >
       {/* 투명 백드롭: 클릭 시 onClose 트리거 */}
       <div
@@ -84,7 +84,7 @@ export function PersonaSelectorModal({
       />
 
       <div className="flex min-h-screen items-center justify-center p-4">
-        <Dialog.Panel className="relative z-20 bg-white p-6 rounded w-full max-w-lg shadow-lg">
+        <Dialog.Panel className="relative bg-white p-6 rounded w-full max-w-lg shadow-lg">
           <div className="flex justify-between items-center mb-4">
             <Dialog.Title className="text-xl font-semibold">
               페르소나 선택

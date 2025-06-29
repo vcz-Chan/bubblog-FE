@@ -11,9 +11,10 @@ import type { BlogDetail } from '@/services/blogService'
 
 interface Props {
   post: BlogDetail
+  children?: React.ReactNode
 }
 
-export function PostDetailHeader({ post }: Props) {
+export function PostDetailHeader({ post, children }: Props) {
   return (
     <header className="mb-10 space-y-4">
       {/* 제목 */}
@@ -36,6 +37,11 @@ export function PostDetailHeader({ post }: Props) {
           블로그 방문
           <ArrowTopRightOnSquareIcon className="h-4 w-4" />
         </Link>
+        {children && (
+          <div>
+            {children}
+          </div>
+        )}
       </div>
 
       {/* 카테고리 & 통계 정보 */}
