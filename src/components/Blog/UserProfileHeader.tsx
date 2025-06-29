@@ -19,7 +19,7 @@ export function UserProfileHeader({ profile, isMyBlog }: Props) {
           alt={profile.nickname}
           width={64}
           height={64}
-          className="rounded-full"
+          className="rounded-full max-w-[64px] max-h-[64px] object-cover"
         />
       ) : (
         <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
@@ -29,14 +29,6 @@ export function UserProfileHeader({ profile, isMyBlog }: Props) {
       <h1 className="text-2xl font-bold">
         {isMyBlog ? '내 블로그' : `${profile.nickname}님의 블로그`}
       </h1>
-      <Link
-        href={`/chatbot/${profile.userId}`} 
-      >
-        <Button
-        className='bg-indigo-600 text-black'>
-        챗봇 방문
-        </Button>
-      </Link>
     </div>
   )
 }
