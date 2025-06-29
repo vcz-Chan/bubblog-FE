@@ -117,60 +117,59 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className="flex flex-col items-center px-16 pt-6 w-full">
-      <div className="w-full lg:w-6xl mb-4">
-        <ProfileHeader profile={profile} />
-      </div>
-
-      <CategorySelector
-        userId={userId!}
-        isOpen={isCatOpen}
-        onClose={() => setIsCatOpen(false)}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
-
-      <PersonaSelectorModal
-        userId={userId!}
-        isOpen={isPersonaOpen}
-        onSelect={p => setSelectedPersona(p)}
-        onClose={() => setIsPersonaOpen(false)}
-      />
-
-      {/* 채팅 메시지 구간 (스크롤) */}
-        <ChatMessages messages={messages} chatEndRef={chatEndRef} />
-        <ContextViewer
-          items={contextList}
-          visible={showContext}
-          onToggle={() => setShowContext(v => !v)}
-        />
-        {messages.length === 0 && (
-          <div className="flex justify-center items-center h-[25vh]">
-            <span className="text-4xl text-gray-800 text-center">
-              블로그에 대해 물어보세요
-            </span>
-          </div>
-        )}
-        <div ref={chatEndRef} />
-
-
-      <ChatInput
-        input={input}
-        onChange={setInput}
-        onSubmit={handleSubmit}
-        disabled={isSending}
-      >
-         <div className='flex md:gap-4 items-center md:mr-4'>
-          <CategoryFilterButton
+    <div className="px-6 md:px-16 w-full flex flex-col items-center">
+      <ProfileHeader profile={profile} />
+    
+      <div className="flex flex-col items-center justify-center pt-6 w-full max-w-5xl">
+        <CategorySelector
+          userId={userId!}
+          isOpen={isCatOpen}
+          onClose={() => setIsCatOpen(false)}
           selectedCategory={selectedCategory}
-          onOpen={() => setIsCatOpen(true)}
+          setSelectedCategory={setSelectedCategory}
+        />
+
+        <PersonaSelectorModal
+          userId={userId!}
+          isOpen={isPersonaOpen}
+          onSelect={p => setSelectedPersona(p)}
+          onClose={() => setIsPersonaOpen(false)}
+        />
+
+        {/* 채팅 메시지 구간 (스크롤) */}
+          <ChatMessages messages={messages} chatEndRef={chatEndRef} />
+          <ContextViewer
+            items={contextList}
+            visible={showContext}
+            onToggle={() => setShowContext(v => !v)}
           />
-          <PersonaFilterButton
-            selectedPersona={selectedPersona}
-            onOpen={() => setIsPersonaOpen(true)}
-          />
-        </div>
-      </ChatInput>
+          {messages.length === 0 && (
+            <div className="flex justify-center items-center h-[25vh]">
+              <span className="text-4xl text-gray-800 text-center">
+                블로그에 대해 물어보세요
+              </span>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+
+        <ChatInput
+          input={input}
+          onChange={setInput}
+          onSubmit={handleSubmit}
+          disabled={isSending}
+        >
+          <div className='flex md:gap-4 items-center md:mr-4'>
+            <CategoryFilterButton
+            selectedCategory={selectedCategory}
+            onOpen={() => setIsCatOpen(true)}
+            />
+            <PersonaFilterButton
+              selectedPersona={selectedPersona}
+              onOpen={() => setIsPersonaOpen(true)}
+            />
+          </div>
+        </ChatInput>
+      </div>
     </div>
   )
 }

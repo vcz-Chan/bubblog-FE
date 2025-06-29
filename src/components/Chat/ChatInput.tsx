@@ -19,11 +19,11 @@ export function ChatInput({
   children
 }: Props) {
   return (
-    <div className="sticky bottom-5 p-4 z-10">
+    <div className="sticky flex justify-center w-full bottom-0 p-4 z-10 bg-[rgb(244,246,248)]">
       <form
         onSubmit={onSubmit}
         className="
-          relative flex flex-col lg:w-3xl
+          relative flex flex-col w-full
           border border-gray-200 bg-white
           rounded-3xl shadow px-4 py-2
         "
