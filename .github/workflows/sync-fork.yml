@@ -20,7 +20,7 @@ jobs:
 
       - name: Add forked repo remote
         run: |
-          git remote add forked-repo https://chan000518:${{ secrets.FORKED_REPO_TOKEN }}@github.com/chan000518/bubblog-FE.git
+          git remote add forked-repo https://chan000518:${{ secrets.REPO_TOKEN }}@github.com/chan000518/bubblog-FE.git
       
       - name: Force push to forked repo
         run: |
