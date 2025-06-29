@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { getBlogsPage, Blog } from '@/services/blogService';
 import { PageResponse } from '@/utils/types';
 import { PostList } from '@/components/Post/PostList';
+import { LandingPage } from '@/components/Home/LandingPage'
 import {
   ChevronDownIcon,
   Bars3BottomLeftIcon,
@@ -43,7 +44,7 @@ export default function Home() {
   }, [isAuthenticated, sort]);
 
   if (!isAuthenticated) {
-    return <p className="text-center py-20">로그인이 필요합니다.</p>;
+    return <LandingPage/>;
   }
   if (loading || !pageData) {
     return <p className="text-center py-20">로딩 중…</p>;

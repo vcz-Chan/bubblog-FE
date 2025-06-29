@@ -14,6 +14,7 @@
     "@radix-ui/react-tooltip": "^1.2.4",
     "@tailwindcss/typography": "^0.5.16",
     "framer-motion": "^12.7.5",
+    "gsap": "^3.13.0",
     "lucide-react": "^0.503.0",
     "next": "15.3.0",
     "react": "^19.0.0",
