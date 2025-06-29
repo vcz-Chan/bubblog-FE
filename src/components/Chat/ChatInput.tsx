@@ -19,7 +19,7 @@ export function ChatInput({
   children
 }: Props) {
   return (
-    <div className="sticky flex justify-center w-full bottom-0 p-4 z-10 bg-[rgb(244,246,248)]">
+    <div className="sticky flex justify-center w-full bottom-0 p-4 pt-0 z-10 bg-[rgb(244,246,248)]">
       <form
         onSubmit={onSubmit}
         className="

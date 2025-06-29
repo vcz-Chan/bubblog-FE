@@ -14,6 +14,8 @@ import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton
 import { ChatMessages } from '@/components/Chat/ChatMessages'
 import { ContextViewer } from '@/components/Chat/ContextViewer'
 import { ChatInput } from '@/components/Chat/ChatInput'
+import { DraggableModal } from '@/components/Chat/DraggableModal'
+import { PostModal } from '@/components/Chat/PostModal'
 import { CategorySelector } from '@/components/Category/CategorySelector'
 import { PersonaSelectorModal } from '@/components/Persona/PersonaSelectorModal'
 import { PersonaFilterButton } from '@/components/Persona/PersonaFilterButton'
@@ -41,6 +43,9 @@ export default function ChatPage() {
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null)
 
   const [isSending, setIsSending] = useState(false)
+
+  const [modalPostId, setModalPostId] = useState<string | null>(null)
+
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -137,20 +142,27 @@ export default function ChatPage() {
         />
 
         {/* 채팅 메시지 구간 (스크롤) */}
-          <ChatMessages messages={messages} chatEndRef={chatEndRef} />
-          <ContextViewer
-            items={contextList}
-            visible={showContext}
-            onToggle={() => setShowContext(v => !v)}
-          />
-          {messages.length === 0 && (
-            <div className="flex justify-center items-center h-[25vh]">
-              <span className="text-4xl text-gray-800 text-center">
-                블로그에 대해 물어보세요
-              </span>
-            </div>
-          )}
-          <div ref={chatEndRef} />
+        <ChatMessages messages={messages} chatEndRef={chatEndRef} />
+        <ContextViewer
+          items={contextList}
+          visible={showContext}
+          onToggle={() => setShowContext(v => !v)}
+          onItemClick={item => setModalPostId(item.post_id)}
+        />
+        {messages.length === 0 && (
+          <div className="flex justify-center items-center h-[25vh]">
+            <span className="text-4xl text-gray-800 text-center">
+              블로그에 대해 물어보세요
+            </span>
+          </div>
+        )}
+        <div ref={chatEndRef} />
+
+        {modalPostId && (
+          <DraggableModal onClose={() => setModalPostId(null)}>
+            <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+          </DraggableModal>
+        )}
 
         <ChatInput
           input={input}
