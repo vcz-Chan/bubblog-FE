@@ -72,8 +72,8 @@ export default function NavBar() {
                     <Image
                       src={profile.profileImageUrl ?? '/logo.jpeg'}
                       alt={profile.nickname}
-                      width={48}
-                      height={48}
+                      width={10}
+                      height={10}
                       className="w-10 h-10 rounded-full object-cover"
                     />
                     <span className="hidden lg:inline text-lg font-semibold text-gray-800 text-nowrap">

@@ -15,7 +15,7 @@ interface Props {
 
 export function ChatMessages({ messages, chatEndRef }: Props) {
   return (
-    <div className=" w-full flex-1 overflow-y-auto mb-4 space-y-4 px-2">
+    <div className="w-full flex-1 mb-4 space-y-4 px-2 overflow-y-auto overscroll-contain">
       {messages.map(msg => (
         <ChatBubble
           key={msg.id}
