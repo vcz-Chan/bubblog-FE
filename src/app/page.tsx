@@ -84,7 +84,7 @@ export default function Home() {
               <option value="createdAt,ASC">오래된순</option>
               <option value="title,ASC">제목순</option>
               <option value="viewCount,DESC">조회순</option>
-              <option value="likes,DESC">좋아요순</option>
+              <option value="likeCount,DESC">좋아요순</option>
             </select>
 
             {/* 커스텀 화살표 아이콘 */}
