@@ -17,9 +17,9 @@ export function UserProfileHeader({ profile, isMyBlog }: Props) {
         <Image
           src={profile.profileImageUrl}
           alt={profile.nickname}
-          width={64}
-          height={64}
-          className="rounded-full max-w-[64px] max-h-[64px] object-cover"
+          width={50}
+          height={50}
+          className="rounded-full w-[50px] h-[50px] object-cover"
         />
       ) : (
         <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500">
