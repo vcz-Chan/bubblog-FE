@@ -4,6 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import NavBar from '@/components/Layout/NavBar'
 import { Nanum_Gothic } from 'next/font/google';
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const nanumGothic = Nanum_Gothic({
   subsets: ['latin'],
@@ -37,6 +38,7 @@ export default function RootLayout({
           </div>
         </AuthProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
