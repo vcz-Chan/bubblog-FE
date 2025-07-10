@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from '@/contexts/AuthContext';
 import NavBar from '@/components/Layout/NavBar'
 import { Nanum_Gothic } from 'next/font/google';
+import { Analytics } from "@vercel/analytics/next"
 
 const nanumGothic = Nanum_Gothic({
   subsets: ['latin'],
@@ -35,6 +36,7 @@ export default function RootLayout({
             </div>
           </div>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
