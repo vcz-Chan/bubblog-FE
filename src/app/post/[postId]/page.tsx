@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
-import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/services/blogService'
+import { useAuthStore, selectUserId, selectIsLogin } from '@/store/AuthStore'
+import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/apis/blogApi'
 
 import { PostDetailHeader } from '@/components/PostDetail/Header'
 import { PostDetailBody }   from '@/components/PostDetail/Body'
@@ -16,7 +16,8 @@ import { ChatWindow }       from '@/components/Chat/ChatWindow'
 export default function PostDetailPage() {
   const { postId } = useParams<{ postId: string }>()
   const router = useRouter()
-  const { userId, isAuthenticated } = useAuth()
+  const authUserId = useAuthStore(selectUserId);
+  const isAuthenticated = useAuthStore(selectIsLogin);
 
   const [post, setPost] = useState<BlogDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,7 +71,7 @@ const handleLike = async () => {
   if (error)             return <p className="text-center py-20 text-red-500">{error}</p>
   if (!post)             return <p className="text-center py-20">게시글을 찾을 수 없습니다.</p>
 
-  const isMyPost = post.userId === userId
+  const isMyPost = post.userId === authUserId
 
   return (
     <article className="w-full p-8 lg:px-40">

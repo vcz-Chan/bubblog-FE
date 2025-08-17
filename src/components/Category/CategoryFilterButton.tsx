@@ -1,6 +1,6 @@
 'use client'
 
-import { CategoryNode } from "@/services/categoryService"
+import { CategoryNode } from "@/apis/categoryApi"
 import { Button } from "@/components/Common/Button"
 import { Bars3BottomLeftIcon } from '@heroicons/react/24/outline'
 

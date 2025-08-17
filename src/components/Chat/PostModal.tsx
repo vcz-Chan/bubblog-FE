@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getBlogById, BlogDetail } from '@/services/blogService'
+import { getBlogById, BlogDetail } from '@/apis/blogApi'
 import { PostDetailHeader } from '@/components/PostDetail/Header'
 import { PostDetailBody }   from '@/components/PostDetail/Body'
 import { PostDetailActions } from '@/components/PostDetail/Action'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore, selectUserId, selectIsLogin } from '@/store/AuthStore'
 
 interface PostModalProps {
   postId: string
@@ -13,7 +13,8 @@ interface PostModalProps {
 }
 
 export function PostModal({ postId, onClose }: PostModalProps) {
-  const { userId, isAuthenticated } = useAuth()
+  const userId = useAuthStore(selectUserId);
+  const isAuthenticated = useAuthStore(selectIsLogin);
   const [post, setPost] = useState<BlogDetail | null>(null)
 
   useEffect(() => {

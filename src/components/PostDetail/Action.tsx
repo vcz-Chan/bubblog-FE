@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { deleteBlog } from '@/services/blogService'
+import { deleteBlog } from '@/apis/blogApi'
 
 interface Props {
   postId: number

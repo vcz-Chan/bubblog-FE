@@ -7,7 +7,7 @@ import {
   UserIcon,
   ArrowTopRightOnSquareIcon,
 } from '@heroicons/react/24/outline'
-import type { BlogDetail } from '@/services/blogService'
+import type { BlogDetail } from '@/apis/blogApi'
 
 interface Props {
   post: BlogDetail

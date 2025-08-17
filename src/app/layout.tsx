@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { AuthProvider } from '@/contexts/AuthContext';
+import ClientAuthInit from '@/components/ClientAuthInit';
 import NavBar from '@/components/Layout/NavBar'
 import { Nanum_Gothic } from 'next/font/google';
 import { Analytics } from "@vercel/analytics/next"
@@ -26,17 +26,17 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body
+        suppressHydrationWarning
         className={`${nanumGothic.variable} font-nanum antialiased`}
       >
-        {/* 최상위에서 Provider로 감싸 인증 context를 모든 컴포넌트에 주입 */}
-        <AuthProvider>
-          <div className="flex flex-col h-screen">
-            <NavBar />
-            <div className="flex-1  overflow-auto bg-[rgb(244,246,248)] flex flex-col items-center">
-              {children}  
-            </div>
+        {/* 클라이언트에서만 init() 실행 (SSR 레이아웃 유지) */}
+        <ClientAuthInit />
+        <div className="flex flex-col h-screen">
+          <NavBar />
+          <div className="flex-1  overflow-auto bg-[rgb(244,246,248)] flex flex-col items-center">
+            {children}
           </div>
-        </AuthProvider>
+        </div>
         <Analytics />
         <SpeedInsights />
       </body>

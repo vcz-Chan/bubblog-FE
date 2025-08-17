@@ -10,7 +10,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
-} from '@/services/categoryService'
+} from '@/apis/categoryApi'
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -21,7 +21,7 @@ import {
   MinusSmallIcon,
   CheckIcon,
 } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/store/AuthStore';
 
 interface Props {
   userId: string | null
@@ -38,7 +38,7 @@ export function CategorySelector({
   selectedCategory,
   setSelectedCategory,
 }: Props) {
-  const { userId: authUserId } = useAuth()
+  const { userId: authUserId } = useAuthStore()
   const isOwner = authUserId === userId
   const [tree, setTree] = useState<CategoryNode[]>([])
   const [filteredTree, setFilteredTree] = useState<CategoryNode[]>([])

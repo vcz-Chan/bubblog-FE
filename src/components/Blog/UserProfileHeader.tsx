@@ -1,9 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
-import { UserProfile } from '@/services/userService'
-import { Button } from '../Common/Button'
+import { UserProfile } from '@/apis/userApi'
 
 interface Props {
   profile: UserProfile

@@ -7,8 +7,8 @@ import {
   updatePersona,
   deletePersona,
   Persona
-} from '@/services/personaService'
-import { useAuth } from '@/contexts/AuthContext'
+} from '@/apis/personaApi'
+import { useAuthStore, selectUserId } from '@/store/AuthStore'
 import { Button } from '@/components/Common/Button'
 import {
   PencilIcon,
@@ -22,7 +22,7 @@ interface Props {
 }
 
 export function PersonaManager({ userId }: Props) {
-  const { userId: authUserId } = useAuth()
+  const authUserId = useAuthStore(selectUserId)
   const isOwner = authUserId === userId
 
   const [list, setList] = useState<Persona[]>([])

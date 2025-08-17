@@ -1,6 +1,6 @@
 'use client';
 
-import { Blog } from '@/services/blogService';
+import { Blog } from '@/apis/blogApi';
 import { PostCard } from './PostCard';
 
 interface PostListProps {

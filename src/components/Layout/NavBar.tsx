@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore, selectIsLogin, selectUserId, selectLogout } from '@/store/AuthStore'
 import SearchBar from './SearchBar'
 import { useRouter } from 'next/navigation'
 import { FormEvent } from 'react'
@@ -17,10 +17,12 @@ import {
   ChevronDownIcon,
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
-import { getUserProfile, UserProfile } from '@/services/userService'
+import { getUserProfile, UserProfile } from '@/apis/userApi'
 
 export default function NavBar() {
-  const { logout, userId, isAuthenticated } = useAuth()
+  const isAuthenticated = useAuthStore(selectIsLogin);
+  const userId = useAuthStore(selectUserId);
+  const logout = useAuthStore(selectLogout);
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)

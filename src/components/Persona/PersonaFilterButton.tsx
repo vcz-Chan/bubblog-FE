@@ -1,6 +1,6 @@
 'use client'
 
-import { Persona } from '@/services/personaService'
+import { Persona } from '@/apis/personaApi'
 import { Button } from '@/components/Common/Button'
 import { SpeakerWaveIcon } from '@heroicons/react/24/outline'
 

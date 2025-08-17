@@ -1,6 +1,6 @@
 'use client'
 
-import { UserProfile } from '@/services/userService'
+import { UserProfile } from '@/apis/userApi'
 
 interface Props {
   profile: UserProfile

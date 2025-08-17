@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore, selectLogin, selectIsLogin } from '@/store/AuthStore'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
 
 export default function LoginPage() {
-  const { login, isAuthenticated } = useAuth()
+  const login = useAuthStore(selectLogin);
+  const isAuthenticated = useAuthStore(selectIsLogin);
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -22,7 +23,7 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     try {
-      await login(email, password)
+      await login({ email, password })
       router.push('/')
     } catch (err: any) {
       setError(err.message)

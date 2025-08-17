@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, ChangeEvent, DragEvent, useCallback } from 'react';
-import { getPresignedUrl, uploadToS3 } from '@/services/uploadService';
+import { getPresignedUrl, uploadToS3 } from '@/apis/uploadApi';
 
 interface Props {
   onUploaded: (s3Url: string) => void;

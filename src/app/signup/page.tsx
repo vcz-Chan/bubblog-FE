@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signup } from '@/services/auth'
+import { signup } from '@/apis/authApi'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
 import ImageUploader from '@/components/Common/ImageUploader'

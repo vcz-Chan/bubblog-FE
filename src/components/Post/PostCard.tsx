@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useMotionValue, useSpring, SpringOptions } from 'framer-motion';
 import { EyeIcon, HandThumbUpIcon } from '@heroicons/react/24/outline'
-import type { Blog } from '@/services/blogService';
+import type { Blog } from '@/apis/blogApi';
 
 const springOptions: SpringOptions = {
   damping: 30,

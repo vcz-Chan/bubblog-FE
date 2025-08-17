@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/AuthContext'
-import { getUserProfile, UserProfile } from '@/services/userService'
+import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
+import { getUserProfile, UserProfile } from '@/apis/userApi'
 import {
-  askChat,
+  askChatAPI,
   ContextItem,
   ChatMessage as ServiceChatMessage
-} from '@/services/aiService'
+} from '@/apis/aiApi'
 import { ProfileHeader } from '@/components/Chat/ProfileHeader'
 import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton'
 import { ChatMessages } from '@/components/Chat/ChatMessages'
@@ -19,13 +19,13 @@ import { PostModal } from '@/components/Chat/PostModal'
 import { CategorySelector } from '@/components/Category/CategorySelector'
 import { PersonaSelectorModal } from '@/components/Persona/PersonaSelectorModal'
 import { PersonaFilterButton } from '@/components/Persona/PersonaFilterButton'
-import { Persona } from '@/services/personaService'
-import { CategoryNode } from '@/services/categoryService'
+import { Persona } from '@/apis/personaApi'
+import { CategoryNode } from '@/apis/categoryApi'
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
   const router = useRouter()
-  const { isAuthenticated } = useAuth()
+  const isAuthenticated = useAuthStore(selectIsLogin)
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -89,7 +89,7 @@ export default function ChatPage() {
     setShowContext(false)
 
     try {
-      await askChat(
+      await askChatAPI(
         question,
         userId!,
         selectedCategory?.id ?? null,

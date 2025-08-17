@@ -1,14 +1,12 @@
-// components/Chat/ChatWindow.tsx
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
-import { getUserProfile, UserProfile } from '@/services/userService'
+import { getUserProfile, UserProfile } from '@/apis/userApi'
 import {
-  askChat,
+  askChatAPI,
   ContextItem,
   ChatMessage as ServiceChatMessage
-} from '@/services/aiService'
+} from '@/apis/aiApi'
 import { ProfileHeader } from './ProfileHeader'
 import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton'
 import { ChatMessages } from './ChatMessages'
@@ -17,15 +15,16 @@ import { ChatInput } from './ChatInput'
 import { CategorySelector } from '@/components/Category/CategorySelector'
 import { PersonaSelectorModal } from '@/components/Persona/PersonaSelectorModal'
 import { PersonaFilterButton } from '@/components/Persona/PersonaFilterButton'
-import { Persona } from '@/services/personaService'
-import { CategoryNode } from '@/services/categoryService'
+import { Persona } from '@/apis/personaApi'
+import { CategoryNode } from '@/apis/categoryApi'
+import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
 
 interface Props {
   userId: string
 }
 
 export function ChatWindow({ userId }: Props) {
-  const { isAuthenticated } = useAuth()
+  const isAuthenticated = useAuthStore(selectIsLogin)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loadingUser, setLoadingUser] = useState(true)
   const [errorUser, setErrorUser]     = useState<string | null>(null)
@@ -84,7 +83,7 @@ export function ChatWindow({ userId }: Props) {
     setShowContext(false)
 
     try {
-      await askChat(
+      await askChatAPI(
         question,
         userId,
         selectedCategory?.id ?? null,

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore, selectUserId } from '@/store/AuthStore';
 import { CategorySelector } from '@/components/Category/CategorySelector';
 import ReactMDEEditor from '@/components/Post/ReactMDEEditor';
 import { EditorToolbar } from '@/components/Post/EditorToolbar';
@@ -11,10 +11,10 @@ import {
   updateBlog,
   createBlog,
   BlogDetail,
-} from '@/services/blogService';
+} from '@/apis/blogApi';
 import ThumbnailUploader from '@/components/Post/ThumbnailUploader';
-import { getPresignedUrl, uploadToS3 } from '@/services/uploadService';
-import { CategoryNode } from '@/services/categoryService';
+import { getPresignedUrl, uploadToS3 } from '@/apis/uploadApi';
+import { CategoryNode } from '@/apis/categoryApi';
 
 interface Props {
   postId?: string;
@@ -24,7 +24,7 @@ interface Props {
 
 export default function WritePostClient({ postId, initialData }: Props) {
   const router = useRouter();
-  const { userId } = useAuth();
+  const userId = useAuthStore(selectUserId);
   const isEdit = Boolean(postId);
 
   const [title, setTitle] = useState(initialData?.title ?? '');

@@ -1,4 +1,4 @@
-import { getBlogById } from '@/services/blogService';
+import { getBlogById } from '@/apis/blogApi';
 import WritePostClient from './WritePostClient';
 
 export default async function WritePage({

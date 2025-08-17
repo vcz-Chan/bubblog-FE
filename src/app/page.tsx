@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { getBlogsPage, Blog } from '@/services/blogService';
+import { useAuthStore, selectIsLogin } from '@/store/AuthStore';
+import { getBlogsPage, Blog } from '@/apis/blogApi'
 import { PageResponse } from '@/utils/types';
 import { PostList } from '@/components/Post/PostList';
 import { LandingPage } from '@/components/Home/LandingPage'
@@ -12,7 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Home() {
-  const { isAuthenticated } = useAuth();
+  const isAuthenticated = useAuthStore(selectIsLogin);
 
   const [posts, setPosts] = useState<Blog[]>([]);
   const [pageData, setPageData] = useState<PageResponse<Blog> | null>(null);

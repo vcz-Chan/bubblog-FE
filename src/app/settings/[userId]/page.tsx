@@ -2,13 +2,13 @@
 'use client'
 
 import React, { useState, useEffect, FormEvent } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore, selectUserId, selectLogout } from '@/store/AuthStore'
 import {
   getUserProfile,
   updateUserProfile,
   deleteUserAccount,
   UserProfile
-} from '@/services/userService'
+} from '@/apis/userApi'
 import { PersonaManager } from '@/components/Persona/PersonaManager'
 import ImageUploader from '@/components/Common/ImageUploader'
 import { Button } from '@/components/Common/Button'
@@ -16,7 +16,8 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
-  const { userId, logout } = useAuth()
+  const userId = useAuthStore(selectUserId);
+  const logout = useAuthStore(selectLogout);
   const router = useRouter()
 
   // 프로필 상태

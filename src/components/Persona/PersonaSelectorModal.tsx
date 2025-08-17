@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Dialog } from '@headlessui/react'
 import { XMarkIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore, selectUserId } from '@/store/AuthStore'
 import {
   getPersonasByUser,
   updatePersona,
   deletePersona,
   Persona
-} from '@/services/personaService'
+} from '@/apis/personaApi'
 
 interface Props {
   userId: string
@@ -24,7 +24,7 @@ export function PersonaSelectorModal({
   onSelect,
   onClose
 }: Props) {
-  const { userId: authUserId } = useAuth()
+  const authUserId = useAuthStore(selectUserId)
   const isOwner = authUserId === userId
 
   const [list, setList] = useState<Persona[]>([])

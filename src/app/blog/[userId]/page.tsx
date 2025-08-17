@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useAuth } from '@/contexts/AuthContext';
-import { getUserProfile, UserProfile } from '@/services/userService';
-import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/services/blogService';
-import { getCategoryTree, CategoryNode } from '@/services/categoryService';
+import { useAuthStore, selectUserId } from '@/store/AuthStore';
+import { getUserProfile, UserProfile } from '@/apis/userApi';
+import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/apis/blogApi';
+import { getCategoryTree, CategoryNode } from '@/apis/categoryApi';
 
 import { UserProfileHeader } from '@/components/Blog/UserProfileHeader';
 import { BlogControls } from '@/components/Blog/BlogControls';
@@ -18,7 +18,7 @@ import { ChatWindow }       from '@/components/Chat/ChatWindow'
 import { ChatViewButton }       from '@/components/Chat/ChatViewButton'
 
 export default function BlogPage() {
-  const { userId: authUserId } = useAuth();
+  const authUserId = useAuthStore(selectUserId);
   const { userId: paramUserId } = useParams<{ userId: string }>();
   const isMyBlog = paramUserId === authUserId;
 
