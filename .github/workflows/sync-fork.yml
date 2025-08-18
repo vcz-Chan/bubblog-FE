@@ -18,11 +18,6 @@ jobs:
           fetch-depth: 0
           persist-credentials: false  # PAT로 푸시할 것이므로 분리
 
-      - name: Set git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Add fork remote with Fine-grained PAT
         run: |
           # Fine-grained PAT은 username을 x-access-token으로 써야 안정적입니다.
