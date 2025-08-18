@@ -11,20 +11,24 @@ jobs:
   sync:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source with GITHUB_TOKEN
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
-          persist-credentials: false  # 포크 푸시에 다른 토큰 쓸 예정
+          persist-credentials: false  # PAT로 푸시할 것이므로 분리
 
-      - run: |
+      - name: Set git identity
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add fork remote
+      - name: Add fork remote with Fine-grained PAT
         run: |
-          git remote add fork https://chan000518:${{ secrets.REPO_TOKEN }}@github.com/chan000518/bubblog-FE.git
+          # Fine-grained PAT은 username을 x-access-token으로 써야 안정적입니다.
+          git remote add fork https://x-access-token:${{ secrets.REPO_TOKEN }}@github.com/chan000518/bubblog-FE.git
+          git remote -v
 
-      - name: Push main branch to fork
+      - name: Push main (safer force)
         run: |
           git push --force-with-lease fork main
