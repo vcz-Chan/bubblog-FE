@@ -53,7 +53,7 @@ export async function getBlogsPage(
   sort = 'createdAt,DESC',
 ): Promise<PageResponse<Blog>> {
   const res = await apiClientNoAuth<PageResponse<Blog>>(
-    '/api/blogs',
+    '/api/posts',
     { method: 'GET', params: { page, size, sort } }
   );
   if (!res.success) throw new Error(res.message);
@@ -73,7 +73,7 @@ export async function getBlogById(
   id: number
 ): Promise<BlogDetail> {
   const res = await apiClientNoAuth<BlogDetail>(
-    `/api/blogs/${id}`,
+    `/api/posts/${id}`,
     { method: 'GET' }
   );
   if (!res.success) throw new Error(res.message);
@@ -88,7 +88,7 @@ export async function createBlog(
   payload: CreateBlogPayload
 ): Promise<BlogDetail> {
   const res = await apiClientWithAuth<BlogDetail>(
-    '/api/blogs',
+    '/api/posts',
     { method: 'POST', body: JSON.stringify(payload) }
   );
   if (!res.success) throw new Error(res.message);
@@ -100,7 +100,7 @@ export async function updateBlog(
   payload: CreateBlogPayload
 ): Promise<BlogDetail> {
   const res = await apiClientWithAuth<BlogDetail>(
-    `/api/blogs/${id}`,
+    `/api/posts/${id}`,
     { method: 'PUT', body: JSON.stringify(payload) }
   );
   if (!res.success) throw new Error(res.message);
@@ -111,7 +111,7 @@ export async function deleteBlog(
   id: number
 ): Promise<void> {
   const res = await apiClientWithAuth<null>(
-    `/api/blogs/${id}`,
+    `/api/posts/${id}`,
     { method: 'DELETE' }
   );
   if (!res.success) throw new Error(res.message);
@@ -128,7 +128,7 @@ export async function getPostsByUserPage(
   if (categoryId != null) params.categoryId = categoryId;
 
   const res = await apiClientWithAuth<UserPostsPage<Blog>>(
-    `/api/blogs/users/${userId}`,
+    `/api/posts/users/${userId}`,
     { method: 'GET', params }
   );
   if (!res.success) throw new Error(res.message);
@@ -152,7 +152,7 @@ export async function putPostView(
   postId: number
 ): Promise<void> {
   const res = await apiClientWithAuth<null>(
-    `/api/blogs/${postId}/view`,
+    `/api/posts/${postId}/view`,
     { method: 'PUT' }
   );
   if (!res.success) throw new Error(res.message);
@@ -162,7 +162,7 @@ export async function putPostLike(
   postId: number
 ): Promise<void> {
   const res = await apiClientWithAuth<null>(
-    `/api/blogs/${postId}/like`,
+    `/api/posts/${postId}/like`,
     { method: 'PUT' }
   );
   if (!res.success) throw new Error(res.message);
