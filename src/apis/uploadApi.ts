@@ -21,10 +21,7 @@ export async function getPresignedUrl(
       body: JSON.stringify({ fileName, contentType }),
     }
   );
-  if (!res.success || !res.data) {
-    throw new Error(res.message || 'Presigned URL 발급에 실패했습니다.');
-  }
-  return res.data;
+  return res.data!;
 }
 
 /**

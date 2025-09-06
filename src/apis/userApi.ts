@@ -19,7 +19,6 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
     `/api/users/${userId}`,
     { method: 'GET' }
   );
-  if (!res.success) throw new Error(res.message);
   return res.data!;
 }
 
@@ -37,7 +36,6 @@ export async function updateUserProfile(params: {
       body: JSON.stringify(params),
     }
   );
-  if (!res.success) throw new Error(res.message);
   return res.data!;
 }
 
@@ -45,9 +43,8 @@ export async function updateUserProfile(params: {
  * 3. 내 계정 삭제 (인증 필요)
  */
 export async function deleteUserAccount(): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/users/me`,
     { method: 'DELETE' }
   );
-  if (!res.success) throw new Error(res.message);
 }

@@ -30,7 +30,12 @@ export async function apiClientNoAuth<T = any>(
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
   });
-  return res.json();
+
+  const json = await res.json();
+  if (!json.success) {
+    throw new Error(json.message);
+  }
+  return json;
 }
 
 /**

@@ -1,10 +1,7 @@
 import { 
     apiClientWithAuth,
-    apiClientNoAuth,
  } from '@/apis/apiClient';
  
-import { APIResponse } from '@/utils/types';
-
 export interface Persona {
   id: number;
   name: string;
@@ -19,9 +16,6 @@ export async function getPersonasByUser(userId: string): Promise<Persona[]> {
     `/api/personas/user/${userId}`,
     { method: 'GET' }
   );
-  if (!res.success) {
-    throw new Error(res.message);
-  }
   return res.data!;
 }
 
@@ -39,9 +33,6 @@ export async function createPersona(params: {
       body: JSON.stringify(params),
     }
   );
-  if (!res.success) {
-    throw new Error(res.message);
-  }
   return res.data!;
 }
 
@@ -59,9 +50,6 @@ export async function updatePersona(
       body: JSON.stringify(params),
     }
   );
-  if (!res.success) {
-    throw new Error(res.message);
-  }
   return res.data!;
 }
 
@@ -69,11 +57,8 @@ export async function updatePersona(
  * 4. 페르소나 삭제 (인증 필요)
  */
 export async function deletePersona(personaId: number): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/personas/${personaId}`,
     { method: 'DELETE' }
   );
-  if (!res.success) {
-    throw new Error(res.message);
-  }
 }
