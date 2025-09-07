@@ -16,6 +16,9 @@ export async function getPersonasByUser(userId: string): Promise<Persona[]> {
     `/api/personas/user/${userId}`,
     { method: 'GET' }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -33,6 +36,9 @@ export async function createPersona(params: {
       body: JSON.stringify(params),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -50,6 +56,9 @@ export async function updatePersona(
       body: JSON.stringify(params),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 

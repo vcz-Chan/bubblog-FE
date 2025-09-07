@@ -6,6 +6,7 @@ import { useAuthStore, selectUserId } from '@/store/AuthStore';
 import { getUserProfile, UserProfile } from '@/apis/userApi';
 import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/apis/blogApi';
 import { getCategoryTree, CategoryNode } from '@/apis/categoryApi';
+import { SORT_OPTIONS, SortOption } from '@/utils/constants';
 
 import { UserProfileHeader } from '@/components/Blog/UserProfileHeader';
 import { BlogControls } from '@/components/Blog/BlogControls';
@@ -39,7 +40,7 @@ export default function BlogPage() {
   const [errorPosts, setErrorPosts] = useState<string | null>(null);
 
   // --- 정렬 · 페이지 · 카테고리 필터 상태 ---
-  const [sort, setSort] = useState('createdAt,DESC');
+  const [sort, setSort] = useState<SortOption>(SORT_OPTIONS.LATEST);
   const [page, setPage] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null);
 
@@ -59,7 +60,10 @@ export default function BlogPage() {
     setLoadingUser(true);
     getUserProfile(paramUserId)
       .then(p => { setProfile(p); setErrorUser(null); })
-      .catch(err => setErrorUser(err.message))
+      .catch(err => {
+        if (err instanceof Error) setErrorUser(err.message);
+        else setErrorUser('알 수 없는 오류가 발생했습니다.');
+      })
       .finally(() => setLoadingUser(false));
   }, [paramUserId]);
 
@@ -69,7 +73,10 @@ export default function BlogPage() {
     setLoadingCats(true);
     getCategoryTree(paramUserId)
       .then(tree => { setCategories(tree); setErrorCats(null); })
-      .catch(err => setErrorCats(err.message))
+      .catch(err => {
+        if (err instanceof Error) setErrorCats(err.message);
+        else setErrorCats('알 수 없는 오류가 발생했습니다.');
+      })
       .finally(() => setLoadingCats(false));
   }, [paramUserId]);
 
@@ -88,8 +95,12 @@ export default function BlogPage() {
       );
       setPosts(data.posts);
       setPageData(data);
-    } catch (err: any) {
-      setErrorPosts(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setErrorPosts(err.message);
+      } else {
+        setErrorPosts('알 수 없는 오류가 발생했습니다.');
+      }
     } finally {
       setLoadingPosts(false);
     }
@@ -156,12 +167,12 @@ export default function BlogPage() {
           <div className="flex items-center gap-3">
             <select
               value={sort}
-              onChange={e => setSort(e.target.value)}
+              onChange={e => setSort(e.target.value as SortOption)}
               className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
-              <option value="createdAt,DESC">최신순</option>
-              <option value="createdAt,ASC">오래된순</option>
-              <option value="title,ASC">가나다순</option>
+              <option value={SORT_OPTIONS.LATEST}>최신순</option>
+              <option value={SORT_OPTIONS.OLDEST}>오래된순</option>
+              <option value={SORT_OPTIONS.TITLE_ASC}>가나다순</option>
             </select>
           </div>
         </div>

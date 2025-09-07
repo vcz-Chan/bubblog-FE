@@ -21,6 +21,9 @@ export async function getPresignedUrl(
       body: JSON.stringify({ fileName, contentType }),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 

@@ -17,6 +17,9 @@ export async function getCategoryTree(userId: string): Promise<CategoryNode[]> {
     `/api/categories/${userId}/tree`,
     { method: 'GET' }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -34,6 +37,9 @@ export async function createCategory(payload: {
       body: JSON.stringify(payload),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -51,6 +57,9 @@ export async function updateCategory(
       body: JSON.stringify(payload),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 

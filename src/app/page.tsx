@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore';
-import { getBlogsPage, Blog } from '@/apis/blogApi'
-import { PageResponse } from '@/utils/types';
+import { usePosts } from '@/hooks/usePosts';
+import { SORT_OPTIONS, SortOption } from '@/utils/constants';
 import { PostList } from '@/components/Post/PostList';
-import { LandingPage } from '@/components/Home/LandingPage'
+import { LandingPage } from '@/components/Home/LandingPage';
 import {
   ChevronDownIcon,
   Bars3BottomLeftIcon,
@@ -13,50 +12,32 @@ import {
 
 export default function Home() {
   const isAuthenticated = useAuthStore(selectIsLogin);
-
-  const [posts, setPosts] = useState<Blog[]>([]);
-  const [pageData, setPageData] = useState<PageResponse<Blog> | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState('createdAt,DESC');
-
-  const size = 8;
-
-  const loadPage = async (pageNum: number, currentSort = sort) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getBlogsPage(pageNum, size, currentSort);
-      setPosts(data.content);
-      setPageData(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 초기 로딩 및 정렬 조건 변경 시
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadPage(0, sort);
-    }
-  }, [isAuthenticated, sort]);
+  const {
+    posts,
+    pageData,
+    loading,
+    error,
+    sort,
+    handleSortChange,
+    handlePageChange,
+  } = usePosts({ isAuthenticated });
 
   if (!isAuthenticated) {
-    return <LandingPage/>;
+    return <LandingPage />;
   }
+
   if (loading || !pageData) {
     return <p className="text-center py-20">로딩 중…</p>;
   }
+
   if (error) {
     return <p className="text-center py-20 text-red-500">에러: {error}</p>;
   }
 
-  const { content, number, totalPages, first, last } = pageData;
+  const { number, totalPages, first, last } = pageData;
 
   return (
-    <div >
+    <div>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
         {/* 상단 정렬 선택 UI */}
         <div className="flex items-center justify-between mb-6">
@@ -68,11 +49,7 @@ export default function Home() {
           <div className="relative">
             <select
               value={sort}
-              onChange={(e) => {
-                const selected = e.target.value
-                setSort(selected)
-                loadPage(0, selected)
-              }}
+              onChange={(e) => handleSortChange(e.target.value as SortOption)}
               className="
                 block w-full cursor-pointer appearance-none rounded-md border border-gray-300
                 bg-white px-4 py-2 pr-10 text-sm text-gray-800 shadow-sm
@@ -80,11 +57,11 @@ export default function Home() {
                 hover:border-gray-400
               "
             >
-              <option value="createdAt,DESC">최신순</option>
-              <option value="createdAt,ASC">오래된순</option>
-              <option value="title,ASC">제목순</option>
-              <option value="viewCount,DESC">조회순</option>
-              <option value="likeCount,DESC">좋아요순</option>
+              <option value={SORT_OPTIONS.LATEST}>최신순</option>
+              <option value={SORT_OPTIONS.OLDEST}>오래된순</option>
+              <option value={SORT_OPTIONS.TITLE_ASC}>제목순</option>
+              <option value={SORT_OPTIONS.VIEWS}>조회순</option>
+              <option value={SORT_OPTIONS.LIKES}>좋아요순</option>
             </select>
 
             {/* 커스텀 화살표 아이콘 */}
@@ -98,13 +75,13 @@ export default function Home() {
         </div>
 
         {/* 게시글 목록 */}
-        <PostList posts={content} />
+        <PostList posts={posts} />
       </main>
 
       {/* 페이지네이션 */}
       <nav className="py-4 flex justify-center space-x-2">
         <button
-          onClick={() => loadPage(number - 1)}
+          onClick={() => handlePageChange(number - 1)}
           disabled={first}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
@@ -114,7 +91,7 @@ export default function Home() {
         {Array.from({ length: totalPages }, (_, idx) => (
           <button
             key={idx}
-            onClick={() => loadPage(idx)}
+            onClick={() => handlePageChange(idx)}
             className={`px-3 py-1 border rounded ${
               idx === number ? 'font-bold underline text-blue-600' : ''
             }`}
@@ -124,7 +101,7 @@ export default function Home() {
         ))}
 
         <button
-          onClick={() => loadPage(number + 1)}
+          onClick={() => handlePageChange(number + 1)}
           disabled={last}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >

@@ -36,6 +36,9 @@ export async function updateUserProfile(params: {
       body: JSON.stringify(params),
     }
   );
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
