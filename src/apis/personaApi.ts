@@ -13,7 +13,7 @@ export interface Persona {
  */
 export async function getPersonasByUser(userId: string): Promise<Persona[]> {
   const res = await apiClientWithAuth<Persona[]>(
-    `/api/personas/user/${userId}`,
+    `/api/personas/users/${userId}`,
     { method: 'GET' }
   );
   if (!res.success) {
