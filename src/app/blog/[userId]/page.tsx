@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuthStore, selectUserId } from '@/store/AuthStore';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { getUserProfile, UserProfile } from '@/apis/userApi';
 import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/apis/blogApi';
 import { getCategoryTree, CategoryNode } from '@/apis/categoryApi';
@@ -18,41 +19,43 @@ import { DraggableModal }   from '@/components/Common/DraggableModal'
 import { ChatWindow }       from '@/components/Chat/ChatWindow'
 import { ChatViewButton }       from '@/components/Chat/ChatViewButton'
 
+type ViewMode = 'card' | 'list';
+
 export default function BlogPage() {
   const authUserId = useAuthStore(selectUserId);
   const { userId: paramUserId } = useParams<{ userId: string }>();
   const isMyBlog = paramUserId === authUserId;
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // --- 사용자 프로필 ---
+  // --- 상태 관리 ---
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loadingUser, setLoadingUser] = useState(false);
-  const [errorUser, setErrorUser] = useState<string | null>(null);
-
-  // --- 카테고리 ---
   const [categories, setCategories] = useState<CategoryNode[]>([]);
-  const [loadingCats, setLoadingCats] = useState(false);
-  const [errorCats, setErrorCats] = useState<string | null>(null);
-
-  // --- 게시글 페이지네이션 ---
   const [posts, setPosts] = useState<Blog[]>([]);
   const [pageData, setPageData] = useState<UserPostsPage<Blog> | null>(null);
+  const [loadingUser, setLoadingUser] = useState(false);
+  const [errorUser, setErrorUser] = useState<string | null>(null);
+  const [loadingCats, setLoadingCats] = useState(false);
+  const [errorCats, setErrorCats] = useState<string | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
   const [errorPosts, setErrorPosts] = useState<string | null>(null);
-
-  // --- 정렬 · 페이지 · 카테고리 필터 상태 ---
+  
+  // --- 필터, 모달, 뷰 상태 ---
   const [sort, setSort] = useState<SortOption>(SORT_OPTIONS.LATEST);
   const [page, setPage] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null);
-
-  // --- 삭제 모달 상태 ---
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
   const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null);
-  
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-
-  // 챗봇 팝업
   const [showChat, setShowChat] = useState(false);
 
   const size = 8;
+
+  // 모바일 사이즈일 때 카드 뷰로 강제
+  useEffect(() => {
+    if (isMobile) {
+      setViewMode('card');
+    }
+  }, [isMobile]);
 
   // 프로필 로드
   useEffect(() => {
@@ -140,41 +143,29 @@ export default function BlogPage() {
   if (errorUser)  return <p className="text-red-500">{errorUser}</p>;
 
    return (
-    <div>
+    <div className='w-full'>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
 
-        <div className='flex flex-col lg:flex-row gap-4 items-start justify-between'>
+        <div className='flex flex-col lg:flex-row gap-4 items-center justify-between'>
           <div className='flex flex-row gap-4 items-center justify-between'>
             {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
             <ChatViewButton userId={paramUserId} onClick={() => setShowChat(true)}/>
           </div>
-          {isMyBlog && <BlogControls userId={paramUserId} />}
           {showChat && (
             <DraggableModal
               path= {`/chatbot/${paramUserId}`}
               onClose={() => setShowChat(false)}
             >
-              {/* author의 userId로 채팅창 */}
               <ChatWindow userId={paramUserId} />
             </DraggableModal>
           )}
         </div>
-        <div className="flex flex-wrap items-center justify-between my-2">
+        <div className="flex flex-wrap items-center justify-between my-4">
           <CategoryFilterButton
             selectedCategory={selectedCategory}
             onOpen={() => setIsCatModalOpen(true)}
           />
-          <div className="flex items-center gap-3">
-            <select
-              value={sort}
-              onChange={e => setSort(e.target.value as SortOption)}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value={SORT_OPTIONS.LATEST}>최신순</option>
-              <option value={SORT_OPTIONS.OLDEST}>오래된순</option>
-              <option value={SORT_OPTIONS.TITLE_ASC}>가나다순</option>
-            </select>
-          </div>
+          {isMyBlog && <BlogControls userId={paramUserId} sort={sort} setSort={setSort} viewMode={viewMode} setViewMode={setViewMode} isViewModeToggleDisabled={isMobile} />}
         </div>
 
         {loadingPosts ? (
@@ -183,7 +174,7 @@ export default function BlogPage() {
           <p className="text-center text-red-500">{errorPosts}</p>
         ) : (
           <>
-            <PostsGrid posts={posts} isMyBlog={isMyBlog} onDelete={handleDelete} />
+            <PostsGrid posts={posts} viewMode={viewMode} />
 
             {/* 페이지네이션 */}
             {pageData && (
