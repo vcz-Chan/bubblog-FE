@@ -1,6 +1,44 @@
 import 'server-only';
+import type { Metadata } from 'next';
 import PostDetailClient from "@/app/post/[postId]/PostDetailClient";
 import PostDetailBodyServer from "@/app/post/[postId]/PostDetailBodyServer";
+import { getBlogById } from '@/apis/blogApi';
+import { truncate, toAbsoluteUrl } from '@/utils/seo';
+import PostStructuredData from '@/app/post/[postId]/PostStructuredData';
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ postId: string }> }
+): Promise<Metadata> {
+  const { postId } = await params;
+  try {
+    const post = await getBlogById(Number(postId));
+    return {
+      title: truncate(post.title, 60),
+      description: truncate(post.summary, 160),
+      openGraph: {
+        title: truncate(post.title, 60),
+        description: truncate(post.summary, 200),
+        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.jpeg')],
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: truncate(post.title, 60),
+        description: truncate(post.summary, 200),
+        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.jpeg')],
+      },
+      alternates: { canonical: `/post/${postId}` },
+    };
+  } catch {
+    return {
+      title: '게시글',
+      description: '게시글 상세',
+      openGraph: { images: [toAbsoluteUrl('/logo.jpeg')] },
+      twitter: { card: 'summary_large_image', images: [toAbsoluteUrl('/logo.jpeg')] },
+      alternates: { canonical: `/post/${postId}` },
+    };
+  }
+}
 
 export default async function PostDetailPage({ params }: { params: Promise<{ postId: string }> }) {
   const { postId } = await params;
@@ -12,6 +50,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ pos
 
       {/* SSR 본문 */}
       <PostDetailBodyServer postId={postId} />
+
+      {/* JSON-LD (Article) */}
+      <PostStructuredData postId={postId} />
     </article>
   );
 }

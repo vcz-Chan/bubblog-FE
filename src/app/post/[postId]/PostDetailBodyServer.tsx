@@ -2,6 +2,7 @@
 import 'server-only';
 import { PostDetailBody } from '@/components/PostDetail/Body';
 import { getBlogById } from '@/apis/blogApi';
+import { notFound } from 'next/navigation';
 
 type BlogDetail = { content: string };
 
@@ -11,11 +12,11 @@ type BlogDetail = { content: string };
  * - 캐시 없음 (최신 본문)
  */
 export default async function PostDetailBodyServer({ postId }: { postId: string }) {
-  const post = await getBlogById(Number(postId));
-
-  if (!post) {
-    return <div className="py-16 text-center text-red-500">본문을 불러오지 못했습니다.</div>;
+  try {
+    const post = await getBlogById(Number(postId));
+    if (!post) return notFound();
+    return <PostDetailBody content={post.content} />;
+  } catch {
+    return notFound();
   }
-
-  return <PostDetailBody content={post.content} />;
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import { Blog } from '@/apis/blogApi';
 import { PostCard } from './PostCard';
 import { PostListItem } from './PostListItem';
