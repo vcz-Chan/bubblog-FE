@@ -1,7 +1,5 @@
-import {
-  apiClientNoAuth,
-  apiClientWithAuth,
-} from '@/apis/apiClient';
+import { apiClientNoAuth, apiClientWithAuth } from '@/apis/apiClient';
+import { SORT_OPTIONS, SortOption } from '@/utils/constants';
 import { APIResponse, PageResponse } from '@/utils/types';
 
 export interface Blog {
@@ -50,23 +48,13 @@ export interface UserPostsPage<T> {
 export async function getBlogsPage(
   page = 0,
   size = 8,
-  sort = 'createdAt,DESC',
+  sort: SortOption = SORT_OPTIONS.LATEST,
 ): Promise<PageResponse<Blog>> {
   const res = await apiClientNoAuth<PageResponse<Blog>>(
     '/api/posts',
     { method: 'GET', params: { page, size, sort } }
   );
-  if (!res.success) throw new Error(res.message);
   return res.data!;
-}
-
-export async function getBlogs(
-  page = 0,
-  size = 8,
-  sort = 'createdAt,DESC',
-): Promise<Blog[]> {
-  const { content } = await getBlogsPage(page, size, sort);
-  return content;
 }
 
 export async function getBlogById(
@@ -76,7 +64,6 @@ export async function getBlogById(
     `/api/posts/${id}`,
     { method: 'GET' }
   );
-  if (!res.success) throw new Error(res.message);
   return res.data!;
 }
 
@@ -91,7 +78,9 @@ export async function createBlog(
     '/api/posts',
     { method: 'POST', body: JSON.stringify(payload) }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -103,25 +92,26 @@ export async function updateBlog(
     `/api/posts/${id}`,
     { method: 'PUT', body: JSON.stringify(payload) }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
 export async function deleteBlog(
   id: number
 ): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/posts/${id}`,
     { method: 'DELETE' }
   );
-  if (!res.success) throw new Error(res.message);
 }
 
 export async function getPostsByUserPage(
   userId: string,
   page = 0,
   size = 8,
-  sort = 'createdAt,DESC',
+  sort: SortOption = SORT_OPTIONS.LATEST,
   categoryId?: number | null,
 ): Promise<UserPostsPage<Blog>> {
   const params: Record<string, string | number> = { page, size, sort };
@@ -131,39 +121,26 @@ export async function getPostsByUserPage(
     `/api/posts/users/${userId}`,
     { method: 'GET', params }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
-}
-
-export async function getPostsByUserContent(
-  userId: string,
-  page = 0,
-  size = 8,
-  sort = 'createdAt,DESC',
-  categoryId?: number,
-): Promise<Blog[]> {
-  const pageData = await getPostsByUserPage(
-    userId, page, size, sort, categoryId
-  );
-  return pageData.posts;
 }
 
 export async function putPostView(
   postId: number
 ): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/posts/${postId}/view`,
     { method: 'PUT' }
   );
-  if (!res.success) throw new Error(res.message);
 }
 
 export async function putPostLike(
   postId: number
 ): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/posts/${postId}/like`,
     { method: 'PUT' }
   );
-  if (!res.success) throw new Error(res.message);
 }

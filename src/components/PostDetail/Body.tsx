@@ -1,19 +1,18 @@
-'use client'
+'use client';
 
-import dynamic from 'next/dynamic'
-const MarkdownViewer = dynamic(
-  () => import('@/components/Post/MarkdownViewer'),
-  { ssr: false }
-)
+import Markdown from '@uiw/react-markdown-preview';
+import rehypeHighlight from 'rehype-highlight';
 
-interface Props {
-  content: string
-}
-
-export function PostDetailBody({ content }: Props) {
+export function PostDetailBody({ content }: { content: string }) {
   return (
-    <section className="bg-gray-50 border rounded p-6 mb-8">
-      <MarkdownViewer value={content} />
-    </section>
-  )
+    <div data-color-mode="light" className="prose prose-sm sm:prose-base max-w-none p-6">
+      <Markdown
+        source={content}
+        rehypePlugins={[[rehypeHighlight, { detect: true }]]}
+        components={{
+          img: (props) => <img {...props} style={{ maxWidth: '100%' }} />,
+        }}
+      />
+    </div>
+  );
 }

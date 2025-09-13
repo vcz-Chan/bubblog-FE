@@ -28,3 +28,19 @@ body {
 body {
   font-family: var(--font-nanum-gothic), sans-serif;
 }
+
+/* Markdown Editor Toolbar Size Customization */
+.w-md-editor-toolbar {
+  padding: 8px 10px !important;
+  min-height: 46px;
+}
+
+.w-md-editor-toolbar li button {
+  height: 30px !important;
+  width: 30px !important;
+}
+
+.w-md-editor-toolbar svg {
+  width: 18px !important;
+  height: 18px !important;
+}

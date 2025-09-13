@@ -1,10 +1,7 @@
 import { 
     apiClientWithAuth,
-    apiClientNoAuth,
  } from '@/apis/apiClient';
  
-import { APIResponse } from '@/utils/types';
-
 export interface Persona {
   id: number;
   name: string;
@@ -69,11 +66,8 @@ export async function updatePersona(
  * 4. 페르소나 삭제 (인증 필요)
  */
 export async function deletePersona(personaId: number): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/personas/${personaId}`,
     { method: 'DELETE' }
   );
-  if (!res.success) {
-    throw new Error(res.message);
-  }
 }

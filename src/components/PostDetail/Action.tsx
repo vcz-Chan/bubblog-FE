@@ -3,12 +3,12 @@
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { deleteBlog } from '@/apis/blogApi'
+import { Pencil, Trash2 } from 'lucide-react'
 
 interface Props {
   postId: number
 }
 
-// 블로그 글 상세 페이지의 액션 컴포넌트 
 export function PostDetailActions({ postId }: Props) {
   const router = useRouter()
 
@@ -23,18 +23,20 @@ export function PostDetailActions({ postId }: Props) {
   }
 
   return (
-    <div className="flex gap-4">
+    <div className="border-gray-200 flex justify-end items-center gap-4">
       <Link
         href={`/write?postId=${postId}`}
-        className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        className="inline-flex items-center gap-2 px-4 py-2 text-gray-600 font-semibold rounded-lg shadow-sm hover:bg-indigo-700  hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
       >
-        수정하기
+        <Pencil size={16} />
+        <span>수정</span>
       </Link>
       <button
         onClick={onDelete}
-        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+        className="inline-flex items-center gap-2 px-4 py-2 text-gray-600 font-semibold rounded-lg shadow-sm hover:bg-red-50 hover:text-red-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
       >
-        삭제하기
+        <Trash2 size={16} />
+        <span>삭제</span>
       </button>
     </div>
   )

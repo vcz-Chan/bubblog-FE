@@ -1,110 +1,78 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore';
-import { getBlogsPage, Blog } from '@/apis/blogApi'
-import { PageResponse } from '@/utils/types';
+import { usePosts } from '@/hooks/usePosts';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { SortOption } from '@/utils/constants';
 import { PostList } from '@/components/Post/PostList';
-import { LandingPage } from '@/components/Home/LandingPage'
+import { LandingPage } from '@/components/Home/LandingPage';
+import { BlogControls } from '@/components/Blog/BlogControls';
 import {
-  ChevronDownIcon,
   Bars3BottomLeftIcon,
 } from '@heroicons/react/24/outline';
 
+type ViewMode = 'card' | 'list';
+
 export default function Home() {
   const isAuthenticated = useAuthStore(selectIsLogin);
+  const {
+    posts,
+    pageData,
+    loading,
+    error,
+    sort,
+    handleSortChange,
+    handlePageChange,
+  } = usePosts({ isAuthenticated });
+  const [viewMode, setViewMode] = useState<ViewMode>('card');
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  const [posts, setPosts] = useState<Blog[]>([]);
-  const [pageData, setPageData] = useState<PageResponse<Blog> | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sort, setSort] = useState('createdAt,DESC');
-
-  const size = 8;
-
-  const loadPage = async (pageNum: number, currentSort = sort) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await getBlogsPage(pageNum, size, currentSort);
-      setPosts(data.content);
-      setPageData(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 초기 로딩 및 정렬 조건 변경 시
+  // 모바일 사이즈일 때 카드 뷰로 강제
   useEffect(() => {
-    if (isAuthenticated) {
-      loadPage(0, sort);
+    if (isMobile) {
+      setViewMode('card');
     }
-  }, [isAuthenticated, sort]);
+  }, [isMobile]);
 
-  if (!isAuthenticated) {
-    return <LandingPage/>;
-  }
   if (loading || !pageData) {
     return <p className="text-center py-20">로딩 중…</p>;
   }
+
   if (error) {
     return <p className="text-center py-20 text-red-500">에러: {error}</p>;
   }
 
-  const { content, number, totalPages, first, last } = pageData;
+  const { number, totalPages, first, last } = pageData;
 
   return (
-    <div >
+    <div className='w-full'>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
-        {/* 상단 정렬 선택 UI */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            <Bars3BottomLeftIcon className="inline w-6 h-6 mr-2" />
-            <p className='hidden md:inline'>게시글 모아보기</p>
+        {/* 상단 컨트롤 UI */}
+        <div className="flex items-center justify-between gap-3 mb-6">
+          <h2 className="flex items-center gap-2 text-2xl font-bold text-gray-900 whitespace-nowrap shrink-0">
+            <Bars3BottomLeftIcon className="hidden md:inline w-6 h-6" />
+            <span className="hidden md:inline">게시글 모아보기</span>
           </h2>
 
-          <div className="relative">
-            <select
-              value={sort}
-              onChange={(e) => {
-                const selected = e.target.value
-                setSort(selected)
-                loadPage(0, selected)
-              }}
-              className="
-                block w-full cursor-pointer appearance-none rounded-md border border-gray-300
-                bg-white px-4 py-2 pr-10 text-sm text-gray-800 shadow-sm
-                transition focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-200
-                hover:border-gray-400
-              "
-            >
-              <option value="createdAt,DESC">최신순</option>
-              <option value="createdAt,ASC">오래된순</option>
-              <option value="title,ASC">제목순</option>
-              <option value="viewCount,DESC">조회순</option>
-              <option value="likeCount,DESC">좋아요순</option>
-            </select>
-
-            {/* 커스텀 화살표 아이콘 */}
-            <ChevronDownIcon
-              className="
-                pointer-events-none absolute right-3 top-1/2 h-5 w-5
-                -translate-y-1/2 text-gray-400
-              "
-            />
-          </div>
+          <BlogControls 
+            sort={sort} 
+            setSort={handleSortChange} 
+            viewMode={viewMode} 
+            setViewMode={setViewMode} 
+            showUserControls={false} 
+            isViewModeToggleDisabled={isMobile}
+          />
         </div>
 
         {/* 게시글 목록 */}
-        <PostList posts={content} />
+        <PostList posts={posts} viewMode={viewMode} />
       </main>
 
       {/* 페이지네이션 */}
       <nav className="py-4 flex justify-center space-x-2">
         <button
-          onClick={() => loadPage(number - 1)}
+          onClick={() => handlePageChange(number - 1)}
           disabled={first}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
@@ -114,7 +82,7 @@ export default function Home() {
         {Array.from({ length: totalPages }, (_, idx) => (
           <button
             key={idx}
-            onClick={() => loadPage(idx)}
+            onClick={() => handlePageChange(idx)}
             className={`px-3 py-1 border rounded ${
               idx === number ? 'font-bold underline text-blue-600' : ''
             }`}
@@ -124,7 +92,7 @@ export default function Home() {
         ))}
 
         <button
-          onClick={() => loadPage(number + 1)}
+          onClick={() => handlePageChange(number + 1)}
           disabled={last}
           className="px-3 py-1 border rounded disabled:opacity-50"
         >
@@ -134,3 +102,4 @@ export default function Home() {
     </div>
   );
 }
+

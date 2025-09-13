@@ -1,5 +1,4 @@
 import {
-  apiClientNoAuth,
   apiClientWithAuth
 } from '@/apis/apiClient';
 
@@ -18,7 +17,9 @@ export async function getCategoryTree(userId: string): Promise<CategoryNode[]> {
     `/api/categories/${userId}/tree`,
     { method: 'GET' }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -36,7 +37,9 @@ export async function createCategory(payload: {
       body: JSON.stringify(payload),
     }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -54,7 +57,9 @@ export async function updateCategory(
       body: JSON.stringify(payload),
     }
   );
-  if (!res.success) throw new Error(res.message);
+  if (!res.success) {
+    throw new Error(res.message);
+  }
   return res.data!;
 }
 
@@ -62,9 +67,8 @@ export async function updateCategory(
  * 4. 카테고리 삭제 (인증 필요)
  */
 export async function deleteCategory(id: number): Promise<void> {
-  const res = await apiClientWithAuth<null>(
+  await apiClientWithAuth<null>(
     `/api/categories/${id}`,
     { method: 'DELETE' }
   );
-  if (!res.success) throw new Error(res.message);
 }

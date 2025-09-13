@@ -78,10 +78,13 @@ export async function askChatAPI(
           continue;
         }
         if (eventName === 'answer') {
-          const chunk = raw.replace(/^'+|'+$/g, '');
-          const t = chunk.trim();
-          if (!['{"', '}', 'text', '":"', '\\"'].includes(t)) {
-            onAnswerChunk(chunk === '\\"' ? ' "' : chunk);
+          try {
+            const s = JSON.parse(raw); // expect: JSON string
+            if (typeof s === 'string' && s.length > 0) {
+              onAnswerChunk(s);
+            }
+          } catch {
+            // Ignore: we only handle data lines that are a single JSON string
           }
         }
         eventName = '';
