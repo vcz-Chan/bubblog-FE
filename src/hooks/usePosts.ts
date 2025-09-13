@@ -6,13 +6,11 @@ import { SORT_OPTIONS, SortOption } from '@/utils/constants';
 interface UsePostsOptions {
   initialSort?: SortOption;
   pageSize?: number;
-  isAuthenticated: boolean;
 }
 
 export function usePosts({
   initialSort = SORT_OPTIONS.LATEST,
   pageSize = 8,
-  isAuthenticated,
 }: UsePostsOptions) {
   const [posts, setPosts] = useState<Blog[]>([]);
   const [pageData, setPageData] = useState<PageResponse<Blog> | null>(null);
@@ -22,10 +20,6 @@ export function usePosts({
   const [page, setPage] = useState(0);
 
   const loadPage = useCallback(async (pageNum: number, currentSort = sort) => {
-    if (!isAuthenticated) {
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setError(null);
     try {
@@ -42,11 +36,11 @@ export function usePosts({
     } finally {
       setLoading(false);
     }
-  }, [isAuthenticated, pageSize, sort]);
+  }, [ pageSize, sort]);
 
   useEffect(() => {
     loadPage(0, sort);
-  }, [isAuthenticated, sort, loadPage]);
+  }, [ sort, loadPage]);
 
   const handleSortChange = (newSort: SortOption) => {
     setSort(newSort);

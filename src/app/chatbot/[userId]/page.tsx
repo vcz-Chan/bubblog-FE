@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
+import { useParams } from 'next/navigation'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
 import {
   askChatAPI,
@@ -24,8 +23,6 @@ import { CategoryNode } from '@/apis/categoryApi'
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
-  const router = useRouter()
-  const isAuthenticated = useAuthStore(selectIsLogin)
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -57,11 +54,7 @@ export default function ChatPage() {
       .finally(() => setLoadingUser(false))
   }, [userId])
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.replace('/login')
-    }
-  }, [isAuthenticated, router])
+  
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
