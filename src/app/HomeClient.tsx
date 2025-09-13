@@ -62,36 +62,40 @@ export default function HomeClient() {
         <PostList posts={posts} viewMode={viewMode} />
       </main>
 
-      {/* 페이지네이션 */}
-      <nav className="py-4 flex justify-center space-x-2">
-        <button
-          onClick={() => handlePageChange(number - 1)}
-          disabled={first}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          이전
-        </button>
+      {/* 페이지네이션: 페이지가 2개 이상일 때만 표시 */}
+      {totalPages > 1 && (
+        <nav className="py-4 flex justify-center space-x-2">
+          {!first && (
+            <button
+              onClick={() => handlePageChange(number - 1)}
+              className="px-3 py-1 border rounded"
+            >
+              이전
+            </button>
+          )}
 
-        {Array.from({ length: totalPages }, (_, idx) => (
-          <button
-            key={idx}
-            onClick={() => handlePageChange(idx)}
-            className={`px-3 py-1 border rounded ${
-              idx === number ? 'font-bold underline text-blue-600' : ''
-            }`}
-          >
-            {idx + 1}
-          </button>
-        ))}
+          {Array.from({ length: totalPages }, (_, idx) => (
+            <button
+              key={idx}
+              onClick={() => handlePageChange(idx)}
+              className={`px-3 py-1 border rounded ${
+                idx === number ? 'font-bold underline text-blue-600' : ''
+              }`}
+            >
+              {idx + 1}
+            </button>
+          ))}
 
-        <button
-          onClick={() => handlePageChange(number + 1)}
-          disabled={last}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          다음
-        </button>
-      </nav>
+          {!last && (
+            <button
+              onClick={() => handlePageChange(number + 1)}
+              className="px-3 py-1 border rounded"
+            >
+              다음
+            </button>
+          )}
+        </nav>
+      )}
     </div>
   );
 }
