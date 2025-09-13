@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import BlogPageClient from '@/app/blog/[userId]/BlogPageClient';
 import { getUserProfile } from '@/apis/userApi';
 import { truncate, toAbsoluteUrl } from '@/utils/seo';
+import { notFound } from 'next/navigation';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ userId: string }> }
@@ -38,6 +39,12 @@ export async function generateMetadata(
   }
 }
 
-export default function BlogPage() {
+export default async function BlogPage({ params }: { params: Promise<{ userId: string }> }) {
+  const { userId } = await params;
+  try {
+    await getUserProfile(userId);
+  } catch {
+    return notFound();
+  }
   return <BlogPageClient />;
 }
