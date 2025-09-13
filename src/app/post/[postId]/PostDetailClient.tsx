@@ -61,6 +61,7 @@ export default function PostDetailClient({ postId }: { postId: string }) {
 
   return (
     <>
+      {isMyPost && <PostDetailActions postId={post.id} />}
       <PostDetailHeader post={post}>
         <ChatViewButton userId={post.userId} onClick={() => setShowChat(true)} />
       </PostDetailHeader>
@@ -74,8 +75,6 @@ export default function PostDetailClient({ postId }: { postId: string }) {
           <ChatWindow userId={post.userId} />
         </DraggableModal>
       )}
-
-      {isMyPost && <PostDetailActions postId={post.id} />}
     </>
   );
 }

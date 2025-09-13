@@ -122,65 +122,67 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className="px-6 md:px-16 w-full flex flex-col items-center">
-      <ProfileHeader profile={profile} />
-    
-      <div className="flex flex-col items-center justify-center pt-6 w-full max-w-5xl">
-        <CategorySelector
-          userId={userId!}
-          isOpen={isCatOpen}
-          onClose={() => setIsCatOpen(false)}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-        />
-
-        <PersonaSelectorModal
-          userId={userId!}
-          isOpen={isPersonaOpen}
-          onSelect={p => setSelectedPersona(p)}
-          onClose={() => setIsPersonaOpen(false)}
-        />
-
-        {/* 채팅 메시지 구간 (스크롤) */}
-        <ChatMessages messages={messages} chatEndRef={chatEndRef} />
-        <ContextViewer
-          items={contextList}
-          visible={showContext}
-          onToggle={() => setShowContext(v => !v)}
-          onItemClick={item => setModalPostId(item.post_id)}
-        />
-        {messages.length === 0 && (
-          <div className="flex justify-center items-center h-[25vh]">
-            <span className="text-4xl text-gray-800 text-center">
-              블로그에 대해 물어보세요
-            </span>
-          </div>
-        )}
-        <div ref={chatEndRef} />
-
-        {modalPostId && (
-          <DraggableModal path= {`/post/${modalPostId}`} onClose={() => setModalPostId(null)}>
-            <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
-          </DraggableModal>
-        )}
-
-        <ChatInput
-          input={input}
-          onChange={setInput}
-          onSubmit={handleSubmit}
-          disabled={isSending}
-        >
-          <div className='flex md:gap-4 items-center md:mr-4'>
-            <CategoryFilterButton
+    <div className='bg-[rgb(244,246,248)] w-full h-full'>
+      <div className="px-6 md:px-16 w-full flex flex-col items-center ">
+        <ProfileHeader profile={profile} />
+      
+        <div className="flex flex-col items-center justify-center pt-6 w-full max-w-5xl">
+          <CategorySelector
+            userId={userId!}
+            isOpen={isCatOpen}
+            onClose={() => setIsCatOpen(false)}
             selectedCategory={selectedCategory}
-            onOpen={() => setIsCatOpen(true)}
-            />
-            <PersonaFilterButton
-              selectedPersona={selectedPersona}
-              onOpen={() => setIsPersonaOpen(true)}
-            />
-          </div>
-        </ChatInput>
+            setSelectedCategory={setSelectedCategory}
+          />
+
+          <PersonaSelectorModal
+            userId={userId!}
+            isOpen={isPersonaOpen}
+            onSelect={p => setSelectedPersona(p)}
+            onClose={() => setIsPersonaOpen(false)}
+          />
+
+          {/* 채팅 메시지 구간 (스크롤) */}
+          <ChatMessages messages={messages} chatEndRef={chatEndRef} />
+          <ContextViewer
+            items={contextList}
+            visible={showContext}
+            onToggle={() => setShowContext(v => !v)}
+            onItemClick={item => setModalPostId(item.post_id)}
+          />
+          {messages.length === 0 && (
+            <div className="flex justify-center items-center h-[25vh]">
+              <span className="text-4xl text-gray-800 text-center">
+                블로그에 대해 물어보세요
+              </span>
+            </div>
+          )}
+          <div ref={chatEndRef} />
+
+          {modalPostId && (
+            <DraggableModal path= {`/post/${modalPostId}`} onClose={() => setModalPostId(null)}>
+              <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+            </DraggableModal>
+          )}
+
+          <ChatInput
+            input={input}
+            onChange={setInput}
+            onSubmit={handleSubmit}
+            disabled={isSending}
+          >
+            <div className='flex md:gap-4 items-center md:mr-4'>
+              <CategoryFilterButton
+              selectedCategory={selectedCategory}
+              onOpen={() => setIsCatOpen(true)}
+              />
+              <PersonaFilterButton
+                selectedPersona={selectedPersona}
+                onOpen={() => setIsPersonaOpen(true)}
+              />
+            </div>
+          </ChatInput>
+        </div>
       </div>
     </div>
   )

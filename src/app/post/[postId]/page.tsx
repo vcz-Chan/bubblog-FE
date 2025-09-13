@@ -6,7 +6,7 @@ export default async function PostDetailPage({ params }: { params: Promise<{ pos
   const { postId } = await params;
 
   return (
-    <article className="w-full p-8 lg:px-40">
+    <article className="w-full p-8 lg:px-40 bg-white">
       {/* CSR 부분 */}
       <PostDetailClient postId={postId} />
 

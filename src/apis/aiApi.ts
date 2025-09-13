@@ -80,7 +80,6 @@ export async function askChatAPI(
         if (eventName === 'answer') {
           try {
             const s = JSON.parse(raw); // expect: JSON string
-            console.log(s)
             if (typeof s === 'string' && s.length > 0) {
               onAnswerChunk(s);
             }

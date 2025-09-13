@@ -1,11 +1,9 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore, selectUserId } from '@/store/AuthStore';
 import { CategorySelector } from '@/components/Category/CategorySelector';
-import ReactMDEEditor from '@/components/Post/ReactMDEEditor';
-import { EditorToolbar } from '@/components/Post/EditorToolbar';
 import {
   getBlogById,
   updateBlog,
@@ -13,8 +11,8 @@ import {
   BlogDetail,
 } from '@/apis/blogApi';
 import ThumbnailUploader from '@/components/Post/ThumbnailUploader';
-import { getPresignedUrl, uploadToS3 } from '@/apis/uploadApi';
 import { CategoryNode } from '@/apis/categoryApi';
+import MarkdownEditor from '@/components/Post/MarkdownEditor';
 
 interface Props {
   postId?: string;
@@ -42,9 +40,6 @@ export default function WritePostClient({ postId, initialData }: Props) {
 
   const [isCatOpen, setIsCatOpen] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const imageInputRef = useRef<HTMLInputElement | null>(null);
-
   useEffect(() => {
     if (!isEdit || initialData) return;
 
@@ -69,8 +64,8 @@ export default function WritePostClient({ postId, initialData }: Props) {
   }, [isEdit, postId, initialData, router]);
 
   const handleSave = async () => {
-    if (!title || !summary || !selectedCategory?.id || !thumbnailUrl) {
-      alert('제목, 요약, 카테고리, 썸네일은 필수입니다.');
+    if (!title || !summary || !selectedCategory?.id) {
+      alert('제목, 요약, 카테고리는 필수입니다.');
       return;
     }
 
@@ -98,83 +93,35 @@ export default function WritePostClient({ postId, initialData }: Props) {
     }
   };
 
-  const insertTextAtCursor = (
-    text: string,
-    selectStartOffset = 0,
-    selectEndOffset = 0
-  ) => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const before = markdown.slice(0, start);
-    const after = markdown.slice(end);
-    const newText = before + text + after;
-    setMarkdown(newText);
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        start + selectStartOffset,
-        start + selectEndOffset
-      );
-    }, 0);
-  };
-
-  const handleEditorDrop = async (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    const files = Array.from(e.dataTransfer.files);
-    const images = files.filter((f) => f.type.startsWith('image/'));
-    if (images.length === 0) return;
-
-    for (const file of images) {
-      try {
-        const timestamp = Date.now();
-        const key = `content-images/${timestamp}_${file.name.replace(/\s+/g, '_')}`;
-        const { fileUrl: s3Url, uploadUrl: presignedUrl } = await getPresignedUrl(key, file.type);
-        await uploadToS3(presignedUrl, file);
-        insertTextAtCursor(`\n![이미지](${s3Url})\n`);
-      } catch (err: any) {
-        console.error(err);
-        alert(err.message || '이미지 업로드 중 오류가 발생했습니다.');
-      }
-    }
-  };
-
   return (
-    <div className="w-full p-8 lg:px-40 ">
-      <h1 className="text-3xl font-bold mb-6">
-        {isEdit ? '글 수정하기' : '글 작성하기'}
-      </h1>
-      <div className="space-y-6 mb-6">
+    <div className="w-full max-w-4xl mx-auto p-4 md:p-8">
+      <div className="space-y-8 mb-8">
         <div>
-          <label htmlFor="title" className="block mb-1 text-sm font-medium text-gray-700">
-            제목
-          </label>
           <input
             id="title"
             type="text"
             placeholder="제목을 입력하세요"
-            className="block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full bg-transparent text-4xl font-extrabold border-0 border-b-2 border-gray-200 focus:ring-0 focus:border-indigo-500 transition-colors placeholder-gray-400 py-2"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-        <div className="flex flex-col md:flex-row">
-          <div className='flex-1 mr-0 md:mr-4 mb-4 md:mb-0'>
-            <label htmlFor="summary" className="block mb-1 text-sm font-medium text-gray-700">
+        <div className="flex flex-col sm:flex-row gap-8 items-start">
+          <div className='flex-1 w-full'>
+            <label htmlFor="summary" className="block mb-2 text-lg font-bold text-gray-800">
               요약
             </label>
             <textarea
               id="summary"
-              placeholder="간단한 요약을 입력하세요"
-              className="block w-full border border-gray-300 rounded-md px-3 py-2 h-32 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="이 글에 대한 간단한 요약을 입력하세요..."
+              className="w-full border-0 border-gray-300 rounded-lg bg-gray-50 p-4 h-36 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
             />
           </div>
-          <div>
-            <label className="block mb-1 text-sm font-medium text-gray-700">썸네일</label>
+          <div className="w-full sm:w-auto">
+            <label className="block mb-2 text-lg font-bold text-gray-800">썸네일</label>
             <ThumbnailUploader
               initialUrl={thumbnailUrl}
               onChange={(url) => setThumbnailUrl(url)}
@@ -183,15 +130,18 @@ export default function WritePostClient({ postId, initialData }: Props) {
         </div>
       </div>
 
-      <div className="mb-4 flex items-center gap-8">
-        <button
-          onClick={() => setIsCatOpen(true)}
-          className="px-3 py-1 bg-indigo-600 text-white rounded-full"
-        >
-          {selectedCategory
-            ? `카테고리: ${selectedCategory.name || selectedCategory.id}`
-            : '카테고리 선택'}
-        </button>
+      <div className="mb-6 flex flex-wrap items-center gap-x-8 gap-y-4 p-4 bg-gray-50 rounded-lg">
+        <div>
+            <span className="font-semibold mr-4">카테고리:</span>
+            <button
+              onClick={() => setIsCatOpen(true)}
+              className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-full hover:bg-indigo-50 transition-colors"
+            >
+              {selectedCategory
+                ? `카테고리: ${selectedCategory.name || selectedCategory.id}`
+                : '카테고리 선택'}
+            </button>
+        </div>
         <CategorySelector
           userId={userId}
           isOpen={isCatOpen}
@@ -208,45 +158,32 @@ export default function WritePostClient({ postId, initialData }: Props) {
             )
           }
         />
-        <label>
+        <label className="flex items-center gap-2 font-semibold cursor-pointer">
           <input
             type="checkbox"
+            className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
             checked={publicVisible}
             onChange={(e) => setPublicVisible(e.target.checked)}
-          />{' '}
-          공개 여부
+          />
+          <span>공개 발행</span>
         </label>
       </div>
 
-      <div className="mb-4 flex items-center gap-2">
-        <EditorToolbar
-          imageInputRef={imageInputRef}
-          insertImage={(url: string) => insertTextAtCursor(`\n![이미지](${url})\n`)}
-          insertTextAtCursor={insertTextAtCursor}
+      <div className="mb-8">
+        <MarkdownEditor
+            value={markdown}
+            onChange={(val) => setMarkdown(val || '')}
         />
       </div>
 
-      <div
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleEditorDrop}
-        className="border border-gray-300 rounded-md p-2"
-      >
-        <ReactMDEEditor
-          value={markdown}
-          onChange={setMarkdown}
-          textareaRef={textareaRef}
-        />
-        <div className="mt-1 text-sm text-gray-500">
-          * 이미지를 드래그&드롭하거나 툴바의 “이미지” 버튼을 눌러 업로드할 수 있습니다.
-        </div>
+      <div className="flex justify-end">
+        <button
+          className="px-8 py-3 bg-indigo-600 text-white font-bold text-lg rounded-full shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-105"
+          onClick={handleSave}
+        >
+          {isEdit ? '수정하기' : '발행하기'}
+        </button>
       </div>
-
-      <button
-        className="mt-6 px-6 py-3 bg-purple-600 text-white rounded-full shadow hover:bg-purple-700 transition-all"
-        onClick={handleSave}
-      >
-        저장하기
-      </button>
     </div>
   );
 }
