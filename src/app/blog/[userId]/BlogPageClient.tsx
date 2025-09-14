@@ -167,7 +167,15 @@ export default function BlogPageClient() {
             selectedCategory={selectedCategory}
             onOpen={() => setIsCatModalOpen(true)}
           />
-          {isMyBlog && <BlogControls userId={paramUserId} sort={sort} setSort={setSort} viewMode={viewMode} setViewMode={setViewMode} isViewModeToggleDisabled={isMobile} />}
+          <BlogControls
+            userId={paramUserId}
+            sort={sort}
+            setSort={setSort}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            isViewModeToggleDisabled={isMobile}
+            showUserControls={isMyBlog}
+          />
         </div>
 
         {loadingPosts ? (

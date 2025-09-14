@@ -28,7 +28,7 @@ export function BlogControls({
   isViewModeToggleDisabled = false
 }: Props) {
   return (
-    <div className="flex flex-col sm:flex-row gap-4 justify-between items-center w-full">
+    <div className="flex flex-col sm:flex-row gap-4 justify-between items-center">
       {/* 좌측: 글쓰기, 설정 버튼 (선택적 렌더링) */}
       {showUserControls ? (
         <div className="flex gap-4">

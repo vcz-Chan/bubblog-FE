@@ -136,7 +136,7 @@ export default function ChatPage() {
   return (
     <div className='bg-[rgb(244,246,248)] w-full h-full'>
       <div className="px-6 md:px-16 w-full flex flex-col items-center">
-        <div className='flex gap-2 w-full justify-between sticky top-0 z-10 pb-4 bg-[rgb(244,246,248)] flex-wrap max-w-5xl'>
+        <div className='flex gap-2 w-full justify-between sticky top-0 z-10 py-8 bg-[rgb(244,246,248)] flex-wrap max-w-5xl'>
           <ProfileHeader profile={profile} />
           {postId != null && (
             <div className='my-auto'>
@@ -147,7 +147,7 @@ export default function ChatPage() {
           )}
         </div>
       
-        <div className="flex flex-col items-center justify-center pt-6 w-full max-w-5xl">
+        <div className="flex flex-col items-center justify-center w-full max-w-5xl">
           {postId == null && (
             <CategorySelector
               userId={userId!}
@@ -176,9 +176,9 @@ export default function ChatPage() {
           {messages.length === 0 && (
             <div className="flex justify-center items-center h-[25vh]">
               {postId != null ? (
-                <span className="text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
+                <span className="text-2xl md:text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
               ) : (
-                <span className="text-4xl text-gray-800 text-center">블로그에 대해 물어보세요</span>
+                <span className="text-2xl md:text-4xl text-gray-800 text-center">블로그에 대해 물어보세요</span>
               )}
             </div>
           )}
