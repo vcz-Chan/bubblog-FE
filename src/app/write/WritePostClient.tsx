@@ -94,7 +94,7 @@ export default function WritePostClient({ postId, initialData }: Props) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 md:p-8">
+    <div className="w-full p-4 md:pt-8 md:px-16">
       <div className="space-y-8 mb-8">
         <div>
           <input
