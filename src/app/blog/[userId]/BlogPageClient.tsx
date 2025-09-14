@@ -18,6 +18,7 @@ import { DeleteModal } from '@/components/Blog/DeleteModal';
 import { DraggableModal } from '@/components/Common/DraggableModal'
 import { ChatWindow } from '@/components/Chat/ChatWindow'
 import { ChatViewButton } from '@/components/Chat/ChatViewButton'
+import Pagination from '@/components/Common/Pagination'
 
 type ViewMode = 'card' | 'list';
 
@@ -142,6 +143,7 @@ export default function BlogPageClient() {
   if (loadingUser) return <p>프로필 로딩 중…</p>;
   if (errorUser)  return <p className="text-red-500">{errorUser}</p>;
 
+
   return (
     <div className='w-full'>
       <main className="flex-1 w-full px-5 md:px-16 py-8">
@@ -176,37 +178,12 @@ export default function BlogPageClient() {
           <>
             <PostsGrid posts={posts} viewMode={viewMode} />
 
-            {/* 페이지네이션: 페이지가 2개 이상일 때만 표시 */}
-            {pageData && pageData.totalPages > 1 && (
-              <nav className="py-4 flex justify-center space-x-2">
-                {page > 0 && (
-                  <button
-                    onClick={() => handlePageChange(page - 1)}
-                    className="px-3 py-1 border rounded"
-                  >
-                    이전
-                  </button>
-                )}
-                {Array.from({ length: pageData.totalPages }, (_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handlePageChange(idx)}
-                    className={`px-3 py-1 border rounded ${
-                      idx === page ? 'font-bold underline text-blue-600' : ''
-                    }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-                {!pageData.last && (
-                  <button
-                    onClick={() => handlePageChange(page + 1)}
-                    className="px-3 py-1 border rounded"
-                  >
-                    다음
-                  </button>
-                )}
-              </nav>
+            {pageData && (
+              <Pagination
+                page={page}
+                totalPages={pageData.totalPages}
+                onChange={handlePageChange}
+              />
             )}
           </>
         )}
