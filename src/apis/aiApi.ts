@@ -20,16 +20,20 @@ export async function askChatAPI(
   categoryId: number | null,
   personaId: number | -1,
   onContext: (items: ContextItem[]) => void,
-  onAnswerChunk: (chunk: string) => void
+  onAnswerChunk: (chunk: string) => void,
+  options?: { postId?: number; onExistInPostStatus?: (exists: boolean) => void }
 ): Promise<void> {
+  const body: any = {
+    question,
+    user_id: userId,
+    category_id: categoryId ?? null,
+    speech_tone: personaId,
+  };
+  if (options?.postId != null) body.post_id = options.postId;
+
   const res = await aiFetch('/ai/ask', {
     method: 'POST',
-    body: JSON.stringify({
-      question,
-      user_id: userId,
-      category_id: categoryId ?? null,
-      speech_tone: personaId,
-    }),
+    body: JSON.stringify(body),
   });
 
   // JSON 에러 페이로드 처리
@@ -64,6 +68,20 @@ export async function askChatAPI(
         if (raw === '[DONE]' || eventName === 'end') {
           reader.cancel();
           return;
+        }
+        if (eventName === 'exist_in_post_status') {
+          try {
+            let exists: boolean | null = null;
+            if (raw === 'true' || raw === 'false') {
+              exists = raw === 'true';
+            } else {
+              const parsed = JSON.parse(raw);
+              if (typeof parsed === 'boolean') exists = parsed;
+            }
+            if (exists != null) options?.onExistInPostStatus?.(exists);
+          } catch {}
+          eventName = '';
+          continue;
         }
         if (eventName === 'context' && !contextDone) {
           try {

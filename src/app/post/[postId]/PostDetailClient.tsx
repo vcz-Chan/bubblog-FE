@@ -63,7 +63,7 @@ export default function PostDetailClient({ postId }: { postId: string }) {
     <>
       {isMyPost && <PostDetailActions postId={post.id} />}
       <PostDetailHeader post={post}>
-        <ChatViewButton userId={post.userId} onClick={() => setShowChat(true)} />
+        <ChatViewButton userId={post.userId} postId={post.id} onClick={() => setShowChat(true)} />
       </PostDetailHeader>
 
       <PostNavbar post={post} liked={liked} onLike={handleLike} />
@@ -71,8 +71,8 @@ export default function PostDetailClient({ postId }: { postId: string }) {
       {/* 본문은 SSR로, 여기서는 렌더하지 않음 */}
 
       {showChat && (
-        <DraggableModal path={`/chatbot/${post.userId}`} onClose={() => setShowChat(false)}>
-          <ChatWindow userId={post.userId} />
+        <DraggableModal path={`/chatbot/${post.userId}?postId=${post.id}`} onClose={() => setShowChat(false)}>
+          <ChatWindow userId={post.userId} postId={post.id} postTitle={post.title} />
         </DraggableModal>
       )}
     </>

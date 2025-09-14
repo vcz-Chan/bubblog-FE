@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
+import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
 import {
   askChatAPI,
@@ -23,6 +24,10 @@ import { CategoryNode } from '@/apis/categoryApi'
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
+  const searchParams = useSearchParams()
+  const postIdParam = searchParams.get('postId')
+  const postId = postIdParam ? Number(postIdParam) : undefined
+  const [postTitle, setPostTitle] = useState<string | null>(null)
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -53,6 +58,19 @@ export default function ChatPage() {
       .catch(err => setErrorUser(err.message))
       .finally(() => setLoadingUser(false))
   }, [userId])
+
+  // 포스트 타이틀 로딩 (postId가 있을 때)
+  useEffect(() => {
+    if (postId == null) {
+      setPostTitle(null)
+      return
+    }
+    let active = true
+    getBlogById(postId)
+      .then(p => { if (active) setPostTitle(p.title) })
+      .catch(() => { if (active) setPostTitle(null) })
+    return () => { active = false }
+  }, [postId])
 
   
 
@@ -85,7 +103,7 @@ export default function ChatPage() {
       await askChatAPI(
         question,
         userId!,
-        selectedCategory?.id ?? null,
+        postId != null ? null : (selectedCategory?.id ?? null),
         selectedPersona?.id ?? -1,
         items => setContextList(items),
         chunk => {
@@ -95,7 +113,8 @@ export default function ChatPage() {
             if (msg) msg.content += chunk
             return next
           })
-        }
+        },
+        { postId }
       )
     } catch {
       setMessages(prev => {
@@ -116,17 +135,28 @@ export default function ChatPage() {
 
   return (
     <div className='bg-[rgb(244,246,248)] w-full h-full'>
-      <div className="px-6 md:px-16 w-full flex flex-col items-center ">
-        <ProfileHeader profile={profile} />
+      <div className="px-6 md:px-16 w-full flex flex-col items-center">
+        <div className='flex gap-2 w-full justify-between sticky top-0 z-10 pb-4 bg-[rgb(244,246,248)] flex-wrap max-w-5xl'>
+          <ProfileHeader profile={profile} />
+          {postId != null && (
+            <div className='my-auto'>
+              <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                {postTitle ? `"${postTitle}" 글에 대해 질문 중` : '이 글 범위로 질문 중'}
+              </span>
+            </div>
+          )}
+        </div>
       
         <div className="flex flex-col items-center justify-center pt-6 w-full max-w-5xl">
-          <CategorySelector
-            userId={userId!}
-            isOpen={isCatOpen}
-            onClose={() => setIsCatOpen(false)}
-            selectedCategory={selectedCategory}
-            setSelectedCategory={setSelectedCategory}
-          />
+          {postId == null && (
+            <CategorySelector
+              userId={userId!}
+              isOpen={isCatOpen}
+              onClose={() => setIsCatOpen(false)}
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+            />
+          )}
 
           <PersonaSelectorModal
             userId={userId!}
@@ -145,9 +175,11 @@ export default function ChatPage() {
           />
           {messages.length === 0 && (
             <div className="flex justify-center items-center h-[25vh]">
-              <span className="text-4xl text-gray-800 text-center">
-                블로그에 대해 물어보세요
-              </span>
+              {postId != null ? (
+                <span className="text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
+              ) : (
+                <span className="text-4xl text-gray-800 text-center">블로그에 대해 물어보세요</span>
+              )}
             </div>
           )}
           <div ref={chatEndRef} />
@@ -165,10 +197,12 @@ export default function ChatPage() {
             disabled={isSending}
           >
             <div className='flex md:gap-4 items-center md:mr-4'>
-              <CategoryFilterButton
-              selectedCategory={selectedCategory}
-              onOpen={() => setIsCatOpen(true)}
-              />
+              {postId == null && (
+                <CategoryFilterButton
+                  selectedCategory={selectedCategory}
+                  onOpen={() => setIsCatOpen(true)}
+                />
+              )}
               <PersonaFilterButton
                 selectedPersona={selectedPersona}
                 onOpen={() => setIsPersonaOpen(true)}

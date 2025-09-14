@@ -7,9 +7,11 @@ import { Button } from '@/components/Common/Button'
 interface Props {
   userId: string
   onClick: () => void
+  postId?: number | string
+  variant?: 'post' | 'blog'
 }
 
-export function ChatViewButton({ userId, onClick }: Props) {
+export function ChatViewButton({ userId, onClick, postId, variant = 'post' }: Props) {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function ChatViewButton({ userId, onClick }: Props) {
   if (isMobile) {
     return (
       <Link
-        href={`/chatbot/${userId}`}
+        href={`/chatbot/${userId}${postId != null ? `?postId=${postId}` : ''}`}
       >
         <Button>
         챗봇 이동
@@ -46,7 +48,7 @@ export function ChatViewButton({ userId, onClick }: Props) {
 
   return (
     <Button onClick={onClick}>
-      이 블로그에 대해 질문하기
+      {variant === 'post' ? '이 글에 대해 질문하기' : '이 블로그에 대해 질문하기'}
     </Button>
   )
 }

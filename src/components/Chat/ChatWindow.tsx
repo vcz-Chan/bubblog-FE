@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, FormEvent } from 'react'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
+import { getBlogById } from '@/apis/blogApi'
 import {
   askChatAPI,
   ContextItem,
@@ -18,12 +19,15 @@ import { PersonaFilterButton } from '@/components/Persona/PersonaFilterButton'
 import { Persona } from '@/apis/personaApi'
 import { CategoryNode } from '@/apis/categoryApi'
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
+import { truncate } from '@/utils/seo'
 
 interface Props {
   userId: string
+  postId?: number
+  postTitle?: string
 }
 
-export function ChatWindow({ userId }: Props) {
+export function ChatWindow({ userId, postId, postTitle }: Props) {
   const isAuthenticated = useAuthStore(selectIsLogin)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loadingUser, setLoadingUser] = useState(true)
@@ -41,6 +45,8 @@ export function ChatWindow({ userId }: Props) {
   const [selectedPersona,   setSelectedPersona] = useState<Persona | null>(null)
 
   const [isSending, setIsSending] = useState(false)
+  const [existInPost, setExistInPost] = useState<boolean | null>(null)
+  const [currentPostTitle, setCurrentPostTitle] = useState<string | null>(postTitle ?? null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
   // 1) 프로필
@@ -51,6 +57,16 @@ export function ChatWindow({ userId }: Props) {
       .catch(e => setErrorUser(e.message))
       .finally(() => setLoadingUser(false))
   }, [userId])
+
+  // 1-1) 포스트 제목 로딩 (필요 시)
+  useEffect(() => {
+    if (postId == null || postTitle) return
+    let active = true
+    getBlogById(postId)
+      .then(p => { if (active) setCurrentPostTitle(p.title) })
+      .catch(() => { if (active) setCurrentPostTitle(null) })
+    return () => { active = false }
+  }, [postId, postTitle])
 
   // 2) 인증
   useEffect(() => {
@@ -86,7 +102,7 @@ export function ChatWindow({ userId }: Props) {
       await askChatAPI(
         question,
         userId,
-        selectedCategory?.id ?? null,
+        postId != null ? null : (selectedCategory?.id ?? null),
         selectedPersona?.id ?? -1,
         items => setContextList(items),
         chunk => {
@@ -96,7 +112,8 @@ export function ChatWindow({ userId }: Props) {
             if (msg) msg.content += chunk
             return next
           })
-        }
+        },
+        { postId: postId, onExistInPostStatus: (exists) => setExistInPost(exists) }
       )
     } catch {
       setMessages(prev => {
@@ -119,6 +136,26 @@ export function ChatWindow({ userId }: Props) {
     <div className="flex flex-col h-full">
       <header className="flex-none">
         <ProfileHeader profile={profile} />
+        {postId != null && (
+          <div className="mt-2 flex flex-row flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${
+                existInPost === false
+                  ? 'bg-gray-100 text-gray-600'
+                  : existInPost === true
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-blue-100 text-blue-700'
+              }`}
+            >
+              {currentPostTitle
+                ? `"${truncate(currentPostTitle, 40)}" 글에 대해 질문 중`
+                : '이 글 범위로 질문 중'}
+            </span>
+            {existInPost === false && (
+              <span className="text-xs text-gray-500">관련 내용을 찾지 못했어요</span>
+            )}
+          </div>
+        )}
       </header>
 
       <main className="flex-1 overflow-y-auto mt-4">
@@ -139,10 +176,12 @@ export function ChatWindow({ userId }: Props) {
           disabled={isSending}
         >
             <div className="flex gap-2 mt-2">
-          <CategoryFilterButton
-            selectedCategory={selectedCategory}
-            onOpen={() => setIsCatOpen(true)}
-          />
+          {postId == null && (
+            <CategoryFilterButton
+              selectedCategory={selectedCategory}
+              onOpen={() => setIsCatOpen(true)}
+            />
+          )}
           <PersonaFilterButton
             selectedPersona={selectedPersona}
             onOpen={() => setIsPersonaOpen(true)}
@@ -151,13 +190,15 @@ export function ChatWindow({ userId }: Props) {
         </ChatInput>
       </footer>
 
-      <CategorySelector
-        userId={userId}
-        isOpen={isCatOpen}
-        onClose={() => setIsCatOpen(false)}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-      />
+      {postId == null && (
+        <CategorySelector
+          userId={userId}
+          isOpen={isCatOpen}
+          onClose={() => setIsCatOpen(false)}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+        />
+      )}
 
       <PersonaSelectorModal
         userId={userId}

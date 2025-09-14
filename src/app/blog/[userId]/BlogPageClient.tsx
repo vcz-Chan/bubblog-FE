@@ -151,7 +151,7 @@ export default function BlogPageClient() {
         <div className='flex flex-col lg:flex-row gap-4 items-center justify-between'>
           <div className='flex flex-row gap-4 items-center justify-between'>
             {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
-            <ChatViewButton userId={paramUserId} onClick={() => setShowChat(true)}/>
+            <ChatViewButton userId={paramUserId} variant="blog" onClick={() => setShowChat(true)}/>
           </div>
           {showChat && (
             <DraggableModal
