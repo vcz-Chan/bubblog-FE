@@ -8,7 +8,7 @@ export interface SignupPayload {
   email: string;
   password: string;
   nickname: string;
-  profileImageUrl: string;
+  profileImageUrl?: string;
 }
 export interface LoginPayload {
   email: string;
