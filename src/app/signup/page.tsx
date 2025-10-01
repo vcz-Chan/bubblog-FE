@@ -33,21 +33,10 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-purple-100 to-indigo-200 flex justify-center items-center p-4">
-      <div className="w-full max-w-4xl mx-auto flex rounded-2xl shadow-xl overflow-hidden bg-white">
-        {/* Left side with welcome image */}
-        <div className="w-1/2 hidden md:flex justify-center items-center p-12">
-          <Image
-            src="/welcome.png"
-            alt="Welcome"
-            width={400}
-            height={400}
-            objectFit="contain"
-          />
-        </div>
-
+    <div className="h-screen w-full bg-gradient-to-br from-blue-400 to-blue-300 flex justify-center items-center p-4">
+      <div className="w-full max-w-md mx-auto rounded-2xl shadow-xl overflow-hidden bg-white">
         {/* Right side with form */}
-        <div className="w-full md:w-1/2 p-8 sm:p-10">
+        <div className="w-full p-8 sm:p-10">
           <form onSubmit={onSubmit}>
             <div className="flex justify-center mb-6">
               <Image
@@ -58,13 +47,31 @@ export default function SignupPage() {
                 className="rounded-full"
               />
             </div>
-            <h2 className="text-3xl font-bold text-purple-700 text-center mb-6">
+            <h2 className="text-3xl font-bold text-blue-800 text-center mb-6">
               회원가입
             </h2>
 
             {error && (
               <p className="text-sm text-red-500 text-center mb-4">{error}</p>
             )}
+
+            <div className="mb-5">
+              <label
+                htmlFor="nickname"
+                className="block text-base font-bold text-gray-600 mb-2"
+              >
+                닉네임
+              </label>
+              <input
+                id="nickname"
+                name="nickname"
+                value={form.nickname}
+                onChange={onChange}
+                required
+                placeholder="닉네임을 입력하세요"
+                className="w-full px-4 py-3 rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
+              />
+            </div>
 
             <div className="mb-5">
               <label
@@ -81,11 +88,11 @@ export default function SignupPage() {
                 onChange={onChange}
                 required
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
               />
             </div>
 
-            <div className="mb-5">
+            <div className="mb-8">
               <label
                 htmlFor="password"
                 className="block text-base font-bold text-gray-600 mb-2"
@@ -100,32 +107,14 @@ export default function SignupPage() {
                 onChange={onChange}
                 required
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200"
-              />
-            </div>
-
-            <div className="mb-8">
-              <label
-                htmlFor="nickname"
-                className="block text-base font-bold text-gray-600 mb-2"
-              >
-                닉네임
-              </label>
-              <input
-                id="nickname"
-                name="nickname"
-                value={form.nickname}
-                onChange={onChange}
-                required
-                placeholder="닉네임을 입력하세요"
-                className="w-full px-4 py-3 rounded-lg border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition duration-200"
+                className="w-full px-4 py-3 rounded-lg border border-blue-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition duration-200"
               />
             </div>
 
             <div className="mb-4">
               <Button
                 type="submit"
-                className="w-full py-3 rounded-lg bg-purple-500 text-white font-bold hover:bg-purple-600 active:bg-purple-700 transition duration-300"
+                className="w-full py-3 rounded-lg bg-blue-500 text-white font-bold hover:bg-blue-600 active:bg-blue-700 transition duration-300"
               >
                 회원가입 완료
               </Button>
@@ -133,7 +122,7 @@ export default function SignupPage() {
             <div className="text-center mt-6">
               <Link
                 href="/login"
-                className="text-sm text-purple-600 hover:underline"
+                className="text-sm text-blue-600 hover:underline"
               >
                 로그인
               </Link>
