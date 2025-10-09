@@ -3,15 +3,10 @@
 import { useState, useRef, useEffect, FormEvent } from 'react'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
 import { getBlogById } from '@/apis/blogApi'
-import {
-  askChatAPI,
-  ContextItem,
-  ChatMessage as ServiceChatMessage
-} from '@/apis/aiApi'
+import { askChatAPI, askChatAPIV2 } from '@/apis/aiApi'
 import { ProfileHeader } from './ProfileHeader'
 import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton'
-import { ChatMessages } from './ChatMessages'
-import { ContextViewer } from './ContextViewer'
+import { ChatMessages, type ChatMessage as UIChatMessage, type InspectorData } from './ChatMessages'
 import { ChatInput } from './ChatInput'
 import { CategorySelector } from '@/components/Category/CategorySelector'
 import { PersonaSelectorModal } from '@/components/Persona/PersonaSelectorModal'
@@ -20,6 +15,7 @@ import { Persona } from '@/apis/personaApi'
 import { CategoryNode } from '@/apis/categoryApi'
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
 import { truncate } from '@/utils/seo'
+import { VersionToggle } from '@/components/Chat/VersionToggle'
 
 interface Props {
   userId: string
@@ -33,10 +29,9 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
   const [loadingUser, setLoadingUser] = useState(true)
   const [errorUser, setErrorUser]     = useState<string | null>(null)
 
-  const [messages,    setMessages]    = useState<ServiceChatMessage[]>([])
+  const [messages,    setMessages]    = useState<UIChatMessage[]>([])
   const [input,       setInput]       = useState('')
-  const [contextList, setContextList] = useState<ContextItem[]>([])
-  const [showContext, setShowContext] = useState(false)
+  const [askVersion, setAskVersion] = useState<'v1' | 'v2'>('v1')
 
   const [isCatOpen,        setIsCatOpen]        = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null)
@@ -49,7 +44,6 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
   const [currentPostTitle, setCurrentPostTitle] = useState<string | null>(postTitle ?? null)
   const chatEndRef = useRef<HTMLDivElement>(null)
 
-  // 1) 프로필
   useEffect(() => {
     setLoadingUser(true)
     getUserProfile(userId)
@@ -58,7 +52,6 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
       .finally(() => setLoadingUser(false))
   }, [userId])
 
-  // 1-1) 포스트 제목 로딩 (필요 시)
   useEffect(() => {
     if (postId == null || postTitle) return
     let active = true
@@ -68,53 +61,169 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
     return () => { active = false }
   }, [postId, postTitle])
 
-  // 2) 인증
   useEffect(() => {
     if (!isAuthenticated) {
-      // 로그인으로 리다이렉트하거나 에러 처리
+      // optionally handle auth redirect
     }
   }, [isAuthenticated])
 
-  // 3) 스크롤
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages, contextList, showContext])
+  }, [messages])
 
-  // 4) 전송
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
     if (isSending || !input.trim()) return
 
     setIsSending(true)
     const question = input.trim()
-    const userMsg: ServiceChatMessage = {
+    const userMsg: UIChatMessage = {
       id: messages.length + 1,
       role: 'user',
       content: question,
     }
     const botId = userMsg.id + 1
 
-    setMessages(prev => [...prev, userMsg, { id: botId, role: 'bot', content: '' }])
-    setContextList([])
-    setShowContext(false)
+    const initialInspector: InspectorData =
+      askVersion === 'v1'
+        ? { version: 'v1', open: false, v1Context: [], v1ContextReceived: false, pending: true }
+        : {
+            version: 'v2',
+            open: false,
+            v2Plan: null,
+            v2PlanReceived: false,
+            v2Rewrites: [],
+            v2RewritesReceived: false,
+            v2Keywords: [],
+            v2KeywordsReceived: false,
+            v2HybridResult: [],
+            v2HybridResultReceived: false,
+            v2SearchResult: [],
+            v2SearchResultReceived: false,
+            v2Context: [],
+            v2ContextReceived: false,
+            pending: true,
+          }
+
+    setMessages(prev => [...prev, userMsg, { id: botId, role: 'bot', content: '', inspector: initialInspector }])
 
     try {
-      await askChatAPI(
-        question,
-        userId,
-        postId != null ? null : (selectedCategory?.id ?? null),
-        selectedPersona?.id ?? -1,
-        items => setContextList(items),
-        chunk => {
-          setMessages(prev => {
-            const next = [...prev]
-            const msg = next.find(m => m.id === botId)
-            if (msg) msg.content += chunk
-            return next
-          })
-        },
-        { postId: postId, onExistInPostStatus: (exists) => setExistInPost(exists) }
-      )
+      if (askVersion === 'v1') {
+        await askChatAPI(
+          question,
+          userId,
+          postId != null ? null : (selectedCategory?.id ?? null),
+          selectedPersona?.id ?? -1,
+          items => {
+            setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg && msg.inspector) {
+                msg.inspector.v1Context = items
+                msg.inspector.v1ContextReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            })
+          },
+          chunk => {
+            setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg) msg.content += chunk
+              return next
+            })
+          },
+          { postId: postId, onExistInPostStatus: (exists) => setExistInPost(exists) }
+        )
+      } else {
+        await askChatAPIV2(
+          question,
+          userId,
+          postId != null ? null : (selectedCategory?.id ?? null),
+          selectedPersona?.id ?? -1,
+          {
+            onSearchPlan: p => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2Plan = p
+                msg.inspector.v2PlanReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onRewrites: r => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2Rewrites = r
+                msg.inspector.v2RewritesReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onKeywords: k => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2Keywords = k
+                msg.inspector.v2KeywordsReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onHybridResult: items => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2HybridResult = items
+                msg.inspector.v2HybridResultReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onSearchResult: items => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2SearchResult = items
+                msg.inspector.v2SearchResultReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onExistInPostStatus: exists => setExistInPost(exists),
+            onContext: items => setMessages(prev => {
+              const next = [...prev]
+              const msg = next.find(m => m.id === botId)
+              if (msg?.inspector) {
+                msg.inspector.v2Context = items
+                msg.inspector.v2ContextReceived = true
+                msg.inspector.pending = false
+              }
+              return next
+            }),
+            onAnswerChunk: chunk => {
+              setMessages(prev => {
+                const next = [...prev]
+                const msg = next.find(m => m.id === botId)
+                if (msg) msg.content += chunk
+                return next
+              })
+            },
+            onError: (message) => {
+              setMessages(prev => {
+                const next = [...prev]
+                const msg = next.find(m => m.id === botId)
+                if (msg) msg.content = message || '서버 요청 중 오류가 발생했습니다.'
+                return next
+              })
+            }
+          },
+          { postId }
+        )
+      }
     } catch {
       setMessages(prev => {
         const next = [...prev]
@@ -158,14 +267,14 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
         )}
       </header>
 
-      <main className="flex-1 overflow-y-auto mt-4">
-        <ChatMessages messages={messages} chatEndRef={chatEndRef} />
-        <ContextViewer
-          items={contextList}
-          visible={showContext}
-          onToggle={() => setShowContext(v => !v)}
+      <main className="flex-1 mt-4">
+        <ChatMessages
+          messages={messages}
+          chatEndRef={chatEndRef}
+          onToggleInspector={(id) => {
+            setMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
+          }}
         />
-        <div ref={chatEndRef} />
       </main>
 
       <footer className="flex-none mt-4">
@@ -175,18 +284,19 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
           onSubmit={handleSubmit}
           disabled={isSending}
         >
-            <div className="flex gap-2 mt-2">
-          {postId == null && (
-            <CategoryFilterButton
-              selectedCategory={selectedCategory}
-              onOpen={() => setIsCatOpen(true)}
+          <div className="flex gap-2 mt-2 items-center">
+            <VersionToggle value={askVersion} onChange={setAskVersion} disabled={isSending} />
+            {postId == null && (
+              <CategoryFilterButton
+                selectedCategory={selectedCategory}
+                onOpen={() => setIsCatOpen(true)}
+              />
+            )}
+            <PersonaFilterButton
+              selectedPersona={selectedPersona}
+              onOpen={() => setIsPersonaOpen(true)}
             />
-          )}
-          <PersonaFilterButton
-            selectedPersona={selectedPersona}
-            onOpen={() => setIsPersonaOpen(true)}
-          />
-        </div>
+          </div>
         </ChatInput>
       </footer>
 

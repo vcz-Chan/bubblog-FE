@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthStore, selectUserId } from '@/store/AuthStore';
+import { useAuthStore, selectUserId, selectIsLogin } from '@/store/AuthStore';
 import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/apis/blogApi';
 
 import { PostDetailHeader } from '@/components/PostDetail/Header';
@@ -10,15 +10,18 @@ import { PostNavbar } from '@/components/PostDetail/PostNavbar';
 import { DraggableModal } from '@/components/Common/DraggableModal';
 import { ChatViewButton } from '@/components/Chat/ChatViewButton';
 import { ChatWindow } from '@/components/Chat/ChatWindow';
+import { LoginRequiredModal } from '@/components/Common/LoginRequiredModal';
 
 export default function PostDetailClient({ postId }: { postId: string }) {
   const authUserId = useAuthStore(selectUserId);
+  const isLogin = useAuthStore(selectIsLogin);
 
   const [post, setPost] = useState<BlogDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -63,7 +66,13 @@ export default function PostDetailClient({ postId }: { postId: string }) {
     <>
       {isMyPost && <PostDetailActions postId={post.id} />}
       <PostDetailHeader post={post}>
-        <ChatViewButton userId={post.userId} postId={post.id} onClick={() => setShowChat(true)} />
+        <ChatViewButton
+          userId={post.userId}
+          postId={post.id}
+          onClick={() => {
+            if (!isLogin) setShowLoginModal(true); else setShowChat(true)
+          }}
+        />
       </PostDetailHeader>
 
       <PostNavbar post={post} liked={liked} onLike={handleLike} />
@@ -75,6 +84,11 @@ export default function PostDetailClient({ postId }: { postId: string }) {
           <ChatWindow userId={post.userId} postId={post.id} postTitle={post.title} />
         </DraggableModal>
       )}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onContinue={() => setShowLoginModal(false)}
+      />
     </>
   );
 }
