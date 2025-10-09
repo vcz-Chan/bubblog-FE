@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, easeInOut } from 'framer-motion'
 
 interface Props {
   size?: number
@@ -18,7 +18,7 @@ export function ThreeDotsLoader({ size = 6, colorClass = 'bg-gray-400' }: Props)
       transition: {
         duration: 0.8,
         repeat: Infinity,
-        ease: 'easeInOut',
+        ease: easeInOut,
         delay: i * 0.12,
       },
     }),
@@ -39,4 +39,3 @@ export function ThreeDotsLoader({ size = 6, colorClass = 'bg-gray-400' }: Props)
     </div>
   )
 }
-
