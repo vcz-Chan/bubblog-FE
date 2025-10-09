@@ -1,219 +1,117 @@
-# Chatbot v1/v2 Support & In‑Chat Plan/Context Visualization
+# 카테고리 UI 개선 계획 (Category UI Revamp)
 
-## Goal
-- Support both AI ask APIs: v1 (`/ai/ask`) and v2 (`/ai/v2/ask`).
-- Let the user switch version via a visible toggle (v1 | v2) before sending.
-- When using v2, visualize the server “search plan” and related steps (rewrites, keywords, hybrid_result, search_result) in the chat stream as a collapsible panel at the top, not above the input.
-- Move the current context viewer into the chat area as a top, collapsible item (applies to v1 too for consistency), replacing the input‑area context viewer.
+## 목표
+- 사용성: 빠르게 찾고 선택할 수 있는 간결한 흐름 제공.
+- 심미성: 일관된 여백/색/타이포와 부드러운 인터랙션으로 "깔끔하고 이쁜" UI.
+- 접근성: 키보드 내비게이션/스크린리더 호환성 강화.
+- 안정성: 기존 페이지와의 호환 유지, API/타입은 그대로 재사용.
 
-## Non‑Goals
-- No backend changes.
-- No new persistence for user preference (keep version selection per chat window for now).
-- No advanced formatting beyond minimal, readable UI (v1: context list; v2: plan + lists).
+## 범위
+- 컴포넌트: `src/components/Category/CategoryFilterButton.tsx`, `src/components/Category/CategorySelector.tsx` 개선 및 공용 Confirm 모달 추가.
+- 사용처: 
+  - 블로그 리스트: `src/app/blog/[userId]/BlogPageClient.tsx`
+  - 채팅: `src/components/Chat/ChatWindow.tsx`, `src/app/chatbot/[userId]/page.tsx`
+  - 글쓰기: `src/app/write/WritePostClient.tsx`
+- 비범위(Out of scope): 카테고리 API 계약 변경, 서버 스키마 변경.
 
-## High‑Level Design
-- API layer
-  - Keep existing `askChatAPI` (v1) intact.
-  - Add `askChatAPIV2` that calls `/ai/v2/ask` and exposes additional SSE handlers.
-  - Shared types: context items; add new v2 types for `SearchPlan`, `HybridResult`, etc.
-- UI state
-  - Add `askVersion: 'v1' | 'v2'` to Chat pages/components; default `v1`.
-  - Disable version toggle while a request is streaming (`isSending`).
-- SSE wiring
-  - v1: keep `exist_in_post_status`, `context`, `answer` handling.
-  - v2: additionally handle `search_plan`, `rewrite`, `keywords`, `hybrid_result`, `search_result`.
-- Rendering
-  - Introduce `InspectorPanel` rendered inside the scrollable chat area at the very top (collapsible).
-    - v1: shows “Context” section only (current `ContextViewer` content moved here).
-    - v2: shows “Search Plan”, “Rewrites”, “Keywords”, “Hybrid Result”, “Search Result”, and “Context”.
-  - Update `ChatMessages` to accept an optional `header` ReactNode so the panel is part of the scrollable area and appears above messages.
-  - Remove/hide the old input‑area `ContextViewer`.
-- UX
-  - Version toggle placed near input controls (e.g., alongside Category/Persona filters) or near header.
-  - Panel is collapsed by default; visibly toggled with a button.
+## 현재 이슈 요약
+- 루트 생성 버튼 노출 조건 버그: `creatingParentId === undefined` 조건으로 버튼이 표시되지 않음.
+- 드래그 가능 표시 혼동: 비소유자도 `draggable` 속성이 존재해 드래그 가능처럼 보임.
+- 새로고침 아이콘 혼동: `XCircleIcon` 사용으로 의미 불명확.
+- confirm/alert 사용: 브라우저 기본 다이얼로그로 일관된 UI 저해.
+- 스타일 조밀/정보 과다: 여백/라인/타이포/아이콘 정리 필요.
+- 접근성: 키보드 탐색, 포커스 표시, aria 레이블 강화 필요.
 
-## Implementation Steps
-1) API: Add v2 client
-- File: `src/apis/aiApi.ts`
-  - Add types: `SearchPlan`, `V2Events` payloads (`string[]` for rewrites/keywords; arrays for results).
-  - Implement `askChatAPIV2(question, userId, categoryId, personaId, handlers, options)`:
-    - POST to `/ai/v2/ask` via `aiFetch`.
-    - Parse SSE events: `search_plan`, `rewrite`, `keywords`, `hybrid_result`, `search_result`, `exist_in_post_status`, `context`, `answer`, `end`, `error`.
-    - Call respective callbacks in `handlers`.
-  - Keep `askChatAPI` unchanged.
+## 개선안 상세
+- 레이아웃/스타일
+  - 리스트 항목: 여백 증가, 라운드/섀도우 절제, hover/active/focus 명확화.
+  - 인덴트: Tailwind 유틸만 사용, 인라인 style 최소화.
+  - 헤더: 제목 + 검색창 + 새로고침을 정렬 정돈, 아이콘 툴팁 추가.
+  - 스크롤: 최대 높이 내부 스크롤, sticky 헤더로 검색 고정.
+- 상호작용/UX
+  - 루트 생성 토글: "최상위 추가" 버튼 → 클릭 시 인라인 입력 폼 표시. 상태는 `isCreatingRoot`로 명확 분리 또는 `creatingParentId`의 `undefined|null|number` 3상 분리.
+  - 드래그앤드롭: 소유자에게만 `draggable` 속성/핸들러 부여. 드롭 타겟 hover 시 미묘한 강조 테두리.
+  - 새로고침: `ArrowPathIcon`으로 교체, 로딩 상태 스피너 노출.
+  - 삭제 확인: 공용 `ConfirmModal` 도입해 브라우저 confirm 대체.
+  - 검색: 일치 텍스트 하이라이트, 자동 확장 유지.
+  - 선택 해제: 상단 버튼을 토글형으로 명확히 스타일링.
+- 접근성
+  - 트리 항목 버튼에 `aria-expanded`, `aria-controls`(옵션), 라벨 보강.
+  - 키보드: ↑/↓ 이동, → 확장, ← 접기, Enter 선택 기본 지원(최소 Tab/Enter는 보장).
+  - 포커스 링 명확화.
 
-2) UI: Add version toggle
-- Add `askVersion` state to `src/components/Chat/ChatWindow.tsx` and `src/app/chatbot/[userId]/page.tsx`.
-- Create a small `VersionToggle` component (two‑button segmented control) and place it next to Persona/Category controls.
-- Disable while `isSending` is true.
+## 단계별 작업 계획 (Milestones)
+1) 기능 버그 및 혼동 요소 해결
+- [ ] 루트 생성 버튼 토글 버그 수정 (`creatingParentId` 상태 정리)
+- [ ] 비소유자 `draggable` 제거, 소유자에게만 설정
+- [ ] 새로고침 아이콘 `ArrowPathIcon`으로 교체
+- [ ] 로딩/에러 메시지 톤 및 배치 정리
 
-3) UI: Introduce InspectorPanel
-- New file: `src/components/Chat/InspectorPanel.tsx`.
-  - Props: `version`, `v1Context`, `v2Plan`, `v2Rewrites`, `v2Keywords`, `v2HybridResult`, `v2SearchResult`, `visible`, `onToggle`.
-  - Renders a collapsible card with sections depending on `version`.
-  - Each section renders a compact list; pretty‑print `SearchPlan` JSON for first iteration.
+2) 공용 모달 도입 및 confirm/alert 치환
+- [ ] `src/components/Common/ConfirmModal.tsx` 추가 (타이틀/메시지/확인/취소 props)
+- [ ] `CategorySelector`의 삭제 확인을 `ConfirmModal`로 교체
 
-4) Messages container update
-- Modify `src/components/Chat/ChatMessages.tsx` to accept an optional `header?: React.ReactNode` rendered before message list but inside the scrollable container.
-- Update both chat entry points (`ChatWindow.tsx`, `page.tsx`) to pass `header={<InspectorPanel .../>}`.
+3) 스타일 리뉴얼 및 UX 개선
+- [ ] 트리 항목 카드형 라인 → 간결한 리스트형으로 정리(적절한 padding/간격/아이콘 크기 재조정)
+- [ ] 선택된 항목 강조(배경/텍스트/아이콘 색상 일관)
+- [ ] 검색 일치어 하이라이트 처리
+- [ ] 헤더를 sticky로 고정(검색/컨트롤 유지)
+- [ ] 드롭 타겟 시 테두리 강조
 
-5) Wire v1/v2 flows
-- In `handleSubmit` of both chat UIs:
-  - If `askVersion === 'v1'` → call `askChatAPI` and update `v1Context` in InspectorPanel state.
-  - If `askVersion === 'v2'` → call `askChatAPIV2` and update plan/rewrites/keywords/results/context accordingly.
-  - Continue accumulating `answer` chunks into the current bot message.
-- Remove/hide the old `ContextViewer` below messages.
+4) 접근성 & 키보드 지원
+- [ ] aria 속성/레벨 보강, 버튼 라벨 보정
+- [ ] 포커스 스타일 강화
+- [ ] 최소 Tab/Enter 흐름 확인, 단축키 안내는 툴팁로 간단히 제공
 
-6) Edge cases & polish
-- Reset InspectorPanel sections at the start of each send.
-- If `postId` mode: still display `exist_in_post_status` feedback (badge remains) and show v2 plan (likely simplified by server).
-- Guard JSON parsing errors; fail soft without breaking the stream.
-- Keep automatic scroll behavior (ensure `header` height changes also trigger scroll).
+5) 마무리 및 적용 범위 검수
+- [ ] 사용처(블로그/채팅/글쓰기)에서 UI 일관성/레이아웃 깨짐 점검
+- [ ] 빈 상태/카테고리 없음/오류 상태/대규모 트리(성능) 점검
+- [ ] `npm run lint` 및 빌드 확인
 
-7) Quick QA / Test Plan
-- v1 blog‑wide: ask with/without category; confirm context appears in panel.
-- v1 post‑specific: ask with `postId`; confirm exist badge behavior works.
-- v2 blog‑wide: confirm plan shows, rewrites/keywords/hybrid_result/search_result list; context present; answer streams.
-- v2 post‑specific: simplified plan; exist status; answer streams.
-- Toggle version mid‑idle works; disabled during streaming.
-- Mobile route `/chatbot/[userId]`: panel is scrollable, usable; modal post preview still works (if desired in v2 context/results).
+## 컴포넌트별 변경사항
+- `CategoryFilterButton`
+  - 라벨 절삭/툴팁, 아이콘 정렬, 크기 변형(sm/md) prop 고려
+- `CategorySelector`
+  - 상태 정리: `creatingParentId` → 삼값 또는 `isCreatingRoot` 추가
+  - confirm/alert 제거, `ConfirmModal` 사용
+  - 스타일/레이아웃 전반 리뉴얼(헤더 sticky, 리스트 간격, 포커스 링)
+  - DnD 시각화(hover 강조 테두리), 비소유자 드래그 제거
+- `Common/ConfirmModal.tsx`
+  - 공용 확인 모달 추가, 블로그 삭제용 모달과 스타일 일관화
 
-## Types (draft)
-- `SearchPlan` (subset per askV2.md):
-  ```ts
-  type SearchPlan = {
-    mode: 'rag' | 'post';
-    top_k?: number; threshold?: number;
-    weights?: { chunk?: number; title?: number };
-    filters?: { user_id: string; category_ids?: number[]; time?: any };
-    sort?: string; limit?: number;
-    hybrid?: { enabled: boolean; alpha?: number; max_rewrites?: number; max_keywords?: number };
-    rewrites?: string[]; keywords?: string[];
-  };
-  ```
+## 테스트 계획
+- 시나리오
+  - [ ] 트리 로드/검색/펼침/선택/해제
+  - [ ] 루트/자식 생성/수정/삭제(소유자/비소유자 각각)
+  - [ ] DnD로 부모 변경, 루트 드롭 이동
+  - [ ] 블로그/채팅/글쓰기 화면에서 카테고리 선택이 정상 반영
+  - [ ] 모바일(≤768px)에서 레이아웃/터치 타겟 확인
+- 품질 체크
+  - [ ] 접근성(포커스 이동, aria 레이블) 수동 검증
+  - [ ] `npm run lint` 무경고 또는 허용 경고 수준 유지
+  - [ ] 빌드 성공 및 콘솔 에러 없음
 
-## Acceptance Criteria
-- A user can switch between v1 and v2 before asking; only the selected version is used.
-- For v2, the search plan and search steps (rewrites, keywords, hybrid_result, search_result) render in a collapsible panel at the very top of the chat area.
-- For v1, the context list renders in the same panel at the top (replacing the old input‑area context viewer).
-- Streaming answers continue to append to the current bot message.
-- 401 behavior unchanged (auto reissue once, safe logout on failure).
+## 완료 기준 (Acceptance Criteria)
+- 모든 사용처에서 카테고리 선택/CRUD/DnD가 동작하며 시각적으로 일관.
+- 브라우저 기본 confirm/alert 미사용, 공용 모달로 대체.
+- 루트 생성 버튼/폼 토글이 직관적으로 동작.
+- 비소유자 드래그 비활성, 소유자 드래그 시 시각 피드백 존재.
+- 검색 키워드 하이라이트 및 자동 확장이 유지.
+- 접근성 기본 요건(Tab/Enter 흐름, 포커스 표시) 만족.
 
-## Risks / Mitigation
-- SSE parsing variance: guard with try/catch and ignore malformed lines.
-- Layout shift due to header panel: trigger scroll into view after updates.
-- Backward compatibility: keep `askChatAPI` signature and usages; only add new call sites for v2.
+## 리스크/주의사항
+- 대규모 트리 성능: 필요 시 가상 스크롤 고려(현 단계는 비범위).
+- DnD 예외 처리: 자기 자신/자식으로의 이동 금지 로직 추가 고려.
+- 모달 중첩: 페이지 내 다른 모달과 z-index 충돌 여부 확인.
 
-## Follow‑ups (Optional)
-- Persist version choice in localStorage.
-- Plan prettifier (chips/tags, structured tables) and copy‑to‑clipboard.
-- Show per‑section counts and timing (if server exposes).
+## 향후 확장 아이디어(선택)
+- 커맨드 팔레트(빠른 검색/생성) 모드 추가
+- 최근 사용 카테고리/고정(핀) 기능
+- 카테고리 배지 색상/아이콘 커스터마이징
 
 ---
 
-## Phased Plan (Detailed)
-
-### Phase 0 — Preparation & Design Freeze
-- Review `askV2.md` and confirm SSE event names and payload shapes.
-- Decide where to place new v2 types: start in `src/apis/aiApi.ts` for minimal diff.
-- Define shared `ContextItem` shape compatibility (v1 uses `{ post_id, post_title }`, v2 examples show `{ postId, postTitle }`). Normalize to one internal shape for UI (e.g., `{ post_id: string, post_title: string }`).
-- Acceptance check: Documented decisions reflected in code comments in aiApi.ts.
-
-### Phase 1 — API Layer: v2 Client
-- Task 1.1: Define types in `src/apis/aiApi.ts`
-  - `export type SearchPlan = { mode: 'rag'|'post'; top_k?; threshold?; weights?; filters?; sort?; limit?; hybrid?; rewrites?; keywords? }`.
-  - `export type PlanList = string[];`
-  - `export type ContextBrief = { post_id: string; post_title: string };` (normalized).
-  - `export type AskV2Handlers = { onPlan?; onRewrites?; onKeywords?; onHybridResult?; onSearchResult?; onExistInPostStatus?; onContext?; onAnswerChunk?; onError?; onEnd? }`.
-- Task 1.2: Implement `askChatAPIV2(...)`
-  - POST to `/ai/v2/ask` using `aiFetch`.
-  - SSE parse loop mirroring v1 reader, but handle additional events with `try/catch` per line.
-  - Normalize v2 result arrays (`hybrid_result`, `search_result`, `context`) to `ContextBrief[]`.
-  - End/abort on `[DONE]` or `event: end`.
-- Task 1.3: Robustness
-  - If `content-type` is JSON, handle error payloads similarly to v1.
-  - Ensure `retry` behavior remains within `aiFetch`.
-- Acceptance check: Manual test hook (temporary page or console) prints plan and rewrites when hitting mock server; removed before PR merge if not used.
-
-### Phase 2 — UI: Version Toggle Component
-- Task 2.1: Create `src/components/Chat/VersionToggle.tsx`
-  - Props: `value: 'v1'|'v2'`, `onChange: (v) => void`, `disabled?: boolean`.
-  - UI: segmented control with two buttons; aria pressed states; keyboard accessible.
-- Task 2.2: Place toggle in `ChatWindow.tsx` and `/chatbot/[userId]/page.tsx`
-  - Near Persona/Category controls; respect `isSending` for `disabled`.
-- Acceptance check: Toggle switches versions visually and via state; disabled while sending.
-
-### Phase 3 — UI: InspectorPanel (Collapsible, In‑Chat Header)
-- Task 3.1: Create `src/components/Chat/InspectorPanel.tsx`
-  - Props:
-    - `version: 'v1'|'v2'`
-    - `visible: boolean`, `onToggle: () => void`
-    - `v1Context?: ContextBrief[]`
-    - `v2Plan?: SearchPlan | null`
-    - `v2Rewrites?: string[]`, `v2Keywords?: string[]`
-    - `v2HybridResult?: ContextBrief[]`, `v2SearchResult?: ContextBrief[]`
-    - `v2Context?: ContextBrief[]`
-  - Behavior: Renders a title bar with toggle button; sections render conditionally per version.
-  - First iteration: plan JSON pretty‑printed in a `<pre>`; lists are bullet lines linking to `/post/:id`.
-- Task 3.2: Style minimal Tailwind classes; ensure compact on mobile.
-- Acceptance check: Panel mounts inside the chat scroll area; toggles open/closed; lists render.
-
-### Phase 4 — Messages Container Update
-- Task 4.1: Modify `src/components/Chat/ChatMessages.tsx`
-  - Add optional prop `header?: React.ReactNode`.
-  - Render `{header}` before the messages list inside the scrollable container.
-- Task 4.2: Update import usages to pass `header` in chat UIs.
-- Acceptance check: Panel appears above first message; scrolling behaves as before.
-
-### Phase 5 — Integrate v1/v2 Flow in ChatWindow
-- Task 5.1: Add state
-  - `askVersion`, default `'v1'`.
-  - Inspector state: `inspectorOpen`, `v1Context`, and for v2: `plan`, `rewrites`, `keywords`, `hybridResult`, `searchResult`, `v2Context`.
-- Task 5.2: Reset logic on send start
-  - Clear all inspector state, `existInPost` to `null` (where applicable), context arrays to `[]`.
-- Task 5.3: Branch call in `handleSubmit`
-  - v1 → existing `askChatAPI` with handlers writing to `v1Context` and bot message appending.
-  - v2 → `askChatAPIV2` with handlers writing to inspector states + bot message appending.
-- Task 5.4: Header injection
-  - Pass `<InspectorPanel ... />` to `ChatMessages` as `header`.
-- Task 5.5: Remove/hide old `ContextViewer` usage in this component.
-- Acceptance check: Both versions stream answers; inspector content updates live; old input‑area context is gone.
-
-### Phase 6 — Integrate v1/v2 Flow in Route Page `/chatbot/[userId]/page.tsx`
-- Mirror tasks from Phase 5 adapted to the route page state.
-- Keep modal post preview (`PostModal`) if using inspector context lists (optional link opening behavior stays).
-- Acceptance check: Mobile/route page behavior matches embedded ChatWindow.
-
-### Phase 7 — Badge and Post‑Scoped UX
-- Preserve/extend existing `existInPostStatus` badge.
-- For v2 post mode, ensure status events still update the badge and inspector context.
-- Acceptance check: Badge reflects true/false; title truncation intact.
-
-### Phase 8 — Error & Edge Handling
-- v2 `error` event → show message in current bot bubble and keep inspector collapsed state unchanged.
-- Guard JSON parsing; ignore malformed lines; no crashes.
-- Cancel reader on end or component unmount to avoid leaks (ensure try/finally in callers sets `isSending` false and clears input).
-- Acceptance check: Network failure shows a friendly error in bot message.
-
-### Phase 9 — Styling & Scroll Behavior
-- Ensure opening/closing inspector auto‑scrolls to bottom (`chatEndRef.scrollIntoView`).
-- Keep spacing consistent with message bubbles.
-- Acceptance check: No layout jumps obscure latest bot message.
-
-### Phase 10 — QA Plan
-- v1 blog‑wide: with/without category; context shows in inspector; answer streams.
-- v1 post‑specific: badge states for exist true/false; answer streams.
-- v2 blog‑wide: plan/rewrites/keywords/hybrid_result/search_result/context appear; answer streams.
-- v2 post‑specific: simplified plan; exist status; answer streams.
-- Toggle version idle vs. during send disabled state.
-- Mobile viewport: panel usable; long plan scrollable.
-
-### Phase 11 — Documentation
-- Update `TASK.md` (this file) status as phases complete.
-- Add a short section to `GEMINI.md` or new `AI.md` referencing v2 UI behavior (optional).
-
-### Phase 12 — Optional Enhancements
-- Persist `askVersion` in localStorage per user.
-- Pretty plan renderer (chips/tags); copy JSON button.
-- Telemetry hooks for plan section toggles (if analytics exists).
-
+작업 원칙
+- 기존 API/타입/호출은 유지하여 영향 범위 최소화.
+- 공통 컴포넌트 재사용(Button/Modal), Tailwind 유틸로 스타일 일관성 확보.
+- 작은 PR 단위로 단계별 머지(1→5 순서), 각 단계마다 `npm run lint` 확인.
