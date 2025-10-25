@@ -52,6 +52,18 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${nanumGothic.variable} font-nanum antialiased`}
       >
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-3B7CWRNZ9F"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-3B7CWRNZ9F');
+          `}
+        </Script>
         <Script id="ld-website" type="application/ld+json" strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
