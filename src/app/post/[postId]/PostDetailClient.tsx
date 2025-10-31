@@ -6,6 +6,7 @@ import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/apis/blogAp
 
 import { PostDetailHeader } from '@/components/PostDetail/Header';
 import { PostDetailActions } from '@/components/PostDetail/Action';
+import { PostDetailBody } from '@/components/PostDetail/Body';
 import { PostNavbar } from '@/components/PostDetail/PostNavbar';
 import { DraggableModal } from '@/components/Common/DraggableModal';
 import { ChatViewButton } from '@/components/Chat/ChatViewButton';
@@ -60,21 +61,11 @@ export default function PostDetailClient({ postId }: { postId: string }) {
   const isMyPost = post.userId === authUserId;
 
   return (
-    <>
-      {isMyPost && <PostDetailActions postId={post.id} />}
+    <div className="w-full max-w-4xl mx-auto px-4">
       <PostDetailHeader post={post}>
-        <ChatViewButton userId={post.userId} postId={post.id} onClick={() => setShowChat(true)} />
+        {isMyPost && <PostDetailActions postId={post.id} />} 
       </PostDetailHeader>
-
-      <PostNavbar post={post} liked={liked} onLike={handleLike} />
-
-      {/* 본문은 SSR로, 여기서는 렌더하지 않음 */}
-
-      {showChat && (
-        <DraggableModal path={`/chatbot/${post.userId}?postId=${post.id}`} onClose={() => setShowChat(false)}>
-          <ChatWindow userId={post.userId} postId={post.id} postTitle={post.title} />
-        </DraggableModal>
-      )}
-    </>
-  );
+      <PostDetailBody content={post.content} />
+    </div>
+  )
 }

@@ -2,18 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ClientAuthInit from '@/components/ClientAuthInit';
 import NavBar from '@/components/Layout/NavBar'
-import { Nanum_Gothic } from 'next/font/google';
 import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import Script from 'next/script'
 import { getSiteUrl, toAbsoluteUrl } from '@/utils/seo'
-
-const nanumGothic = Nanum_Gothic({
-  subsets: ['latin'],
-  weight: ['400', '700', '800'], // 필요한 굵기만 선택
-  variable: '--font-nanum-gothic', // CSS 변수명으로 Tailwind와 연동 가능
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
@@ -50,7 +42,7 @@ export default function RootLayout({
     <html lang="ko">
       <body
         suppressHydrationWarning
-        className={`${nanumGothic.variable} font-nanum antialiased`}
+        className={`font-nanum antialiased`}
       >
         <Script id="ld-website" type="application/ld+json" strategy="afterInteractive"
           dangerouslySetInnerHTML={{

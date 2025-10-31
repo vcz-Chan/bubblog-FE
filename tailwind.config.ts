@@ -9,7 +9,7 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        nanum: ['var(--font-nanum-gothic)'],
+        nanum: ['NanumSquareRound', 'sans-serif'],
       },
     },
   },

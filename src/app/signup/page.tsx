@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
 import Link from 'next/link'
 import Image from 'next/image'
+import BubbleBackground from '@/components/Home/BubbleBackground'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -33,8 +34,9 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="h-screen w-full bg-gradient-to-br from-blue-400 to-blue-300 flex justify-center items-center p-4">
-      <div className="w-full max-w-md mx-auto rounded-2xl shadow-xl overflow-hidden bg-white">
+    <div className="relative min-h-screen w-full bg-gradient-to-br from-blue-500 to-purple-600 flex justify-center items-center p-4 overflow-hidden">
+      <BubbleBackground />
+      <div className="relative z-10 w-full max-w-md mx-auto rounded-2xl shadow-xl overflow-hidden bg-white">
         {/* Right side with form */}
         <div className="w-full p-8 sm:p-10">
           <form onSubmit={onSubmit}>

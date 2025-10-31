@@ -1,5 +1,5 @@
 @import "tailwindcss";
-
+@import url('https://cdn.jsdelivr.net/gh/moonspam/NanumSquare@2.0/nanumsquare.css');
 
 :root {
   --background: #ffffff;
@@ -25,10 +25,6 @@ body {
   color: var(--foreground);
 }
 
-body {
-  font-family: var(--font-nanum-gothic), sans-serif;
-}
-
 /* Markdown Editor Toolbar Size Customization */
 .w-md-editor-toolbar {
   padding: 8px 10px !important;
@@ -43,4 +39,24 @@ body {
 .w-md-editor-toolbar svg {
   width: 18px !important;
   height: 18px !important;
+}
+
+/* Bubble animation */
+.bubble {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: bubble-rise 2s ease-out forwards;
+}
+
+@keyframes bubble-rise {
+  from {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-200px) scale(0.5);
+    opacity: 0;
+  }
 }
