@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import BubbleBackground from '@/components/Home/BubbleBackground'
+import BubbleBackground from '@/components/BackGround/BubbleBackground'
 import AnimatedContent from '@/components/Home/AnimatedContent'
 
 export function LandingPage() {
