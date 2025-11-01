@@ -6,6 +6,7 @@ import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/apis/blogAp
 
 import { PostDetailHeader } from '@/components/PostDetail/Header';
 import { PostDetailActions } from '@/components/PostDetail/Action';
+import { PostDetailBody } from '@/components/PostDetail/Body';
 import { PostNavbar } from '@/components/PostDetail/PostNavbar';
 import { DraggableModal } from '@/components/Common/DraggableModal';
 import { ChatViewButton } from '@/components/Chat/ChatViewButton';
@@ -63,8 +64,7 @@ export default function PostDetailClient({ postId }: { postId: string }) {
   const isMyPost = post.userId === authUserId;
 
   return (
-    <>
-      {isMyPost && <PostDetailActions postId={post.id} />}
+    <div className="w-full max-w-4xl mx-auto px-4">
       <PostDetailHeader post={post}>
         <ChatViewButton
           userId={post.userId}

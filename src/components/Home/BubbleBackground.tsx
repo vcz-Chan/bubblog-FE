@@ -1,49 +1,56 @@
-// 출처 : https://reactbits.dev/animations/animated-content
 'use client'
 
-import React, { useEffect, useRef } from 'react'
-import { gsap } from 'gsap'
+import { useCallback, useEffect, useRef } from 'react'
 
-export default function BubbleBackground() {
-  const container = useRef<HTMLDivElement>(null)
+const BubbleBackground = () => {
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const bubbles = container.current?.querySelectorAll<HTMLElement>('.bubble')
-    if (!bubbles) return
+  const createBubble = useCallback((x: number, y: number) => {
+    const container = containerRef.current
+    if (!container) return
 
-    bubbles.forEach(bubble => {
-      const size = gsap.utils.random(20, 80)          // 크기 랜덤
-      const opacity = gsap.utils.random(0.1, 0.3)     // 불투명도 랜덤
-      const leftPct = gsap.utils.random(0, 100)       // 가로 위치 랜덤(%)
+    const bubble = document.createElement('span')
+    const size = Math.random() * 30 + 10 // 10px to 40px
+    
+    bubble.className = 'bubble'
+    bubble.style.width = `${size}px`
+    bubble.style.height = `${size}px`
+    
+    // Adjust position to center the bubble on the cursor
+    bubble.style.left = `${x - container.getBoundingClientRect().left - size / 2}px`
+    bubble.style.top = `${y - container.getBoundingClientRect().top - size / 2}px`
 
-      // 초기 위치 세팅: 화면 아래(음수 값), left 으로 수평 분산
-      gsap.set(bubble, {
-        width: size,
-        height: size,
-        opacity,
-        bottom: -size,
-        left: `${leftPct}%`,
-        backgroundColor: '#9CA3AF' 
-      })
+    container.appendChild(bubble)
 
-      gsap.to(bubble, {
-        bottom: '100%',
-        duration: gsap.utils.random(6, 12),
-        ease: 'none',
-        repeat: -1,
-        delay: gsap.utils.random(0, 5)
-      })
-    })
+    setTimeout(() => {
+      bubble.remove()
+    }, 2000) // Animation duration is 2s
   }, [])
 
-  return (
-    <div
-      ref={container}
-      className="fixed inset-0 pointer-events-none overflow-hidden"
-    >
-      {Array.from({ length: 30 }).map((_, i) => (
-        <div key={i} className="bubble rounded-full absolute" />
-      ))}
-    </div>
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      // Throttle bubble creation
+      if (Math.random() > 0.5) {
+        createBubble(e.clientX, e.clientY)
+      }
+    },
+    [createBubble],
   )
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('mousemove', handleMouseMove)
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('mousemove', handleMouseMove)
+      }
+    }
+  }, [handleMouseMove])
+
+  return <div ref={containerRef} className="absolute inset-0 w-full h-full overflow-hidden" />
 }
+
+export default BubbleBackground
