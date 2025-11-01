@@ -18,7 +18,7 @@ export function PostDetailHeader({ post, children }: Props) {
   return (
     <header className="mb-10 space-y-4">
       {/* 제목 */}
-      <h1 className="text-4xl font-extrabold text-gray-900">
+      <h1 className="text-4xl font-extrabold text-gray-900 font-sans">
         {post.title}
       </h1>
 
