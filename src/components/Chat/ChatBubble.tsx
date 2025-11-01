@@ -1,11 +1,14 @@
 'use client'
 
+import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
+
 interface Props {
   content: string
   role: 'user' | 'bot'
+  loading?: boolean
 }
 
-export function ChatBubble({ content, role }: Props) {
+export function ChatBubble({ content, role, loading = false }: Props) {
   const isUser = role === 'user'
 
   // 조건부 클래스 분리
@@ -29,7 +32,11 @@ export function ChatBubble({ content, role }: Props) {
           shadow
         `}
       >
-        <p className="whitespace-pre-wrap">{content}</p>
+        {loading && !content ? (
+          <div className="py-1"><ThreeDotsLoader colorClass={isUser ? 'bg-white/80' : 'bg-gray-500'} /></div>
+        ) : (
+          <p className="whitespace-pre-wrap">{content}</p>
+        )}
         {/* 꼬리 삼각형 */}
         <div
           className={`
