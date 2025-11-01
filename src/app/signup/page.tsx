@@ -5,7 +5,8 @@ import { signup } from '@/apis/authApi'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
 import ImageUploader from '@/components/Common/ImageUploader'
-import BubbleBackground from '@/components/Home/BubbleBackground'
+import BubbleBackground from '@/components/BackGround/BubbleBackground'
+import BubbleBackgroundCursor from '@/components/BackGround/BubbleBackgroundCursor'
 
 // --- 아이콘 SVG 컴포넌트 ---
 const MailIcon = () => (
@@ -65,10 +66,11 @@ export default function SignupPage() {
 
 
   return (
-    <div className="relative overflow-auto text-gray-800 py-8 md:py-0 md:flex md:items-center md:justify-center md:h-screen">
+    <div className="w-full relative overflow-auto text-gray-800 py-8 md:py-0 md:flex md:items-center md:justify-center md:h-screen">
+      <BubbleBackgroundCursor />
       <BubbleBackground />
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-8">
-          <div className="w-full max-w-lg">
+          <div className="w-full max-w-lg z-50">
             <div className="bg-white rounded-2xl border-2 p-8 sm:p-10">
               
               <div className="text-center">

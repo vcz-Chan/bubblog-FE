@@ -15,7 +15,7 @@ export default function NotFound() {
             alt="Page not found robot"
             width={300}
             height={300}
-            objectFit="contain"
+            className="object-contain"
           />
         </div>
         <div className="md:w-1/2 p-4 text-center md:text-left">

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react'
 
-const BubbleBackground = () => {
+const BubbleBackgroundCursor = () => {
   const containerRef = useRef<HTMLDivElement>(null)
 
   const createBubble = useCallback((x: number, y: number) => {
@@ -12,7 +12,7 @@ const BubbleBackground = () => {
     const bubble = document.createElement('span')
     const size = Math.random() * 30 + 10 // 10px to 40px
     
-    bubble.className = 'bubble'
+    bubble.className = 'bubble-cursor'
     bubble.style.width = `${size}px`
     bubble.style.height = `${size}px`
     
@@ -53,4 +53,4 @@ const BubbleBackground = () => {
   return <div ref={containerRef} className="absolute inset-0 w-full h-full overflow-hidden" />
 }
 
-export default BubbleBackground
+export default BubbleBackgroundCursor
