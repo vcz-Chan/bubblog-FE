@@ -2,7 +2,7 @@
 
 import React from 'react'
 import type { JSX } from 'react'
-import { useState, useEffect, DragEvent, ChangeEvent } from 'react'
+import { useState, useEffect, DragEvent, ChangeEvent, useRef } from 'react'
 import { Dialog } from '@headlessui/react'
 import {
   getCategoryTree,
@@ -20,8 +20,10 @@ import {
   XCircleIcon,
   MinusSmallIcon,
   CheckIcon,
+  ArrowPathIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '@/store/AuthStore';
+import { ConfirmModal } from '@/components/Common/ConfirmModal'
 
 interface Props {
   userId: string | null
@@ -46,13 +48,42 @@ export function CategorySelector({
   const [searchTerm, setSearchTerm] = useState<string>('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<CategoryNode | null>(null)
+  const [hoverTargetId, setHoverTargetId] = useState<number | null>(null)
+
+  // 키보드 내비게이션을 위한 ref
+  const listRef = useRef<HTMLDivElement>(null)
 
   // Inline creation/edit state
-  const [creatingParentId, setCreatingParentId] = useState<number | null>(null)
+  // undefined: 생성 모드 아님, null: 루트 생성, number: 해당 id 하위 생성
+  const [creatingParentId, setCreatingParentId] = useState<number | null | undefined>(undefined)
   const [newName, setNewName] = useState<string>('')
 
   const [editingId, setEditingId] = useState<number | null>(null)
   const [editedName, setEditedName] = useState<string>('')
+  
+  // 검색 하이라이트 렌더러
+  const renderHighlighted = (text: string) => {
+    const term = searchTerm.trim()
+    if (!term) return text
+    try {
+      const regex = new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'ig')
+      const parts = text.split(regex)
+      return (
+        <>
+          {parts.map((part, i) =>
+            regex.test(part) ? (
+              <mark key={i} className="bg-yellow-100 text-yellow-800 rounded px-0.5">{part}</mark>
+            ) : (
+              <span key={i}>{part}</span>
+            )
+          )}
+        </>
+      )
+    } catch {
+      return text
+    }
+  }
 
   // 전체 트리 로드
   const loadTree = () => {
@@ -72,7 +103,7 @@ export function CategorySelector({
       loadTree()
       setSearchTerm('')
       setExpandedIds(new Set())
-      setCreatingParentId(null)
+      setCreatingParentId(undefined)
       setEditingId(null)
     }
   }, [isOpen, userId])
@@ -146,7 +177,7 @@ export function CategorySelector({
   const confirmCreate = async () => {
     const name = newName.trim()
     if (!name) {
-      setCreatingParentId(null)
+      setCreatingParentId(undefined)
       return
     }
     await createCategory({
@@ -155,7 +186,7 @@ export function CategorySelector({
     })
     cancelCreate()
     loadTree()
-    setCreatingParentId(null)
+    setCreatingParentId(undefined)
   }
 
   // 루트 생성 시작
@@ -166,7 +197,7 @@ export function CategorySelector({
 
   // 생성 취소
   const cancelCreate = () => {
-    setCreatingParentId(null)
+    setCreatingParentId(undefined)
     setNewName('')
   }
 
@@ -195,12 +226,19 @@ export function CategorySelector({
     setEditedName('')
   }
 
-  // 삭제
-  const deleteNodeById = async (node: CategoryNode) => {
-    if (!confirm(`"${node.name}"을(를) 삭제하시겠습니까?`)) return
-    await deleteCategory(node.id)
+  // 삭제 - ConfirmModal 사용
+  const requestDelete = (node: CategoryNode) => {
+    setDeleteTarget(node)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+    await deleteCategory(deleteTarget.id)
+    setDeleteTarget(null)
     loadTree()
   }
+
+  const cancelDelete = () => setDeleteTarget(null)
 
   // Drag & Drop
   const onDragStart = (e: DragEvent, node: CategoryNode) => {
@@ -215,12 +253,31 @@ export function CategorySelector({
     if (id === node.id) return
     await updateCategory(id, { newParentId: node.id })
     loadTree()
+    setHoverTargetId(null)
   }
   const onDropRoot = async (e: DragEvent) => {
     e.preventDefault()
     const id = Number(e.dataTransfer.getData('categoryId'))
     await updateCategory(id, { newParentId: 0 }) // 0은 최상위로 이동
     loadTree()
+  }
+
+  // 리스트 컨테이너에서 ↑/↓로 포커스 이동
+  const onKeyDownList = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+    const root = listRef.current
+    if (!root) return
+    const items = Array.from(root.querySelectorAll<HTMLButtonElement>('button[data-cat-id]'))
+    if (items.length === 0) return
+    const active = document.activeElement as HTMLElement | null
+    const idx = active ? items.findIndex(el => el === active) : -1
+    let nextIdx = idx
+    if (e.key === 'ArrowDown') nextIdx = Math.min(items.length - 1, idx + 1)
+    if (e.key === 'ArrowUp') nextIdx = Math.max(0, idx - 1)
+    if (nextIdx !== idx && items[nextIdx]) {
+      e.preventDefault()
+      items[nextIdx].focus()
+    }
   }
 
   // 트리 렌더링 (재귀)
@@ -245,14 +302,16 @@ export function CategorySelector({
         ? {
             draggable: true,
             onDragStart: (e: DragEvent) => onDragStart(e, node),
-            onDragOver,
+            onDragOver: (e: DragEvent) => { onDragOver(e); setHoverTargetId(node.id) },
+            onDragLeave: () => setHoverTargetId(prev => (prev === node.id ? null : prev)),
             onDrop: (e: DragEvent) => onDropNode(e, node),
           }
         : {}
 
       // 공통 컨테이너 스타일: 테두리, 배경, 패딩, rounded
-      const containerClass =
-        'flex items-center space-x-2 mb-1 border border-gray-300 rounded-lg px-1 py-3 bg-white hover:bg-gray-50'
+      const baseClass = 'flex items-center gap-2 mb-1 rounded-md px-2 py-2 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500'
+      const highlightClass = hoverTargetId === node.id ? 'ring-2 ring-indigo-300' : ''
+      const containerClass = `${baseClass} ${highlightClass}`
 
       const line: JSX.Element[] = []
 
@@ -262,7 +321,9 @@ export function CategorySelector({
           key={`node-${node.id}`}
           style={indentStyle}
           className={containerClass}
-          draggable
+          role="treeitem"
+          aria-level={level + 1}
+          aria-selected={selectedCategory?.id === node.id || undefined}
           {...dragProps}
         >
           {/* 확장/접기 아이콘 */}
@@ -271,11 +332,12 @@ export function CategorySelector({
               onClick={() => toggleExpand(node.id)}
               className="w-6 h-6 flex items-center justify-center mx-1 text-gray-600 hover:text-gray-800"
               aria-label={isExpanded ? '닫기' : '열기'}
+              aria-expanded={hasChildren ? isExpanded : undefined}
             >
               {isExpanded ? (
-                <ChevronDownIcon className="w-5 h-5" />
+                <ChevronDownIcon className="w-4 h-4" />
               ) : (
-                <ChevronRightIcon className="w-5 h-5" />
+                <ChevronRightIcon className="w-4 h-4" />
               )}
             </button>
           ) : (
@@ -284,7 +346,7 @@ export function CategorySelector({
               className="w-6 h-6 flex items-center justify-center mx-1 text-gray-400"
               aria-hidden="true"
             >
-              <MinusSmallIcon className="w-5 h-5" />
+              <MinusSmallIcon className="w-4 h-4" />
             </div>
           )}
 
@@ -318,13 +380,24 @@ export function CategorySelector({
             <>
               <button
                 onClick={() => selectNode(node)}
-                className={`flex-1 text-left text-sm py-1 ${
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    selectNode(node)
+                  } else if (e.key === 'ArrowRight') {
+                    if (hasChildren && !isExpanded) toggleExpand(node.id)
+                  } else if (e.key === 'ArrowLeft') {
+                    if (hasChildren && isExpanded) toggleExpand(node.id)
+                  }
+                }}
+                className={`flex-1 text-left text-sm py-1 outline-none ${
                   selectedCategory?.id === node.id
-                    ? 'font-bold underline text-purple-700'
+                    ? 'font-semibold text-indigo-700'
                     : 'hover:underline text-gray-800'
                 }`}
+                data-cat-id={node.id}
               >
-                {node.name}
+                {renderHighlighted(node.name)}
               </button>
               {/* 인라인 생성/수정/삭제 아이콘 */}
               {isOwner && (
@@ -334,21 +407,21 @@ export function CategorySelector({
                   className="w-6 h-6 flex items-center justify-center text-green-600 hover:text-green-800"
                   aria-label="하위 카테고리 추가"
                 >
-                  <PlusCircleIcon className="w-5 h-5" />
+                  <PlusCircleIcon className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => startEditing(node)}
                   className="w-6 h-6 flex items-center justify-center text-blue-600 hover:text-blue-800"
                   aria-label="카테고리 이름 수정"
                 >
-                  <PencilSquareIcon className="w-5 h-5" />
+                  <PencilSquareIcon className="w-4 h-4" />
                 </button>
                 <button
-                  onClick={() => deleteNodeById(node)}
+                  onClick={() => requestDelete(node)}
                   className="w-6 h-6 flex items-center justify-center text-red-600 hover:text-red-800"
                   aria-label="카테고리 삭제"
                 >
-                  <TrashIcon className="w-5 h-5" />
+                  <TrashIcon className="w-4 h-4" />
                 </button>
                </>)}
             </>
@@ -401,41 +474,49 @@ export function CategorySelector({
   }
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-100 overflow-y-auto">
-      <div
-        className="fixed inset-0 bg-black/40"
-        onDragOver={onDragOver}
-        onDrop={onDropRoot}
-      />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <Dialog.Panel className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[80vh] overflow-auto">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold">카테고리 선택</h2>
-            <button
-              onClick={loadTree}
-              className="flex items-center space-x-1 text-gray-600 hover:text-gray-800"
-            >
-              <XCircleIcon className="w-5 h-5" />
-              <span className="text-sm">새로고침</span>
-            </button>
+    <>
+      <Dialog open={isOpen} onClose={onClose} className="fixed inset-0 z-100 overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/40"
+          onDragOver={isOwner ? onDragOver : undefined}
+          onDrop={isOwner ? onDropRoot : undefined}
+        />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[80vh] overflow-auto">
+          {/* Header + Search (sticky) */}
+          <div className="sticky top-0 z-10 -mx-6 px-6 pt-2 pb-3 mb-3 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-lg font-semibold">카테고리 선택</h2>
+              <button
+                onClick={loadTree}
+                className="flex items-center space-x-1 text-gray-600 hover:text-gray-800"
+                aria-label="새로고침"
+                title="새로고침"
+              >
+                <ArrowPathIcon className="w-5 h-5" />
+                <span className="text-sm">새로고침</span>
+              </button>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setSearchTerm(e.target.value)
+                }
+                placeholder="카테고리 검색"
+                className="w-full border px-2 py-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
           </div>
 
-          {/* 검색창 */}
-          <div className="mb-4">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setSearchTerm(e.target.value)
-              }
-              placeholder="카테고리 검색"
-              className="w-full border px-2 py-1 rounded text-sm"
-            />
-          </div>
-
-          {loading && <p className="text-center text-gray-500">로딩 중…</p>}
-          {error && <p className="text-center text-red-500">{error}</p>}
+          {loading && (
+            <div className="flex items-center justify-center py-6 text-gray-500">
+              <div className="h-5 w-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
+              로딩 중…
+            </div>
+          )}
+          {error && <p className="text-center text-red-500 py-4">{error}</p>}
 
           {!loading && !error && (
             <div>
@@ -481,10 +562,30 @@ export function CategorySelector({
                 </div>
               )}
 
-              {/* 트리 목록 */}
-              <div>
-                {renderNodes(filteredTree.length ? filteredTree : tree)}
-              </div>
+              {/* 트리 목록 / 빈 상태 */}
+              {(() => {
+                const hasSearch = !!searchTerm.trim()
+                const display = (hasSearch ? filteredTree : tree)
+                if (!display.length) {
+                  return (
+                    <div className="text-center text-sm text-gray-500 py-10">
+                      {hasSearch ? '검색 결과가 없습니다.' : (
+                        <div className="space-y-2">
+                          <p>카테고리가 없습니다.</p>
+                          {isOwner && (
+                            <button onClick={startCreatingRoot} className="text-indigo-600 hover:underline">최상위 카테고리부터 만들어보세요</button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                }
+                return (
+                  <div ref={listRef} role="tree" onKeyDown={onKeyDownList}>
+                    {renderNodes(display)}
+                  </div>
+                )
+              })()}
 
               {/* 인라인 생성 폼 (루트 카테고리용) */}
               {isOwner &&creatingParentId === null && (
@@ -525,8 +626,21 @@ export function CategorySelector({
               닫기
             </button>
           </div>
-        </Dialog.Panel>
-      </div>
-    </Dialog>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
+      <ConfirmModal
+        isOpen={!!deleteTarget}
+        title="삭제 확인"
+        message={deleteTarget ? `"${deleteTarget.name}" 카테고리를 삭제하시겠습니까?` : ''}
+        confirmText="삭제"
+        cancelText="취소"
+        isDestructive
+        onConfirm={confirmDelete}
+        onCancel={cancelDelete}
+      />
+    </>
   )
 }
+
+ 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
-import { useAuthStore, selectUserId } from '@/store/AuthStore';
+import { useAuthStore, selectUserId, selectIsLogin } from '@/store/AuthStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { getUserProfile, UserProfile } from '@/apis/userApi';
 import { getPostsByUserPage, UserPostsPage, Blog, deleteBlog } from '@/apis/blogApi';
@@ -16,6 +16,7 @@ import { CategorySelector } from '@/components/Category/CategorySelector';
 import { PostsGrid } from '@/components/Blog/PostsGrid';
 import { DeleteModal } from '@/components/Blog/DeleteModal';
 import { DraggableModal } from '@/components/Common/DraggableModal'
+import { LoginRequiredModal } from '@/components/Common/LoginRequiredModal'
 import { ChatWindow } from '@/components/Chat/ChatWindow'
 import { ChatViewButton } from '@/components/Chat/ChatViewButton'
 import Pagination from '@/components/Common/Pagination'
@@ -24,6 +25,7 @@ type ViewMode = 'card' | 'list';
 
 export default function BlogPageClient() {
   const authUserId = useAuthStore(selectUserId);
+  const isLogin = useAuthStore(selectIsLogin);
   const { userId: paramUserId } = useParams<{ userId: string }>();
   const isMyBlog = paramUserId === authUserId;
   const isMobile = useMediaQuery('(max-width: 768px)');
@@ -48,6 +50,7 @@ export default function BlogPageClient() {
   const [deleteTarget, setDeleteTarget] = useState<Blog | null>(null);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const size = 8;
 
@@ -151,7 +154,13 @@ export default function BlogPageClient() {
         <div className='flex flex-col lg:flex-row gap-4 items-center justify-between'>
           <div className='flex flex-row gap-4 items-center justify-between'>
             {profile && <UserProfileHeader profile={profile} isMyBlog={isMyBlog} />}
-            <ChatViewButton userId={paramUserId} variant="blog" onClick={() => setShowChat(true)}/>
+            <ChatViewButton
+              userId={paramUserId}
+              variant="blog"
+              onClick={() => {
+                if (!isLogin) setShowLoginModal(true); else setShowChat(true)
+              }}
+            />
           </div>
           {showChat && (
             <DraggableModal
@@ -161,6 +170,11 @@ export default function BlogPageClient() {
               <ChatWindow userId={paramUserId} />
             </DraggableModal>
           )}
+          <LoginRequiredModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+            onContinue={() => setShowLoginModal(false)}
+          />
         </div>
         <div className="flex flex-wrap items-center justify-between my-4">
           <CategoryFilterButton

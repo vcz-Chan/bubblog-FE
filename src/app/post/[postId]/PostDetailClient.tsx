@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuthStore, selectUserId } from '@/store/AuthStore';
+import { useAuthStore, selectUserId, selectIsLogin } from '@/store/AuthStore';
 import { getBlogById, BlogDetail, putPostView, putPostLike } from '@/apis/blogApi';
 
 import { PostDetailHeader } from '@/components/PostDetail/Header';
@@ -11,15 +11,18 @@ import { PostNavbar } from '@/components/PostDetail/PostNavbar';
 import { DraggableModal } from '@/components/Common/DraggableModal';
 import { ChatViewButton } from '@/components/Chat/ChatViewButton';
 import { ChatWindow } from '@/components/Chat/ChatWindow';
+import { LoginRequiredModal } from '@/components/Common/LoginRequiredModal';
 
 export default function PostDetailClient({ postId }: { postId: string }) {
   const authUserId = useAuthStore(selectUserId);
+  const isLogin = useAuthStore(selectIsLogin);
 
   const [post, setPost] = useState<BlogDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [liked, setLiked] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -63,9 +66,29 @@ export default function PostDetailClient({ postId }: { postId: string }) {
   return (
     <div className="w-full max-w-4xl mx-auto px-4">
       <PostDetailHeader post={post}>
-        {isMyPost && <PostDetailActions postId={post.id} />} 
+        <ChatViewButton
+          userId={post.userId}
+          postId={post.id}
+          onClick={() => {
+            if (!isLogin) setShowLoginModal(true); else setShowChat(true)
+          }}
+        />
       </PostDetailHeader>
-      <PostDetailBody content={post.content} />
-    </div>
-  )
+
+      <PostNavbar post={post} liked={liked} onLike={handleLike} />
+
+      {/* 본문은 SSR로, 여기서는 렌더하지 않음 */}
+
+      {showChat && (
+        <DraggableModal path={`/chatbot/${post.userId}?postId=${post.id}`} onClose={() => setShowChat(false)}>
+          <ChatWindow userId={post.userId} postId={post.id} postTitle={post.title} />
+        </DraggableModal>
+      )}
+      <LoginRequiredModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onContinue={() => setShowLoginModal(false)}
+      />
+    </>
+  );
 }
