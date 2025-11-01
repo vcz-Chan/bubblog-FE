@@ -42,6 +42,8 @@ const BubblogLogoIcon = () => (
     </defs>
   </svg>
 );
+import Link from 'next/link'
+import Image from 'next/image'
 
 export default function SignupPage() {
   const router = useRouter()

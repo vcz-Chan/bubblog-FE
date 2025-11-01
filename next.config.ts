@@ -5,9 +5,19 @@ const nextConfig: NextConfig = {
   reactStrictMode: false,
   /* config options here */
   images: {
-    domains: [
-      'bubblog.s3.amazonaws.com',
-      "bucketname.s3.amazonaws.com"
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'bubblog.s3.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'bucketname.s3.amazonaws.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
