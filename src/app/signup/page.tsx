@@ -42,8 +42,6 @@ const BubblogLogoIcon = () => (
     </defs>
   </svg>
 );
-import Link from 'next/link'
-import Image from 'next/image'
 
 export default function SignupPage() {
   const router = useRouter()
@@ -66,15 +64,12 @@ export default function SignupPage() {
   }
 
 
-
-
-  
   return (
     <div className="relative overflow-auto text-gray-800 py-8 md:py-0 md:flex md:items-center md:justify-center md:h-screen">
       <BubbleBackground />
         <div className="flex flex-col items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-8">
           <div className="w-full max-w-lg">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 sm:p-10">
+            <div className="bg-white rounded-2xl border-2 p-8 sm:p-10">
               
               <div className="text-center">
                 <div className="flex items-center justify-center gap-3 mb-2">
