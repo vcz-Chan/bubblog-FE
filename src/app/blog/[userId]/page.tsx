@@ -17,14 +17,14 @@ export async function generateMetadata(
       openGraph: {
         title: `${nickname}의 블로그`,
         description: truncate(`${nickname}님의 게시글 모음`, 200),
-        images: [toAbsoluteUrl(profile.profileImageUrl || '/logo.jpeg')],
+        images: [toAbsoluteUrl(profile.profileImageUrl || '/logo.png')],
         type: 'profile',
       },
       twitter: {
         card: 'summary_large_image',
         title: `${nickname}의 블로그`,
         description: truncate(`${nickname}님의 게시글 모음`, 200),
-        images: [toAbsoluteUrl(profile.profileImageUrl || '/logo.jpeg')],
+        images: [toAbsoluteUrl(profile.profileImageUrl || '/logo.png')],
       },
       alternates: { canonical: `/blog/${userId}` },
     };
@@ -32,8 +32,8 @@ export async function generateMetadata(
     return {
       title: '블로그',
       description: '사용자 블로그',
-      openGraph: { images: [toAbsoluteUrl('/logo.jpeg')] },
-      twitter: { card: 'summary_large_image', images: [toAbsoluteUrl('/logo.jpeg')] },
+      openGraph: { images: [toAbsoluteUrl('/logo.png')] },
+      twitter: { card: 'summary_large_image', images: [toAbsoluteUrl('/logo.png')] },
       alternates: { canonical: `/blog/${userId}` },
     };
   }

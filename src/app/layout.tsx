@@ -19,17 +19,17 @@ export const metadata: Metadata = {
     description: '글이 대화가 되는 블로그',
     siteName: 'Bubblog',
     type: 'website',
-    images: ['/logo.jpeg'],
+    images: ['/logo.png'],
     locale: 'ko_KR',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Bubblog',
     description: '글이 대화가 되는 블로그',
-    images: ['/logo.jpeg'],
+    images: ['/logo.png'],
   },
   icons: {
-    icon: '/favicon.ico',
+    icon: '/.faviconico',
   },
 };
 

@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const titles = page.content.slice(0, 3).map(p => truncate(p.title, 50));
     const descRaw = titles.length > 0 ? `글이 대화가 되는 블로그 | 최신 글: ${titles.join(', ')}` : '글이 대화가 되는 블로그';
     const description = truncate(descRaw, 160);
-    const firstImage = toAbsoluteUrl(page.content.find(p => !!p.thumbnailUrl)?.thumbnailUrl || '/logo.jpeg');
+    const firstImage = toAbsoluteUrl(page.content.find(p => !!p.thumbnailUrl)?.thumbnailUrl || '/logo.png');
 
     return {
       title: 'Bubblog',
@@ -33,8 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
     return {
       title: 'Bubblog',
       description: '글이 대화가 되는 블로그',
-      openGraph: { title: 'Bubblog', description: '글이 대화가 되는 블로그', images: [toAbsoluteUrl('/logo.jpeg')], type: 'website' },
-      twitter: { card: 'summary_large_image', title: 'Bubblog', description: '글이 대화가 되는 블로그', images: [toAbsoluteUrl('/logo.jpeg')] },
+      openGraph: { title: 'Bubblog', description: '글이 대화가 되는 블로그', images: [toAbsoluteUrl('/logo.png')], type: 'website' },
+      twitter: { card: 'summary_large_image', title: 'Bubblog', description: '글이 대화가 되는 블로그', images: [toAbsoluteUrl('/logo.png')] },
       alternates: { canonical: '/' },
     };
   }

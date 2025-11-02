@@ -9,7 +9,7 @@ export default async function PostStructuredData({ postId }: { postId: string })
       '@type': 'Article',
       headline: post.title,
       description: post.summary,
-      image: [toAbsoluteUrl(post.thumbnailUrl || '/logo.jpeg')],
+      image: [toAbsoluteUrl(post.thumbnailUrl || '/logo.png')],
       mainEntityOfPage: `${getSiteUrl()}/post/${post.id}`,
       author: {
         '@type': 'Person',

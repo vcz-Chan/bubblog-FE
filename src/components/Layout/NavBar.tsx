@@ -53,7 +53,7 @@ export default function NavBar() {
       <div className="md:px-16 p-3 flex justify-between items-center">
         {/* 로고 */}
         <Link href="/" className="hidden md:flex items-center mr-16">
-          <div className="text-2xl font-bold text-gray-800">Bubblog</div>
+          <div className="text-2xl font-bold text-gray-800 font-logo">Bubblog</div>
         </Link>
 
         {/* 검색창 */}

@@ -18,14 +18,14 @@ export async function generateMetadata(
       openGraph: {
         title: truncate(post.title, 60),
         description: truncate(post.summary, 200),
-        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.jpeg')],
+        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.png')],
         type: 'article',
       },
       twitter: {
         card: 'summary_large_image',
         title: truncate(post.title, 60),
         description: truncate(post.summary, 200),
-        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.jpeg')],
+        images: [toAbsoluteUrl(post.thumbnailUrl || '/logo.png')],
       },
       alternates: { canonical: `/post/${postId}` },
     };
@@ -33,8 +33,8 @@ export async function generateMetadata(
     return {
       title: '게시글',
       description: '게시글 상세',
-      openGraph: { images: [toAbsoluteUrl('/logo.jpeg')] },
-      twitter: { card: 'summary_large_image', images: [toAbsoluteUrl('/logo.jpeg')] },
+      openGraph: { images: [toAbsoluteUrl('/logo.png')] },
+      twitter: { card: 'summary_large_image', images: [toAbsoluteUrl('/logo.png')] },
       alternates: { canonical: `/post/${postId}` },
     };
   }

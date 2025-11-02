@@ -17,7 +17,7 @@ export function PostCard({ post }: { post: Blog }) {
         <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-full overflow-hidden border border-gray-200">
           <div className="relative h-48 w-full overflow-hidden">
             <Image
-              src={thumbnailUrl || '/logo.jpeg'}
+              src={thumbnailUrl || '/logo.png'}
               alt={title}
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
