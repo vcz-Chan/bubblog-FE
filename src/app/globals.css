@@ -4,6 +4,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --text-scale: 1.0;
+}
+
+html {
+  font-size: calc(16px * var(--text-scale));
 }
 
 @theme inline {
