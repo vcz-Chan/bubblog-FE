@@ -33,6 +33,8 @@ export const metadata: Metadata = {
   },
 };
 
+import TextSizeAdjuster from '@/components/Common/TextSizeAdjuster';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -79,6 +81,7 @@ export default function RootLayout({
             {children}
           </div>
         </div>
+        <TextSizeAdjuster />
         <Analytics />
         <SpeedInsights />
       </body>
