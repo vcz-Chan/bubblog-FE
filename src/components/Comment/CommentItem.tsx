@@ -47,6 +47,7 @@ export default function CommentItem({
   const [editedContent, setEditedContent] = useState(comment.content)
 
   const [likeCount, setLikeCount] = useState(comment.likeCount)
+  const replyCount = comment.replyCount ?? 0
   // useState의 lazy initializer를 사용하여 클라이언트에서만 localStorage에 접근
   const [isLiked, setIsLiked] = useState(() => {
     if (typeof window === 'undefined') {
@@ -78,7 +79,7 @@ export default function CommentItem({
     if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
       try {
         await deleteComment(comment.id);
-        onCommentDelete(comment.id, comment.replyCount || 0);
+        onCommentDelete(comment.id, replyCount);
       } catch (error) {
         console.error('Error deleting comment:', error);
       }
@@ -116,7 +117,7 @@ export default function CommentItem({
   const toggleShowChildren = async () => {
     const newShowChildren = !showChildren;
     setShowChildren(newShowChildren);
-    if (newShowChildren && childComments.length === 0 && comment.replyCount > 0) {
+    if (newShowChildren && childComments.length === 0 && replyCount > 0) {
       const response = await getChildComments(comment.id);
       if (response.success) {
         setChildComments(response.data?.content || []);
@@ -191,9 +192,9 @@ export default function CommentItem({
                     />
                   </div>
                 )}
-                {comment.replyCount > 0 && (
+                {replyCount > 0 && (
                   <button onClick={toggleShowChildren} className="text-sm text-blue-500 mt-2">
-                    {showChildren ? '답글 숨기기' : `답글 ${comment.replyCount}개 보기`}
+                    {showChildren ? '답글 숨기기' : `답글 ${replyCount}개 보기`}
                   </button>
                 )}
                 {showChildren && (
