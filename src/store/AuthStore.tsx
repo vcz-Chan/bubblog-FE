@@ -5,6 +5,7 @@ import {
   logout as logoutAPI,
   reissueToken as reissueAPI,
 } from "@/apis/authApi";
+import { useProfileStore } from "./ProfileStore"; // ProfileStore import
 
 /**
  * Auth 상태 및 액션 정의
@@ -48,11 +49,17 @@ export const useAuthStore = create<AuthState>()(
       setLogin: ({ accessToken, userId = null }) => {
         localStorage.setItem("accessToken", accessToken);
         set({ accessToken, userId, isLogin: true });
+        if (userId) {
+          // 로그인 시 프로필 정보 가져오기
+          useProfileStore.getState().fetchProfile(userId);
+        }
       },
 
       setLogout: () => {
         localStorage.removeItem("accessToken");
         set({ accessToken: null, userId: null, isLogin: false });
+        // 로그아웃 시 프로필 정보 지우기
+        useProfileStore.getState().clearProfile();
       },
 
       // ---- API 포함 액션 ----
@@ -82,10 +89,10 @@ export const useAuthStore = create<AuthState>()(
 
       reissue: async () => {
         const res = await reissueAPI();
-        if (res.success && res.data?.accessToken) {
+        if (res.success && res.data?.accessToken && res.data.userId) {
           get().setLogin({
             accessToken: res.data.accessToken,
-            userId: res.data.userId ?? get().userId ?? null,
+            userId: res.data.userId,
           });
         } else {
           // 재발급 실패 시 안전하게 로그아웃
@@ -147,6 +154,11 @@ export const useAuthStore = create<AuthState>()(
             // apiClientWithAuth 호환을 위해 동기화
             localStorage.setItem("accessToken", token);
             useAuthStore.setState({ isLogin: true });
+            // 앱 로드 시 프로필 정보 동기화
+            const userId = state?.userId;
+            if (userId) {
+              useProfileStore.getState().fetchProfile(userId);
+            }
           } else {
             useAuthStore.getState().setLogout();
           }

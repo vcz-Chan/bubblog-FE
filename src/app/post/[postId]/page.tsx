@@ -5,6 +5,7 @@ import PostDetailBodyServer from "@/app/post/[postId]/PostDetailBodyServer";
 import { getBlogById } from '@/apis/blogApi';
 import { truncate, toAbsoluteUrl } from '@/utils/seo';
 import PostStructuredData from '@/app/post/[postId]/PostStructuredData';
+import CommentList from '@/components/Comment/CommentList';
 
 export async function generateMetadata(
   { params }: { params: Promise<{ postId: string }> }
@@ -50,6 +51,9 @@ export default async function PostDetailPage({ params }: { params: Promise<{ pos
 
       {/* SSR 본문 */}
       <PostDetailBodyServer postId={postId} />
+
+      {/* CSR 댓글 */}
+      <CommentList postId={postId} />
 
       {/* JSON-LD (Article) */}
       <PostStructuredData postId={postId} />

@@ -13,7 +13,7 @@ export function UserProfileHeader({ profile, isMyBlog }: Props) {
     <div className="flex items-center gap-4">
       {profile.profileImageUrl ? (
         <Image
-          src={profile.profileImageUrl}
+                      src={profile.profileImageUrl || '/logo.jpeg'}
           alt={profile.nickname}
           width={50}
           height={50}
