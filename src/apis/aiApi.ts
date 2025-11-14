@@ -11,6 +11,24 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface AskSessionEventPayload {
+  session_id: number;
+  owner_user_id: string;
+  requester_user_id: string;
+}
+
+export interface AskSessionSavedPayload extends AskSessionEventPayload {
+  cached?: boolean;
+}
+
+export interface AskSessionErrorPayload {
+  session_id?: number;
+  owner_user_id?: string;
+  requester_user_id?: string;
+  reason?: string;
+  message?: string;
+}
+
 // v2 검색 계획 타입(최소 서브셋, 유연성 유지)
 export type SearchMode = 'rag' | 'post';
 export interface SearchPlan {
@@ -165,7 +183,17 @@ export interface AskV2Handlers {
   onExistInPostStatus?: (exists: boolean) => void;
   onContext?: (items: ContextItem[]) => void;
   onAnswerChunk?: (chunk: string) => void;
+  onSession?: (payload: AskSessionEventPayload) => void;
+  onSessionSaved?: (payload: AskSessionSavedPayload) => void;
+  onSessionError?: (payload: AskSessionErrorPayload) => void;
   onError?: (message: string, code?: number) => void;
+}
+
+export interface AskChatV2Options {
+  postId?: number;
+  llm?: LLMRequest;
+  sessionId?: number | null;
+  requesterUserId?: string | null;
 }
 
 /**
@@ -177,7 +205,7 @@ export async function askChatAPIV2(
   categoryId: number | null,
   personaId: number | -1,
   handlers: AskV2Handlers,
-  options?: { postId?: number; llm?: LLMRequest }
+  options?: AskChatV2Options
 ): Promise<void> {
   const body: any = {
     question,
@@ -187,6 +215,8 @@ export async function askChatAPIV2(
   };
   if (options?.postId != null) body.post_id = options.postId;
   if (options?.llm) body.llm = options.llm;
+  if (options?.sessionId !== undefined) body.session_id = options.sessionId;
+  if (options?.requesterUserId !== undefined) body.requester_user_id = options.requesterUserId;
 
   const res = await aiFetch('/ai/v2/ask', {
     method: 'POST',
@@ -277,6 +307,21 @@ export async function askChatAPIV2(
           case 'answer': {
             const s = JSON.parse(raw);
             if (typeof s === 'string' && s.length > 0) handlers.onAnswerChunk?.(s);
+            break;
+          }
+          case 'session': {
+            const payload = JSON.parse(raw) as AskSessionEventPayload;
+            if (payload?.session_id != null) handlers.onSession?.(payload);
+            break;
+          }
+          case 'session_saved': {
+            const payload = JSON.parse(raw) as AskSessionSavedPayload;
+            if (payload?.session_id != null) handlers.onSessionSaved?.(payload);
+            break;
+          }
+          case 'session_error': {
+            const payload = JSON.parse(raw) as AskSessionErrorPayload;
+            handlers.onSessionError?.(payload);
             break;
           }
           case 'error': {
