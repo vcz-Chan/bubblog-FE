@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, FormEvent } from 'react'
+import { useState, useRef, useEffect, FormEvent, useCallback } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
@@ -17,6 +17,9 @@ import { PersonaFilterButton } from '@/components/Persona/PersonaFilterButton'
 import { Persona } from '@/apis/personaApi'
 import { CategoryNode } from '@/apis/categoryApi'
 import { VersionToggle } from '@/components/Chat/VersionToggle'
+import { SessionListPanel } from '@/components/Chat/SessionListPanel'
+import { useChatSessions } from '@/hooks/useChatSessions'
+import { useMediaQuery } from '@/hooks/useMediaQuery'
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
@@ -44,6 +47,35 @@ export default function ChatPage() {
   const [modalPostId, setModalPostId] = useState<string | null>(null)
 
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+
+  const {
+    sessions,
+    sessionsLoading,
+    sessionsLoadingMore,
+    sessionsError,
+    sessionsPaging,
+    currentSessionId,
+    isSessionPanelOpen,
+    selectSession,
+    setPanelOpen,
+    loadMore,
+  } = useChatSessions(userId, { limit: 20 })
+
+  useEffect(() => {
+    if (isDesktop) setPanelOpen(true)
+  }, [isDesktop, setPanelOpen])
+
+  const handleSelectSession = useCallback(
+    (sessionId: number | null) => {
+      selectSession(sessionId)
+      if (!isDesktop) setPanelOpen(false)
+    },
+    [selectSession, isDesktop, setPanelOpen]
+  )
+
+  const handleOpenPanel = () => setPanelOpen(true)
+  const handleClosePanel = () => setPanelOpen(false)
 
   useEffect(() => {
     if (!userId) return
@@ -247,84 +279,134 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className='bg-[rgb(244,246,248)] w-full h-full'>
-      <div className="px-6 md:px-16 w-full flex flex-col items-center overflow-hidden max-h-full">
-        <div className='flex gap-2 w-full justify-between sticky top-0 z-10 py-8 bg-[rgb(244,246,248)] flex-wrap max-w-5xl'>
-          <ProfileHeader profile={profile} />
-          {postId != null && (
-            <div className='my-auto'>
-              <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
-                {postTitle ? `"${postTitle}" 글에 대해 질문 중` : '이 글 범위로 질문 중'}
-              </span>
-            </div>
-          )}
+    <div className='bg-[rgb(244,246,248)] w-full min-h-screen'>
+      <div className="flex min-h-screen w-full">
+        <div className="relative hidden h-full w-72 border-r border-gray-200 lg:flex lg:shrink-0">
+          <SessionListPanel
+            sessions={sessions}
+            loading={sessionsLoading}
+            loadingMore={sessionsLoadingMore}
+            error={sessionsError}
+            selectedSessionId={currentSessionId}
+            onSelect={handleSelectSession}
+            onLoadMore={loadMore}
+            hasMore={sessionsPaging?.has_more}
+            className="lg:block"
+          />
         </div>
-      
-        <div className="flex flex-col items-center justify-center w-full max-w-5xl overflow-hidden max-h-full">
-          {postId == null && (
-            <CategorySelector
-              userId={userId!}
-              isOpen={isCatOpen}
-              onClose={() => setIsCatOpen(false)}
-              selectedCategory={selectedCategory}
-              setSelectedCategory={setSelectedCategory}
-            />
-          )}
 
-          <PersonaSelectorModal
-            userId={userId!}
-            isOpen={isPersonaOpen}
-            onSelect={p => setSelectedPersona(p)}
-            onClose={() => setIsPersonaOpen(false)}
-          />
-
-          {/* 채팅 메시지 구간 (스크롤) */}
-          <ChatMessages
-            messages={messages}
-            chatEndRef={chatEndRef}
-            onToggleInspector={(id) => {
-              setMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
-            }}
-            onInspectorItemClick={(_id, item) => setModalPostId(item.post_id)}
-          />
-          {messages.length === 0 && (
-            <div className="flex justify-center items-center h-[25vh]">
-              {postId != null ? (
-                <span className="text-2xl md:text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
-              ) : (
-                <span className="text-2xl md:text-4xl text-gray-800 text-center">블로그에 대해 물어보세요</span>
-              )}
-            </div>
-          )}
-          
-
-          {modalPostId && (
-            <DraggableModal path= {`/post/${modalPostId}`} onClose={() => setModalPostId(null)}>
-              <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
-            </DraggableModal>
-          )}
-
-          <ChatInput
-            input={input}
-            onChange={setInput}
-            onSubmit={handleSubmit}
-            disabled={isSending}
-          >
-            <div className='flex md:gap-4 items-center md:mr-4'>
-              <VersionToggle value={askVersion} onChange={setAskVersion} disabled={isSending} />
-              {postId == null && (
-                <CategoryFilterButton
-                  selectedCategory={selectedCategory}
-                  onOpen={() => setIsCatOpen(true)}
-                />
-              )}
-              <PersonaFilterButton
-                selectedPersona={selectedPersona}
-                onOpen={() => setIsPersonaOpen(true)}
+        {!isDesktop && isSessionPanelOpen && (
+          <div className="fixed inset-0 z-40 lg:hidden">
+            <div className="absolute inset-0 bg-black/40" onClick={handleClosePanel} />
+            <div className="absolute inset-y-0 left-0 w-72 max-w-[90%] shadow-xl">
+              <SessionListPanel
+                sessions={sessions}
+                loading={sessionsLoading}
+                loadingMore={sessionsLoadingMore}
+                error={sessionsError}
+                selectedSessionId={currentSessionId}
+                onSelect={handleSelectSession}
+                onLoadMore={loadMore}
+                hasMore={sessionsPaging?.has_more}
+                className="h-full"
+                onClose={handleClosePanel}
               />
             </div>
-          </ChatInput>
-        </div>
+          </div>
+        )}
+
+        <div className="flex flex-1 flex-col items-center overflow-hidden px-4 pb-8 pt-6 sm:px-8 md:px-10 lg:px-16">
+          <div className='flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl bg-[rgb(244,246,248)] pb-4 pt-2'>
+            <div className="flex items-center gap-2">
+              {!isDesktop && (
+                <button
+                  type="button"
+                  onClick={handleOpenPanel}
+                  className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 lg:hidden"
+                  aria-label="세션 목록 열기"
+                >
+                  <span className="block h-4 w-5">
+                    <span className="block h-0.5 w-full bg-current" />
+                    <span className="mt-1 block h-0.5 w-full bg-current" />
+                    <span className="mt-1 block h-0.5 w-full bg-current" />
+                  </span>
+                </button>
+              )}
+              <ProfileHeader profile={profile} />
+            </div>
+            {postId != null && (
+              <div className='my-auto'>
+                <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-700">
+                  {postTitle ? `"${postTitle}" 글에 대해 질문 중` : '이 글 범위로 질문 중'}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex w-full max-w-5xl flex-1 flex-col items-center justify-center overflow-hidden">
+            {postId == null && (
+              <CategorySelector
+                userId={userId!}
+                isOpen={isCatOpen}
+                onClose={() => setIsCatOpen(false)}
+                selectedCategory={selectedCategory}
+                setSelectedCategory={setSelectedCategory}
+              />
+            )}
+
+            <PersonaSelectorModal
+              userId={userId!}
+              isOpen={isPersonaOpen}
+              onSelect={p => setSelectedPersona(p)}
+              onClose={() => setIsPersonaOpen(false)}
+            />
+
+            {/* 채팅 메시지 구간 (스크롤) */}
+            <ChatMessages
+              messages={messages}
+              chatEndRef={chatEndRef}
+              onToggleInspector={(id) => {
+                setMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
+              }}
+              onInspectorItemClick={(_id, item) => setModalPostId(item.post_id)}
+            />
+            {messages.length === 0 && (
+              <div className="flex h-[25vh] items-center justify-center">
+                {postId != null ? (
+                  <span className="text-2xl md:text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
+                ) : (
+                  <span className="text-2xl md:text-4xl text-gray-800 text-center">블로그에 대해 물어보세요</span>
+                )}
+              </div>
+            )}
+
+            {modalPostId && (
+              <DraggableModal path= {`/post/${modalPostId}`} onClose={() => setModalPostId(null)}>
+                <PostModal postId={modalPostId} onClose={() => setModalPostId(null)} />
+              </DraggableModal>
+            )}
+
+            <ChatInput
+              input={input}
+              onChange={setInput}
+              onSubmit={handleSubmit}
+              disabled={isSending}
+            >
+              <div className='flex items-center md:mr-4 md:gap-4'>
+                <VersionToggle value={askVersion} onChange={setAskVersion} disabled={isSending} />
+                {postId == null && (
+                  <CategoryFilterButton
+                    selectedCategory={selectedCategory}
+                    onOpen={() => setIsCatOpen(true)}
+                  />
+                )}
+                <PersonaFilterButton
+                  selectedPersona={selectedPersona}
+                  onOpen={() => setIsPersonaOpen(true)}
+                />
+              </div>
+            </ChatInput>
+          </div>
       </div>
     </div>
   )
