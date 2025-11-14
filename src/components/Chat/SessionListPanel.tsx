@@ -12,6 +12,7 @@ interface SessionListPanelProps {
   hasMore?: boolean
   className?: string
   onClose?: () => void
+  onRetry?: () => void
 }
 
 function formatTimestamp(iso: string | null) {
@@ -40,6 +41,7 @@ export function SessionListPanel({
   hasMore,
   className = '',
   onClose,
+  onRetry,
 }: SessionListPanelProps) {
   return (
     <aside className={`flex h-full w-full flex-col bg-white ${className}`}>
@@ -104,7 +106,18 @@ export function SessionListPanel({
         })}
 
         {error && (
-          <p className="mt-3 rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-600">{error}</p>
+          <div className="mt-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <p className="mb-2">{error}</p>
+            {onRetry && (
+              <button
+                type="button"
+                className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+                onClick={onRetry}
+              >
+                다시 시도
+              </button>
+            )}
+          </div>
         )}
       </div>
 

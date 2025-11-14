@@ -23,6 +23,13 @@ import { useSessionMessages } from '@/hooks/useSessionMessages'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useAuthStore } from '@/store/AuthStore'
 import { useChatSessionStore } from '@/store/ChatSessionStore'
+import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
+
+const BANNER_STYLES: Record<'info' | 'success' | 'error', string> = {
+  info: 'border-blue-200 bg-blue-50 text-blue-700',
+  success: 'border-green-200 bg-green-50 text-green-700',
+  error: 'border-red-200 bg-red-50 text-red-700',
+}
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
@@ -48,9 +55,11 @@ export default function ChatPage() {
   const [isSending, setIsSending] = useState(false)
 
   const [modalPostId, setModalPostId] = useState<string | null>(null)
+  const [banner, setBanner] = useState<{ type: 'info' | 'success' | 'error'; message: string } | null>(null)
 
   const chatEndRef = useRef<HTMLDivElement>(null)
   const tempIdRef = useRef(-1)
+  const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
   const viewerId = useAuthStore(state => state.userId)
 
@@ -65,6 +74,7 @@ export default function ChatPage() {
     selectSession,
     setPanelOpen,
     loadMore,
+    fetchInitialSessions,
   } = useChatSessions(userId, { limit: 20 })
   const {
     messages: historyMessages,
@@ -85,10 +95,19 @@ export default function ChatPage() {
     }))
   }, [historyMessages])
   const combinedMessages = useMemo(() => [...historyUiMessages, ...liveMessages], [historyUiMessages, liveMessages])
+  const showBanner = useCallback((type: 'info' | 'success' | 'error', message: string) => {
+    if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current)
+    setBanner({ type, message })
+    bannerTimerRef.current = setTimeout(() => setBanner(null), 4000)
+  }, [])
 
   useEffect(() => {
     if (isDesktop) setPanelOpen(true)
   }, [isDesktop, setPanelOpen])
+
+  useEffect(() => () => {
+    if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current)
+  }, [])
 
   const handleSelectSession = useCallback(
     (sessionId: number | null) => {
@@ -101,6 +120,14 @@ export default function ChatPage() {
 
   const handleOpenPanel = () => setPanelOpen(true)
   const handleClosePanel = () => setPanelOpen(false)
+  const retrySessions = useCallback(() => {
+    if (!userId) return
+    fetchInitialSessions({ ownerUserId: userId, limit: 20 })
+  }, [userId, fetchInitialSessions])
+  const retryHistory = useCallback(() => {
+    if (!currentSessionId) return
+    fetchSessionMessages(currentSessionId, { direction: 'backward', mode: 'replace' })
+  }, [currentSessionId, fetchSessionMessages])
 
   useEffect(() => {
     if (!userId) return
@@ -129,6 +156,14 @@ export default function ChatPage() {
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [combinedMessages])
+
+  useEffect(() => {
+    if (sessionsError) showBanner('error', sessionsError)
+  }, [sessionsError, showBanner])
+
+  useEffect(() => {
+    if (historyError) showBanner('error', historyError)
+  }, [historyError, showBanner])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -278,12 +313,14 @@ export default function ChatPage() {
             onSession: payload => {
               upsertSessionFromStream(payload)
               selectSession(payload.session_id)
+              showBanner('info', '새 대화 세션을 시작했어요.')
             },
             onSessionSaved: payload => {
               updateSessionMeta(payload.session_id, { updated_at: new Date().toISOString() })
               fetchSessionMessages(payload.session_id, { direction: 'backward', mode: 'replace' }).finally(() => {
                 setLiveMessages([])
               })
+              showBanner('success', payload.cached ? '이전 답변을 재사용했어요.' : '대화가 저장되었어요.')
             },
             onSessionError: payload => {
               const message = payload.reason || payload.message || '세션 저장 중 오류가 발생했습니다.'
@@ -293,6 +330,7 @@ export default function ChatPage() {
                 if (msg) msg.content = message
                 return next
               })
+              showBanner('error', message)
             },
             onError: (message) => {
               setLiveMessages(prev => {
@@ -301,6 +339,7 @@ export default function ChatPage() {
                 if (msg) msg.content = message || '서버 요청 중 오류가 발생했습니다.'
                 return next
               })
+              showBanner('error', message || '서버 요청 중 오류가 발생했습니다.')
             }
           },
           {
@@ -317,6 +356,7 @@ export default function ChatPage() {
         if (msg) msg.content = '서버 요청 중 오류가 발생했습니다.'
         return next
       })
+      showBanner('error', '서버 요청 중 오류가 발생했습니다.')
     } finally {
       setIsSending(false)
       setInput('')
@@ -341,6 +381,7 @@ export default function ChatPage() {
             onLoadMore={loadMore}
             hasMore={sessionsPaging?.has_more}
             className="lg:block"
+            onRetry={retrySessions}
           />
         </div>
 
@@ -359,6 +400,7 @@ export default function ChatPage() {
                 hasMore={sessionsPaging?.has_more}
                 className="h-full"
                 onClose={handleClosePanel}
+                onRetry={retrySessions}
               />
             </div>
           </div>
@@ -391,6 +433,11 @@ export default function ChatPage() {
               </div>
             )}
           </div>
+          {banner && (
+            <div className={`mt-3 w-full max-w-5xl rounded-md border px-4 py-2 text-sm ${BANNER_STYLES[banner.type]}`}>
+              {banner.message}
+            </div>
+          )}
 
           <div className="flex w-full max-w-5xl flex-1 flex-col items-center justify-center overflow-hidden">
             {postId == null && (
@@ -411,8 +458,17 @@ export default function ChatPage() {
             />
 
             {historyError && (
-              <div className="mb-2 w-full rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-600">
-                {historyError}
+              <div className="mb-2 w-full rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <p className="mb-2">{historyError}</p>
+                {currentSessionId && (
+                  <button
+                    type="button"
+                    className="rounded-md border border-red-300 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100"
+                    onClick={retryHistory}
+                  >
+                    다시 시도
+                  </button>
+                )}
               </div>
             )}
 
@@ -428,6 +484,11 @@ export default function ChatPage() {
               }}
               onInspectorItemClick={(_id, item) => setModalPostId(item.post_id)}
             />
+            {historyLoading && combinedMessages.length === 0 && (
+              <div className="flex h-[25vh] items-center justify-center">
+                <ThreeDotsLoader />
+              </div>
+            )}
             {combinedMessages.length === 0 && !historyLoading && (
               <div className="flex h-[25vh] items-center justify-center">
                 {postId != null ? (
