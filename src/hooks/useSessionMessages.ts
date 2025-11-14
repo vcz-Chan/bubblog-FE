@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useChatSessionStore } from '@/store/ChatSessionStore'
 
 interface UseSessionMessagesOptions {
@@ -20,6 +20,10 @@ export function useSessionMessages(sessionId: number | null | undefined, options
   }))
 
   const fetchMessages = useChatSessionStore(state => state.fetchMessages)
+  const [isFetchingOlder, setIsFetchingOlder] = useState(false)
+  useEffect(() => {
+    setIsFetchingOlder(false)
+  }, [sessionId])
 
   const autoFetch = options.autoFetch ?? true
 
@@ -29,17 +33,18 @@ export function useSessionMessages(sessionId: number | null | undefined, options
   }, [sessionId, autoFetch, options.limit, fetchMessages])
 
   const loadOlder = useCallback(() => {
-    if (sessionId == null || !paging?.has_more || !paging.next_cursor) return
+    if (sessionId == null || !paging?.has_more || !paging.next_cursor || isFetchingOlder) return
+    setIsFetchingOlder(true)
     fetchMessages(sessionId, {
       cursor: paging.next_cursor,
       direction: paging.direction ?? 'backward',
       mode: 'prepend',
-    })
-  }, [sessionId, paging, fetchMessages])
+    }).finally(() => setIsFetchingOlder(false))
+  }, [sessionId, paging, fetchMessages, isFetchingOlder])
 
   const reload = useCallback(() => {
-    if (sessionId == null) return
-    fetchMessages(sessionId, { direction: 'backward', mode: 'replace' })
+    if (sessionId == null) return Promise.resolve()
+    return fetchMessages(sessionId, { direction: 'backward', mode: 'replace' })
   }, [sessionId, fetchMessages])
 
   return {
@@ -47,6 +52,7 @@ export function useSessionMessages(sessionId: number | null | undefined, options
     paging,
     isLoading,
     error,
+    isFetchingOlder,
     loadOlder,
     reload,
   }

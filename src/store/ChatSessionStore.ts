@@ -82,6 +82,7 @@ export interface ChatSessionStoreState {
   appendMessages: (sessionId: number, messages: ChatSessionMessage[]) => void
 
   upsertSessionFromStream: (payload: AskSessionEventPayload, partial?: Partial<ChatSession>) => void
+  updateSessionMeta: (sessionId: number, partial: Partial<ChatSession>) => void
   setPanelOpen: (open: boolean) => void
 
   beginStreaming: (sessionId: number, initial?: string) => void
@@ -232,10 +233,18 @@ export const useChatSessionStore = create<ChatSessionStoreState>((set, get) => (
 
   upsertSessionFromStream(payload, partial) {
     set(state => {
-      const exists = state.sessions.find(s => s.session_id === payload.session_id)
-      if (exists) return state
-
       const now = new Date().toISOString()
+      const idx = state.sessions.findIndex(s => s.session_id === payload.session_id)
+      if (idx >= 0) {
+        const next = [...state.sessions]
+        next[idx] = {
+          ...next[idx],
+          ...partial,
+          last_question_at: partial?.last_question_at ?? next[idx].last_question_at ?? now,
+          updated_at: partial?.updated_at ?? now,
+        }
+        return { sessions: next }
+      }
       const stub: ChatSession = {
         session_id: payload.session_id,
         owner_user_id: payload.owner_user_id,
@@ -254,6 +263,16 @@ export const useChatSessionStore = create<ChatSessionStoreState>((set, get) => (
           ? { ...state.sessionsPaging, has_more: true }
           : state.sessionsPaging,
       }
+    })
+  },
+
+  updateSessionMeta(sessionId, partial) {
+    set(state => {
+      const idx = state.sessions.findIndex(s => s.session_id === sessionId)
+      if (idx === -1) return state
+      const next = [...state.sessions]
+      next[idx] = { ...next[idx], ...partial }
+      return { sessions: next }
     })
   },
 

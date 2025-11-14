@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { ChatBubble } from './ChatBubble'
 import { InspectorPanel } from '@/components/Chat/InspectorPanel'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
@@ -38,13 +39,67 @@ export interface ChatMessage {
 interface Props {
   messages: ChatMessage[]
   chatEndRef: React.RefObject<HTMLDivElement | null >
+  loadingMoreTop?: boolean
+  hasMoreTop?: boolean
+  onLoadMoreTop?: () => void
   onToggleInspector?: (id: number) => void
   onInspectorItemClick?: (messageId: number, item: ContextItem) => void
 }
 
-export function ChatMessages({ messages, chatEndRef, onToggleInspector, onInspectorItemClick }: Props) {
+export function ChatMessages({
+  messages,
+  chatEndRef,
+  loadingMoreTop,
+  hasMoreTop,
+  onLoadMoreTop,
+  onToggleInspector,
+  onInspectorItemClick,
+}: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const topSentinelRef = useRef<HTMLDivElement | null>(null)
+  const prevScrollHeightRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!onLoadMoreTop || !hasMoreTop) return
+    const sentinel = topSentinelRef.current
+    const container = containerRef.current
+    if (!sentinel || !container) return
+
+    const observer = new IntersectionObserver(
+      entries => {
+        const entry = entries[0]
+        if (entry?.isIntersecting && !loadingMoreTop) {
+          prevScrollHeightRef.current = container.scrollHeight
+          onLoadMoreTop()
+        }
+      },
+      { root: container, threshold: 0.1 }
+    )
+    observer.observe(sentinel)
+    return () => observer.disconnect()
+  }, [hasMoreTop, loadingMoreTop, onLoadMoreTop])
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    if (!loadingMoreTop && prevScrollHeightRef.current != null) {
+      const delta = container.scrollHeight - prevScrollHeightRef.current
+      container.scrollTop += delta
+      prevScrollHeightRef.current = null
+    }
+  }, [loadingMoreTop, messages])
+
   return (
-    <div className="w-full flex-1 h-full mb-4 space-y-4 px-2 overflow-y-auto overscroll-contain">
+    <div
+      ref={containerRef}
+      className="mb-4 flex-1 space-y-4 overflow-y-auto px-2 w-full h-full"
+    >
+      <div ref={topSentinelRef} />
+      {loadingMoreTop && (
+        <div className="flex justify-center">
+          <ThreeDotsLoader />
+        </div>
+      )}
       {messages.map(msg => (
         <div key={msg.id} className="space-y-2">
           {msg.role === 'bot' && msg.inspector && (() => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, FormEvent, useCallback } from 'react'
+import { useState, useRef, useEffect, FormEvent, useCallback, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
@@ -19,7 +19,10 @@ import { CategoryNode } from '@/apis/categoryApi'
 import { VersionToggle } from '@/components/Chat/VersionToggle'
 import { SessionListPanel } from '@/components/Chat/SessionListPanel'
 import { useChatSessions } from '@/hooks/useChatSessions'
+import { useSessionMessages } from '@/hooks/useSessionMessages'
 import { useMediaQuery } from '@/hooks/useMediaQuery'
+import { useAuthStore } from '@/store/AuthStore'
+import { useChatSessionStore } from '@/store/ChatSessionStore'
 
 export default function ChatPage() {
   const { userId } = useParams<{ userId: string }>()
@@ -32,7 +35,7 @@ export default function ChatPage() {
   const [loadingUser, setLoadingUser] = useState(true)
   const [errorUser, setErrorUser] = useState<string | null>(null)
 
-  const [messages, setMessages] = useState<UIChatMessage[]>([])
+  const [liveMessages, setLiveMessages] = useState<UIChatMessage[]>([])
   const [input, setInput] = useState('')
   const [askVersion, setAskVersion] = useState<'v1' | 'v2'>('v1')
 
@@ -47,7 +50,9 @@ export default function ChatPage() {
   const [modalPostId, setModalPostId] = useState<string | null>(null)
 
   const chatEndRef = useRef<HTMLDivElement>(null)
+  const tempIdRef = useRef(-1)
   const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const viewerId = useAuthStore(state => state.userId)
 
   const {
     sessions,
@@ -61,6 +66,25 @@ export default function ChatPage() {
     setPanelOpen,
     loadMore,
   } = useChatSessions(userId, { limit: 20 })
+  const {
+    messages: historyMessages,
+    paging: historyPaging,
+    isLoading: historyLoading,
+    error: historyError,
+    isFetchingOlder,
+    loadOlder,
+  } = useSessionMessages(currentSessionId, { limit: 20 })
+  const upsertSessionFromStream = useChatSessionStore(state => state.upsertSessionFromStream)
+  const updateSessionMeta = useChatSessionStore(state => state.updateSessionMeta)
+  const fetchSessionMessages = useChatSessionStore(state => state.fetchMessages)
+  const historyUiMessages = useMemo<UIChatMessage[]>(() => {
+    return historyMessages.map(msg => ({
+      id: msg.id,
+      role: msg.role === 'assistant' ? 'bot' : 'user',
+      content: msg.content,
+    }))
+  }, [historyMessages])
+  const combinedMessages = useMemo(() => [...historyUiMessages, ...liveMessages], [historyUiMessages, liveMessages])
 
   useEffect(() => {
     if (isDesktop) setPanelOpen(true)
@@ -69,6 +93,7 @@ export default function ChatPage() {
   const handleSelectSession = useCallback(
     (sessionId: number | null) => {
       selectSession(sessionId)
+      setLiveMessages([])
       if (!isDesktop) setPanelOpen(false)
     },
     [selectSession, isDesktop, setPanelOpen]
@@ -103,7 +128,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+  }, [combinedMessages])
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -111,12 +136,13 @@ export default function ChatPage() {
 
     setIsSending(true)
     const question = input.trim()
+    const userMsgId = tempIdRef.current--
+    const botId = tempIdRef.current--
     const userMsg: UIChatMessage = {
-      id: messages.length + 1,
+      id: userMsgId,
       role: 'user',
       content: question,
     }
-    const botId = userMsg.id + 1
 
     const initialInspector: InspectorData =
       askVersion === 'v1'
@@ -139,7 +165,7 @@ export default function ChatPage() {
             pending: true,
           }
 
-    setMessages(prev => [
+    setLiveMessages(prev => [
       ...prev,
       userMsg,
       { id: botId, role: 'bot', content: '', inspector: initialInspector },
@@ -153,7 +179,7 @@ export default function ChatPage() {
           postId != null ? null : (selectedCategory?.id ?? null),
           selectedPersona?.id ?? -1,
           items => {
-            setMessages(prev => {
+            setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg && msg.inspector) {
@@ -165,7 +191,7 @@ export default function ChatPage() {
             })
           },
           chunk => {
-            setMessages(prev => {
+            setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg) msg.content += chunk
@@ -181,7 +207,7 @@ export default function ChatPage() {
           postId != null ? null : (selectedCategory?.id ?? null),
           selectedPersona?.id ?? -1,
           {
-            onSearchPlan: p => setMessages(prev => {
+            onSearchPlan: p => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -191,7 +217,7 @@ export default function ChatPage() {
               }
               return next
             }),
-            onRewrites: r => setMessages(prev => {
+            onRewrites: r => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -201,7 +227,7 @@ export default function ChatPage() {
               }
               return next
             }),
-            onKeywords: k => setMessages(prev => {
+            onKeywords: k => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -211,7 +237,7 @@ export default function ChatPage() {
               }
               return next
             }),
-            onHybridResult: items => setMessages(prev => {
+            onHybridResult: items => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -221,7 +247,7 @@ export default function ChatPage() {
               }
               return next
             }),
-            onSearchResult: items => setMessages(prev => {
+            onSearchResult: items => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -231,7 +257,7 @@ export default function ChatPage() {
               }
               return next
             }),
-            onContext: items => setMessages(prev => {
+            onContext: items => setLiveMessages(prev => {
               const next = [...prev]
               const msg = next.find(m => m.id === botId)
               if (msg?.inspector) {
@@ -242,15 +268,34 @@ export default function ChatPage() {
               return next
             }),
             onAnswerChunk: chunk => {
-              setMessages(prev => {
+              setLiveMessages(prev => {
                 const next = [...prev]
                 const msg = next.find(m => m.id === botId)
                 if (msg) msg.content += chunk
                 return next
               })
             },
+            onSession: payload => {
+              upsertSessionFromStream(payload)
+              selectSession(payload.session_id)
+            },
+            onSessionSaved: payload => {
+              updateSessionMeta(payload.session_id, { updated_at: new Date().toISOString() })
+              fetchSessionMessages(payload.session_id, { direction: 'backward', mode: 'replace' }).finally(() => {
+                setLiveMessages([])
+              })
+            },
+            onSessionError: payload => {
+              const message = payload.reason || payload.message || '세션 저장 중 오류가 발생했습니다.'
+              setLiveMessages(prev => {
+                const next = [...prev]
+                const msg = next.find(m => m.id === botId)
+                if (msg) msg.content = message
+                return next
+              })
+            },
             onError: (message) => {
-              setMessages(prev => {
+              setLiveMessages(prev => {
                 const next = [...prev]
                 const msg = next.find(m => m.id === botId)
                 if (msg) msg.content = message || '서버 요청 중 오류가 발생했습니다.'
@@ -258,11 +303,15 @@ export default function ChatPage() {
               })
             }
           },
-          { postId }
+          {
+            postId,
+            sessionId: currentSessionId ?? null,
+            requesterUserId: viewerId ?? null,
+          }
         )
       }
     } catch {
-      setMessages(prev => {
+      setLiveMessages(prev => {
         const next = [...prev]
         const msg = next.find(m => m.id === botId)
         if (msg) msg.content = '서버 요청 중 오류가 발생했습니다.'
@@ -361,16 +410,25 @@ export default function ChatPage() {
               onClose={() => setIsPersonaOpen(false)}
             />
 
+            {historyError && (
+              <div className="mb-2 w-full rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-600">
+                {historyError}
+              </div>
+            )}
+
             {/* 채팅 메시지 구간 (스크롤) */}
             <ChatMessages
-              messages={messages}
+              messages={combinedMessages}
               chatEndRef={chatEndRef}
+              loadingMoreTop={isFetchingOlder}
+              hasMoreTop={Boolean(currentSessionId && historyPaging?.has_more)}
+              onLoadMoreTop={currentSessionId ? loadOlder : undefined}
               onToggleInspector={(id) => {
-                setMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
+                setLiveMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
               }}
               onInspectorItemClick={(_id, item) => setModalPostId(item.post_id)}
             />
-            {messages.length === 0 && (
+            {combinedMessages.length === 0 && !historyLoading && (
               <div className="flex h-[25vh] items-center justify-center">
                 {postId != null ? (
                   <span className="text-2xl md:text-4xl text-gray-800 text-center">이 글에 대해 물어보세요</span>
@@ -407,6 +465,7 @@ export default function ChatPage() {
               </div>
             </ChatInput>
           </div>
+        </div>
       </div>
     </div>
   )
