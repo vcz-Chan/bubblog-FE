@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { getComments, getCommentsCount } from '@/apis/commentApi'
 import { Comment } from '@/utils/types'
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
@@ -16,39 +16,46 @@ export default function CommentList({ postId }: CommentListProps) {
   const [count, setCount] = useState(0);
   const isLogin = useAuthStore(selectIsLogin)
 
+  const refreshCommentCount = useCallback(async () => {
+    try {
+      const countResponse = await getCommentsCount(postId)
+      if (countResponse.success) {
+        setCount(countResponse.data || 0);
+      }
+    } catch (error) {
+      console.error('Error refreshing comment count:', error)
+    }
+  }, [postId])
+
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [commentsResponse, countResponse] = await Promise.all([
-          getComments(postId),
-          getCommentsCount(postId)
-        ]);
+        const commentsResponse = await getComments(postId)
 
         if (commentsResponse.success) {
           setComments(commentsResponse.data || [])
         }
-        if (countResponse.success) {
-          setCount(countResponse.data || 0);
-        }
+
+        await refreshCommentCount()
       } catch (error) {
         console.error('Error fetching comments data:', error)
       }
     }
     fetchInitialData()
-  }, [postId])
+  }, [postId, refreshCommentCount])
 
   const handleNewComment = (newComment: Comment) => {
-    setComments([...comments, newComment]);
-    setCount(c => c + 1);
+    setComments(prev => [...prev, newComment]);
+    refreshCommentCount()
   }
 
   const onCommentUpdate = (updatedComment: Comment) => {
     setComments(
-      comments.map(c => (c.id === updatedComment.id ? updatedComment : c)),
+      prev => prev.map(c => (c.id === updatedComment.id ? updatedComment : c)),
     )
   }
 
-  const onCommentDelete = (commentId: number, replyCount: number) => {
+  const onCommentDelete = (commentId: number) => {
     const removeComment = (list: Comment[], id: number): Comment[] => {
       return list.filter(comment => {
         if (comment.children) {
@@ -58,11 +65,11 @@ export default function CommentList({ postId }: CommentListProps) {
       });
     };
     setComments(prevComments => removeComment(prevComments, commentId));
-    setCount(c => c - (1 + replyCount));
+    refreshCommentCount()
   }
 
   const onReplyCreated = () => {
-    setCount(c => c + 1);
+    refreshCommentCount()
   }
 
   return (

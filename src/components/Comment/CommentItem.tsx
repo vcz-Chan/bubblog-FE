@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { Comment } from '@/utils/types'
 import { useProfileStore } from '@/store/ProfileStore'
 import { updateComment, deleteComment, toggleCommentLike, getChildComments } from '@/apis/commentApi'
 import CommentForm from './CommentForm'
+import UserInitialAvatar from '@/components/Common/UserInitialAvatar'
 
 // Helper function for relative time
 function timeAgo(date: string): string {
@@ -29,7 +29,7 @@ interface CommentItemProps {
   postId: string
   comment: Comment
   onCommentUpdate: (updatedComment: Comment) => void
-  onCommentDelete: (commentId: number, replyCount: number) => void
+  onCommentDelete: (commentId: number) => void
   onReplyCreated: () => void
   isReply?: boolean // 대댓글 여부를 나타내는 prop
 }
@@ -48,6 +48,7 @@ export default function CommentItem({
 
   const [likeCount, setLikeCount] = useState(comment.likeCount)
   const replyCount = comment.replyCount ?? 0
+  const isDeleted = comment.deleted
   // useState의 lazy initializer를 사용하여 클라이언트에서만 localStorage에 접근
   const [isLiked, setIsLiked] = useState(() => {
     if (typeof window === 'undefined') {
@@ -79,7 +80,7 @@ export default function CommentItem({
     if (window.confirm('정말로 이 댓글을 삭제하시겠습니까?')) {
       try {
         await deleteComment(comment.id);
-        onCommentDelete(comment.id, replyCount);
+        onCommentDelete(comment.id);
       } catch (error) {
         console.error('Error deleting comment:', error);
       }
@@ -87,6 +88,9 @@ export default function CommentItem({
   };
 
   const handleLike = async () => {
+    if (isDeleted) {
+      return;
+    }
     if (!nickname) { // isLogin 대신 nickname 존재 여부로 확인
       alert('로그인이 필요합니다.');
       return;
@@ -126,19 +130,20 @@ export default function CommentItem({
   }
 
   const handleReplySuccess = (newReply: Comment) => {
-    setChildComments([...childComments, newReply]);
+    setChildComments(prev => [...prev, newReply]);
     setShowReplyForm(false);
+    setShowChildren(true);
+    const updatedReplyCount = (comment.replyCount ?? 0) + 1;
+    onCommentUpdate({ ...comment, replyCount: updatedReplyCount });
     onReplyCreated(); // 부모에게 답글 생성 알림
   };
 
   return (
     <div className="flex space-x-4">
-        <Image
-          src={comment.writerProfileImage || '/default-profile.png'}
-          alt={comment.writerNickname}
-          width={40}
-          height={40}
-          className="rounded-full"
+        <UserInitialAvatar
+          name={comment.writerNickname}
+          imageUrl={comment.writerProfileImage}
+          size={40}
         />
       <div className="flex-1">
         <div className="flex items-center space-x-2">
@@ -161,12 +166,16 @@ export default function CommentItem({
           </div>
         ) : (
           <div>
-            <p className="mt-1">{comment.content}</p>
-            <div className="flex items-center space-x-4 mt-2 text-sm">
-              <button onClick={handleLike} className={`flex items-center space-x-1 ${isLiked ? 'text-red-500' : 'text-gray-500'} hover:text-red-500`}>
-                <span>♥</span>
-                <span>{likeCount}</span>
-              </button>
+              <p className="mt-1">{comment.content}</p>
+              <div className="flex items-center space-x-4 mt-2 text-sm">
+                <button
+                  onClick={handleLike}
+                  disabled={isDeleted}
+                  className={`flex items-center space-x-1 ${isDeleted ? 'text-gray-300 cursor-not-allowed' : isLiked ? 'text-red-500 hover:text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                >
+                  <span>♥</span>
+                  <span>{likeCount}</span>
+                </button>
               {!isReply && (
                 <button onClick={() => setShowReplyForm(!showReplyForm)} className="text-gray-500 hover:text-gray-700">답글 달기</button>
               )}
