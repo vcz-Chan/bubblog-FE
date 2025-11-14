@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useAuthStore, selectIsLogin, selectUserId, selectLogout } from '@/store/AuthStore'
 import SearchBar from './SearchBar'
 import { useRouter } from 'next/navigation'
@@ -18,6 +17,7 @@ import {
   Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
+import UserInitialAvatar from '@/components/Common/UserInitialAvatar'
 
 export default function NavBar() {
   const isAuthenticated = useAuthStore(selectIsLogin);
@@ -69,23 +69,16 @@ export default function NavBar() {
                 className="flex items-center gap-3 rounded-full px-3 py-2 hover:bg-gray-200 transition-colors
                 flex-shrink-0 whitespace-nowrap"
               >
-                {profile ? (
-                  <>
-                    <Image
-                      src={profile.profileImageUrl ?? '/logo.jpeg'}
-                      alt={profile.nickname}
-                      width={10}
-                      height={10}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <span className="hidden lg:inline text-lg font-semibold text-gray-800 text-nowrap">
-                      {profile.nickname}
-                    </span>
-                  </>
-                ) : (
-                  <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center text-gray-500">
-                    <UserIcon className="h-6 w-6" />
-                  </div>
+                <UserInitialAvatar
+                  name={profile?.nickname}
+                  imageUrl={profile?.profileImageUrl ?? null}
+                  size={40}
+                  className="w-10 h-10"
+                />
+                {profile && (
+                  <span className="hidden lg:inline text-lg font-semibold text-gray-800 text-nowrap">
+                    {profile.nickname}
+                  </span>
                 )}
                 <ChevronDownIcon
                   className={`h-5 w-5 text-gray-600 transition-transform ${
