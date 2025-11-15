@@ -7,23 +7,13 @@ interface UseChatSessionsOptions {
 }
 
 export function useChatSessions(ownerUserId: string | null | undefined, options: UseChatSessionsOptions = {}) {
-  const {
-    sessions,
-    sessionsPaging,
-    sessionsLoading,
-    sessionsLoadingMore,
-    sessionsError,
-    currentSessionId,
-    isSessionPanelOpen,
-  } = useChatSessionStore(state => ({
-    sessions: state.sessions,
-    sessionsPaging: state.sessionsPaging,
-    sessionsLoading: state.sessionsLoading,
-    sessionsLoadingMore: state.sessionsLoadingMore,
-    sessionsError: state.sessionsError,
-    currentSessionId: state.currentSessionId,
-    isSessionPanelOpen: state.isSessionPanelOpen,
-  }))
+  const sessions = useChatSessionStore(state => state.sessions)
+  const sessionsPaging = useChatSessionStore(state => state.sessionsPaging)
+  const sessionsLoading = useChatSessionStore(state => state.sessionsLoading)
+  const sessionsLoadingMore = useChatSessionStore(state => state.sessionsLoadingMore)
+  const sessionsError = useChatSessionStore(state => state.sessionsError)
+  const currentSessionId = useChatSessionStore(state => state.currentSessionId)
+  const isSessionPanelOpen = useChatSessionStore(state => state.isSessionPanelOpen)
 
   const fetchInitialSessions = useChatSessionStore(state => state.fetchInitialSessions)
   const fetchMoreSessions = useChatSessionStore(state => state.fetchMoreSessions)
@@ -42,10 +32,12 @@ export function useChatSessions(ownerUserId: string | null | undefined, options:
     fetchInitialSessions({ ownerUserId, limit: options.limit })
   }, [ownerUserId, options.limit, autoFetch, fetchInitialSessions, resetSessions])
 
+  const hasMoreSessions = Boolean(sessionsPaging?.has_more)
+
   const loadMore = useCallback(() => {
-    if (!sessionsPaging?.has_more) return
+    if (!hasMoreSessions) return
     fetchMoreSessions()
-  }, [sessionsPaging?.has_more, fetchMoreSessions])
+  }, [hasMoreSessions, fetchMoreSessions])
 
   return {
     sessions,
@@ -58,6 +50,7 @@ export function useChatSessions(ownerUserId: string | null | undefined, options:
     selectSession,
     setPanelOpen,
     fetchInitialSessions,
+    resetSessions,
     loadMore,
   }
 }
