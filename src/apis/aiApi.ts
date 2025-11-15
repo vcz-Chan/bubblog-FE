@@ -87,7 +87,13 @@ export async function askChatAPI(
   personaId: number | -1,
   onContext: (items: ContextItem[]) => void,
   onAnswerChunk: (chunk: string) => void,
-  options?: { postId?: number; llm?: LLMRequest; onExistInPostStatus?: (exists: boolean) => void }
+  options?: {
+    postId?: number;
+    llm?: LLMRequest;
+    sessionId?: number | null;
+    requesterUserId?: string | null;
+    onExistInPostStatus?: (exists: boolean) => void;
+  }
 ): Promise<void> {
   const body: any = {
     question,
@@ -97,6 +103,8 @@ export async function askChatAPI(
   };
   if (options?.postId != null) body.post_id = options.postId;
   if (options?.llm) body.llm = options.llm;
+  if (options?.sessionId !== undefined) body.session_id = options.sessionId;
+  if (options?.requesterUserId !== undefined) body.requester_user_id = options.requesterUserId;
 
   const res = await aiFetch('/ai/ask', {
     method: 'POST',
