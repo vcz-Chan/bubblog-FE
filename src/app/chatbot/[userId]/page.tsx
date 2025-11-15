@@ -4,7 +4,8 @@ import { useState, useRef, useEffect, FormEvent, useCallback, useMemo } from 're
 import { useParams, useSearchParams } from 'next/navigation'
 import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
-import { askChatAPI, askChatAPIV2 } from '@/apis/aiApi'
+import { askChatAPI, askChatAPIV2, type SearchPlan, type ContextItem } from '@/apis/aiApi'
+import type { ChatSessionMessage } from '@/utils/types'
 import { ProfileHeader } from '@/components/Chat/ProfileHeader'
 import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton'
 import { ChatMessages, type ChatMessage as UIChatMessage, type InspectorData } from '@/components/Chat/ChatMessages'
@@ -20,7 +21,6 @@ import { VersionToggle } from '@/components/Chat/VersionToggle'
 import { SessionListPanel } from '@/components/Chat/SessionListPanel'
 import { useChatSessions } from '@/hooks/useChatSessions'
 import { useSessionMessages } from '@/hooks/useSessionMessages'
-import { useMediaQuery } from '@/hooks/useMediaQuery'
 import { useAuthStore } from '@/store/AuthStore'
 import { useChatSessionStore } from '@/store/ChatSessionStore'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
@@ -29,6 +29,86 @@ const BANNER_STYLES: Record<'info' | 'success' | 'error', string> = {
   info: 'border-blue-200 bg-blue-50 text-blue-700',
   success: 'border-green-200 bg-green-50 text-green-700',
   error: 'border-red-200 bg-red-50 text-red-700',
+}
+const PANEL_TOP_OFFSET = 72 // px
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const toStringArray = (value: unknown): string[] => {
+  if (typeof value === 'string') return [value]
+  if (Array.isArray(value)) {
+    return value
+      .map(item => (typeof item === 'string' ? item : null))
+      .filter((item): item is string => !!item)
+  }
+  return []
+}
+
+const normalizeContextItems = (raw: unknown): ContextItem[] => {
+  if (!Array.isArray(raw)) return []
+  const pairs = raw
+    .map((entry: any) => {
+      const id = entry?.postId ?? entry?.post_id ?? entry?.id
+      const title = entry?.postTitle ?? entry?.post_title ?? entry?.title
+      if (id == null || title == null) return null
+      return { post_id: String(id), post_title: String(title) }
+    })
+    .filter((item): item is ContextItem => !!item)
+  return pairs
+}
+
+const pickMetaValue = (meta: Record<string, unknown> | null, keys: string[]) => {
+  if (!meta) return undefined
+  for (const key of keys) {
+    if (meta[key] != null) return meta[key]
+  }
+  return undefined
+}
+
+const buildInspectorFromHistoryMessage = (
+  message: ChatSessionMessage,
+  planOverride: SearchPlan | null
+): InspectorData | undefined => {
+  const meta = isPlainObject(message.retrieval_meta) ? message.retrieval_meta : null
+  const rewrites = toStringArray(pickMetaValue(meta, ['rewrites', 'rewrite_list', 'rewriteList']))
+  const keywords = toStringArray(pickMetaValue(meta, ['keywords', 'keyword_list', 'keywordList']))
+  const hybridResult = normalizeContextItems(pickMetaValue(meta, ['hybrid_result', 'hybridResult']))
+  const searchResult = normalizeContextItems(pickMetaValue(meta, ['search_result', 'searchResult']))
+  const contextItems = normalizeContextItems(pickMetaValue(meta, ['context', 'contexts']))
+
+  const hasData = Boolean(planOverride || rewrites.length || keywords.length || hybridResult.length || searchResult.length || contextItems.length)
+  if (!hasData) return undefined
+
+  return {
+    version: 'v2',
+    open: false,
+    v2Plan: planOverride,
+    v2PlanReceived: Boolean(planOverride),
+    v2Rewrites: rewrites,
+    v2RewritesReceived: rewrites.length > 0,
+    v2Keywords: keywords,
+    v2KeywordsReceived: keywords.length > 0,
+    v2HybridResult: hybridResult,
+    v2HybridResultReceived: hybridResult.length > 0,
+    v2SearchResult: searchResult,
+    v2SearchResultReceived: searchResult.length > 0,
+    v2Context: contextItems,
+    v2ContextReceived: contextItems.length > 0,
+    pending: false,
+  }
+}
+
+const updateSessionQueryParam = (sessionId: number | null) => {
+  if (typeof window === 'undefined') return
+  const url = new URL(window.location.href)
+  if (sessionId != null) {
+    url.searchParams.set('sessionId', String(sessionId))
+  } else {
+    url.searchParams.delete('sessionId')
+  }
+  const newPath = `${url.pathname}${url.search ? url.search : ''}`
+  window.history.replaceState({}, '', newPath)
 }
 
 export default function ChatPage() {
@@ -60,7 +140,7 @@ export default function ChatPage() {
   const chatEndRef = useRef<HTMLDivElement>(null)
   const tempIdRef = useRef(-1)
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const activeSessionIdRef = useRef<number | null>(null)
   const viewerId = useAuthStore(state => state.userId)
 
   const {
@@ -75,6 +155,7 @@ export default function ChatPage() {
     setPanelOpen,
     loadMore,
     fetchInitialSessions,
+    resetSessions,
   } = useChatSessions(userId, { limit: 20 })
   const {
     messages: historyMessages,
@@ -88,11 +169,31 @@ export default function ChatPage() {
   const updateSessionMeta = useChatSessionStore(state => state.updateSessionMeta)
   const fetchSessionMessages = useChatSessionStore(state => state.fetchMessages)
   const historyUiMessages = useMemo<UIChatMessage[]>(() => {
-    return historyMessages.map(msg => ({
-      id: msg.id,
-      role: msg.role === 'assistant' ? 'bot' : 'user',
-      content: msg.content,
-    }))
+    const transformed: UIChatMessage[] = []
+    let pendingPlan: SearchPlan | null = null
+    for (const msg of historyMessages) {
+      const rawPlan = (msg.search_plan as SearchPlan | null) ?? null
+      if (msg.role === 'user') {
+        if (rawPlan) pendingPlan = rawPlan
+        transformed.push({
+          id: msg.id,
+          role: 'user',
+          content: msg.content,
+        })
+        continue
+      }
+
+      const planForMessage = rawPlan ?? pendingPlan
+      if (rawPlan || pendingPlan) pendingPlan = null
+      const inspector = buildInspectorFromHistoryMessage(msg, planForMessage)
+      transformed.push({
+        id: msg.id,
+        role: 'bot',
+        content: msg.content,
+        ...(inspector ? { inspector } : {}),
+      })
+    }
+    return transformed
   }, [historyMessages])
   const combinedMessages = useMemo(() => [...historyUiMessages, ...liveMessages], [historyUiMessages, liveMessages])
   const showBanner = useCallback((type: 'info' | 'success' | 'error', message: string) => {
@@ -101,22 +202,58 @@ export default function ChatPage() {
     bannerTimerRef.current = setTimeout(() => setBanner(null), 4000)
   }, [])
 
+  type SessionSelectionOptions = {
+    keepPanel?: boolean
+    preserveLiveMessages?: boolean
+    force?: boolean
+  }
+
+  const syncSessionSelection = useCallback(
+    (sessionId: number | null, options?: SessionSelectionOptions) => {
+      const shouldSkip = !options?.force && sessionId === currentSessionId
+      if (!options?.keepPanel) setPanelOpen(false)
+      if (shouldSkip) return
+      activeSessionIdRef.current = sessionId
+      selectSession(sessionId)
+      if (!options?.preserveLiveMessages) setLiveMessages([])
+    },
+    [currentSessionId, selectSession, setPanelOpen, setLiveMessages]
+  )
+
+  const handleSelectSession = useCallback(
+    (sessionId: number | null) => {
+      syncSessionSelection(sessionId)
+    },
+    [syncSessionSelection]
+  )
+
   useEffect(() => {
-    if (isDesktop) setPanelOpen(true)
-  }, [isDesktop, setPanelOpen])
+    activeSessionIdRef.current = currentSessionId
+    updateSessionQueryParam(currentSessionId)
+  }, [currentSessionId])
+
+  const handledSessionParamRef = useRef<string | null>(null)
+  useEffect(() => {
+    const param = searchParams.get('sessionId')
+    if (handledSessionParamRef.current === param) return
+    handledSessionParamRef.current = param
+    if (!param) return
+    const parsed = Number(param)
+    if (!Number.isNaN(parsed)) {
+      syncSessionSelection(parsed, { keepPanel: true, preserveLiveMessages: true, force: true })
+    }
+  }, [searchParams, syncSessionSelection])
 
   useEffect(() => () => {
     if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current)
   }, [])
 
-  const handleSelectSession = useCallback(
-    (sessionId: number | null) => {
-      selectSession(sessionId)
-      setLiveMessages([])
-      if (!isDesktop) setPanelOpen(false)
-    },
-    [selectSession, isDesktop, setPanelOpen]
-  )
+  useEffect(() => {
+    activeSessionIdRef.current = null
+    setLiveMessages([])
+    resetSessions()
+    updateSessionQueryParam(null)
+  }, [userId, resetSessions])
 
   const handleOpenPanel = () => setPanelOpen(true)
   const handleClosePanel = () => setPanelOpen(false)
@@ -206,12 +343,25 @@ export default function ChatPage() {
       { id: botId, role: 'bot', content: '', inspector: initialInspector },
     ])
 
+    const resolvedCategoryId = postId != null ? null : (selectedCategory?.id ?? null)
+    const resolvedSessionId = activeSessionIdRef.current ?? null
+    console.log('[ChatPage] submitting question', {
+      version: askVersion,
+      resolvedSessionId,
+      activeSessionIdRef: activeSessionIdRef.current,
+      storeSessionId: currentSessionId,
+      postId,
+      categoryId: resolvedCategoryId,
+      personaId: selectedPersona?.id ?? -1,
+      viewerId,
+    })
+
     try {
       if (askVersion === 'v1') {
         await askChatAPI(
           question,
           userId!,
-          postId != null ? null : (selectedCategory?.id ?? null),
+          resolvedCategoryId,
           selectedPersona?.id ?? -1,
           items => {
             setLiveMessages(prev => {
@@ -233,13 +383,17 @@ export default function ChatPage() {
               return next
             })
           },
-          { postId }
+          {
+            postId,
+            sessionId: resolvedSessionId,
+            requesterUserId: viewerId ?? null,
+          }
         )
       } else {
         await askChatAPIV2(
           question,
           userId!,
-          postId != null ? null : (selectedCategory?.id ?? null),
+          resolvedCategoryId,
           selectedPersona?.id ?? -1,
           {
             onSearchPlan: p => setLiveMessages(prev => {
@@ -312,7 +466,7 @@ export default function ChatPage() {
             },
             onSession: payload => {
               upsertSessionFromStream(payload)
-              selectSession(payload.session_id)
+              syncSessionSelection(payload.session_id, { keepPanel: true, preserveLiveMessages: true })
               showBanner('info', '새 대화 세션을 시작했어요.')
             },
             onSessionSaved: payload => {
@@ -344,7 +498,7 @@ export default function ChatPage() {
           },
           {
             postId,
-            sessionId: currentSessionId ?? null,
+            sessionId: resolvedSessionId,
             requesterUserId: viewerId ?? null,
           }
         )
@@ -368,27 +522,22 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className='bg-[rgb(244,246,248)] w-full min-h-screen'>
-      <div className="flex min-h-screen w-full">
-        <div className="relative hidden h-full w-72 border-r border-gray-200 lg:flex lg:shrink-0">
-          <SessionListPanel
-            sessions={sessions}
-            loading={sessionsLoading}
-            loadingMore={sessionsLoadingMore}
-            error={sessionsError}
-            selectedSessionId={currentSessionId}
-            onSelect={handleSelectSession}
-            onLoadMore={loadMore}
-            hasMore={sessionsPaging?.has_more}
-            className="lg:block"
-            onRetry={retrySessions}
-          />
-        </div>
-
-        {!isDesktop && isSessionPanelOpen && (
-          <div className="fixed inset-0 z-40 lg:hidden">
-            <div className="absolute inset-0 bg-black/40" onClick={handleClosePanel} />
-            <div className="absolute inset-y-0 left-0 w-72 max-w-[90%] shadow-xl">
+    <div className='bg-[rgb(244,246,248)] w-full h-full'>
+      <div className="flex max-h-full w-full">
+        {isSessionPanelOpen && (
+          <div className="fixed inset-0 z-40">
+            <div
+              className="absolute left-0 right-0 bg-black/30"
+              style={{ top: PANEL_TOP_OFFSET, bottom: 0 }}
+              onClick={handleClosePanel}
+            />
+            <div
+              className={`absolute left-0 w-80 max-w-md rounded-xl bg-white shadow-2xl transition-all`}
+              style={{
+                top: PANEL_TOP_OFFSET,
+                bottom: 0,
+              }}
+            >
               <SessionListPanel
                 sessions={sessions}
                 loading={sessionsLoading}
@@ -409,20 +558,18 @@ export default function ChatPage() {
         <div className="flex flex-1 flex-col items-center overflow-hidden px-4 pb-8 pt-6 sm:px-8 md:px-10 lg:px-16">
           <div className='flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl bg-[rgb(244,246,248)] pb-4 pt-2'>
             <div className="flex items-center gap-2">
-              {!isDesktop && (
-                <button
-                  type="button"
-                  onClick={handleOpenPanel}
-                  className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50 lg:hidden"
-                  aria-label="세션 목록 열기"
-                >
-                  <span className="block h-4 w-5">
-                    <span className="block h-0.5 w-full bg-current" />
-                    <span className="mt-1 block h-0.5 w-full bg-current" />
-                    <span className="mt-1 block h-0.5 w-full bg-current" />
-                  </span>
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleOpenPanel}
+                className="rounded-md border border-gray-200 p-2 text-gray-600 hover:bg-gray-50"
+                aria-label="세션 목록 열기"
+              >
+                <span className="block h-4 w-5">
+                  <span className="block h-0.5 w-full bg-current" />
+                  <span className="mt-1 block h-0.5 w-full bg-current" />
+                  <span className="mt-1 block h-0.5 w-full bg-current" />
+                </span>
+              </button>
               <ProfileHeader profile={profile} />
             </div>
             {postId != null && (
