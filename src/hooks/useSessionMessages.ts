@@ -1,23 +1,28 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useChatSessionStore } from '@/store/ChatSessionStore'
+import type { ChatSessionMessage } from '@/utils/types'
 
 interface UseSessionMessagesOptions {
   autoFetch?: boolean
   limit?: number
 }
 
+const EMPTY_MESSAGES: ChatSessionMessage[] = []
+
 export function useSessionMessages(sessionId: number | null | undefined, options: UseSessionMessagesOptions = {}) {
-  const {
-    messages,
-    paging,
-    isLoading,
-    error,
-  } = useChatSessionStore(state => ({
-    messages: sessionId != null ? state.messagesBySession[sessionId] ?? [] : [],
-    paging: sessionId != null ? state.messagesPagingBySession[sessionId] ?? null : null,
-    isLoading: sessionId != null ? state.messagesLoadingBySession[sessionId] ?? false : false,
-    error: sessionId != null ? state.messagesErrorBySession[sessionId] ?? null : null,
-  }))
+  const storeMessages = useChatSessionStore(state =>
+    sessionId != null ? state.messagesBySession[sessionId] : undefined
+  )
+  const paging = useChatSessionStore(state =>
+    sessionId != null ? state.messagesPagingBySession[sessionId] ?? null : null
+  )
+  const isLoading = useChatSessionStore(state =>
+    sessionId != null ? state.messagesLoadingBySession[sessionId] ?? false : false
+  )
+  const error = useChatSessionStore(state =>
+    sessionId != null ? state.messagesErrorBySession[sessionId] ?? null : null
+  )
+  const messages = storeMessages ?? EMPTY_MESSAGES
 
   const fetchMessages = useChatSessionStore(state => state.fetchMessages)
   const [isFetchingOlder, setIsFetchingOlder] = useState(false)
