@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { deleteBlog } from '@/apis/blogApi'
 import { Pencil, Trash2 } from 'lucide-react'
+import { useToast } from '@/contexts/ToastContext'
 
 interface Props {
   postId: number
@@ -11,14 +12,16 @@ interface Props {
 
 export function PostDetailActions({ postId }: Props) {
   const router = useRouter()
+  const toast = useToast()
 
   const onDelete = async () => {
     if (!confirm('정말 삭제하시겠습니까?')) return
     try {
       await deleteBlog(postId)
+      toast.success('게시글이 삭제되었습니다')
       router.push('/')
-    } catch {
-      alert('삭제에 실패했습니다.')
+    } catch (err: any) {
+      toast.error(err.message || '삭제에 실패했습니다')
     }
   }
 

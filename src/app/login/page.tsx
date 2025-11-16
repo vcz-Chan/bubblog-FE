@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/Common/Button'
 import BubbleBackgroundCursor from '@/components/BackGround/BubbleBackgroundCursor'
 import BubbleBackground from '@/components/BackGround/BubbleBackground'
+import { useToast } from '@/contexts/ToastContext'
 
 // 아이콘 SVG 컴포넌트
 const MailIcon = () => (
@@ -36,8 +37,9 @@ export default function LoginPage() {
   const login = useAuthStore(selectLogin);
   const isAuthenticated = useAuthStore(selectIsLogin);
   const router = useRouter();
+  const toast = useToast();
   const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -51,12 +53,15 @@ export default function LoginPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setIsLoading(true);
     try {
       await login(form);
+      toast.success('로그인되었습니다');
       router.push('/');
     } catch (err: any) {
-      setError(err.message || '로그인 중 오류가 발생했습니다.');
+      toast.error(err.message || '로그인 중 오류가 발생했습니다');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -76,10 +81,6 @@ export default function LoginPage() {
             </div>
 
             <form onSubmit={onSubmit} className="space-y-6">
-              {error && (
-                <p className="text-base text-red-600 bg-red-100 p-3 rounded-lg text-center">{error}</p>
-              )}
-
               <div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
@@ -118,9 +119,10 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-xl"
+                disabled={isLoading}
+                className="w-full py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                로그인
+                {isLoading ? '로그인 중...' : '로그인'}
               </Button>
             </form>
           </div>

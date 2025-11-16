@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from '@/components/Common/Button'
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { useToast } from '@/contexts/ToastContext'
 
 interface Props {
   userId: string
@@ -15,8 +16,16 @@ interface Props {
 export function ChatViewButton({ userId, onClick, postId, variant = 'post' }: Props) {
   const isMobile = useIsMobile()
   const isLogin = useAuthStore(selectIsLogin)
+  const toast = useToast()
 
   const buildHref = () => `/chatbot/${userId}${postId != null ? `?postId=${postId}` : ''}`
+
+  const handleClick = () => {
+    if (!isLogin) {
+      toast.info('로그인이 필요한 서비스입니다')
+    }
+    onClick()
+  }
 
   if (postId == null) {
     const href = buildHref()
@@ -25,7 +34,7 @@ export function ChatViewButton({ userId, onClick, postId, variant = 'post' }: Pr
         <Button>챗봇 이동</Button>
       </Link>
     ) : (
-      <Button onClick={onClick}>챗봇 이동</Button>
+      <Button onClick={handleClick}>챗봇 이동</Button>
     )
   }
 
@@ -37,13 +46,13 @@ export function ChatViewButton({ userId, onClick, postId, variant = 'post' }: Pr
           <Button>챗봇 이동</Button>
         </Link>
       ) : (
-        <Button onClick={onClick}>챗봇 이동</Button>
+        <Button onClick={handleClick}>챗봇 이동</Button>
       )
     )
   }
 
   return (
-    <Button onClick={onClick}>
+    <Button onClick={handleClick}>
       {variant === 'post' ? '이 글에 대해 질문하기' : '이 블로그에 대해 질문하기'}
     </Button>
   )

@@ -14,11 +14,13 @@ import ImageUploader from '@/components/Common/ImageUploader'
 import { Button } from '@/components/Common/Button'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/contexts/ToastContext'
 
 export default function SettingsPage() {
   const userId = useAuthStore(selectUserId);
   const logout = useAuthStore(selectLogout);
   const router = useRouter()
+  const toast = useToast()
 
   // 프로필 상태
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -41,9 +43,12 @@ export default function SettingsPage() {
         setProfileImageUrl(p.profileImageUrl ?? '')
         setErrorProfile(null)
       })
-      .catch(e => setErrorProfile(e.message))
+      .catch(e => {
+        setErrorProfile(e.message)
+        toast.error('프로필을 불러오는데 실패했습니다')
+      })
       .finally(() => setLoadingProfile(false))
-  }, [userId])
+  }, [userId, toast])
 
   // 프로필 저장
   const saveProfile = async () => {
@@ -52,8 +57,10 @@ export default function SettingsPage() {
       const updated = await updateUserProfile({ nickname, profileImageUrl })
       setProfile(updated)
       setErrorProfile(null)
+      toast.success('프로필이 저장되었습니다')
     } catch (e: any) {
       setErrorProfile(e.message)
+      toast.error(e.message || '프로필 저장에 실패했습니다')
     }
   }
 
@@ -61,10 +68,12 @@ export default function SettingsPage() {
   const handleWithdraw = async () => {
     try {
       await deleteUserAccount()
+      toast.success('계정이 삭제되었습니다')
       await logout()
       router.replace('/')
     } catch (e: any) {
       setErrorProfile(e.message)
+      toast.error(e.message || '계정 삭제에 실패했습니다')
     }
   }
 

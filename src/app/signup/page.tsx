@@ -7,6 +7,7 @@ import { Button } from '@/components/Common/Button'
 import ImageUploader from '@/components/Common/ImageUploader'
 import BubbleBackground from '@/components/BackGround/BubbleBackground'
 import BubbleBackgroundCursor from '@/components/BackGround/BubbleBackgroundCursor'
+import { useToast } from '@/contexts/ToastContext'
 
 // --- 아이콘 SVG 컴포넌트 ---
 const MailIcon = () => (
@@ -46,8 +47,9 @@ const BubblogLogoIcon = () => (
 
 export default function SignupPage() {
   const router = useRouter()
+  const toast = useToast()
   const [form, setForm] = useState({ email: '', password: '', nickname: '', profileImageUrl: '' })
-  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -55,12 +57,15 @@ export default function SignupPage() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
+    setIsLoading(true)
     try {
       await signup(form)
+      toast.success('회원가입이 완료되었습니다. 로그인해주세요')
       router.push('/login')
     } catch (err: any) {
-      setError(err.message || '회원가입 중 오류가 발생했습니다.')
+      toast.error(err.message || '회원가입 중 오류가 발생했습니다')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -82,10 +87,6 @@ export default function SignupPage() {
               </div>
 
               <form onSubmit={onSubmit} className="space-y-6">
-                {error && (
-                  <p className="text-base text-red-600 bg-red-100 p-3 rounded-lg text-center">{error}</p>
-                )}
-                
                 {/* 프로필 이미지 업로드 - 인라인으로 간소화 */}
                 <div className="flex items-center gap-4">
                   <div className="relative inline-block group">
@@ -170,9 +171,10 @@ export default function SignupPage() {
 
                 <Button
                   type="submit"
-                  className="w-full py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-xl"
+                  disabled={isLoading}
+                  className="w-full py-3 rounded-lg bg-gradient-to-r from-gray-700 to-gray-900 text-white font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 text-xl disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  회원가입
+                  {isLoading ? '가입 중...' : '회원가입'}
                 </Button>
               </form>
             </div>

@@ -13,6 +13,7 @@ import {
 import ThumbnailUploader from '@/components/Post/ThumbnailUploader';
 import { CategoryNode } from '@/apis/categoryApi';
 import MarkdownEditor from '@/components/Post/MarkdownEditor';
+import { useToast } from '@/contexts/ToastContext';
 
 interface Props {
   postId?: string;
@@ -23,6 +24,7 @@ interface Props {
 export default function WritePostClient({ postId, initialData }: Props) {
   const router = useRouter();
   const userId = useAuthStore(selectUserId);
+  const toast = useToast();
   const isEdit = Boolean(postId);
 
   const [title, setTitle] = useState(initialData?.title ?? '');
@@ -58,14 +60,14 @@ export default function WritePostClient({ postId, initialData }: Props) {
         setPublicVisible(data.publicVisible);
       })
       .catch(() => {
-        alert('게시글을 불러오는 데 실패했습니다.');
+        toast.error('게시글을 불러오는 데 실패했습니다');
         router.back();
       });
-  }, [isEdit, postId, initialData, router]);
+  }, [isEdit, postId, initialData, router, toast]);
 
   const handleSave = async () => {
     if (!title || !summary || !selectedCategory?.id) {
-      alert('제목, 요약, 카테고리는 필수입니다.');
+      toast.warning('제목, 요약, 카테고리는 필수입니다');
       return;
     }
 
@@ -81,15 +83,15 @@ export default function WritePostClient({ postId, initialData }: Props) {
     try {
       if (isEdit) {
         await updateBlog(Number(postId), payload);
-        alert('수정되었습니다.');
+        toast.success('게시글이 수정되었습니다');
         router.push(`/post/${postId}`);
       } else {
         const created = await createBlog(payload);
-        alert('작성되었습니다.');
+        toast.success('게시글이 작성되었습니다');
         router.push(`/post/${created.id}`);
       }
     } catch (e: any) {
-      alert(`저장에 실패했습니다: ${e.message}`);
+      toast.error(e.message || '저장에 실패했습니다');
     }
   };
 

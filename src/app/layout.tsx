@@ -34,6 +34,7 @@ export const metadata: Metadata = {
 };
 
 import TextSizeAdjuster from '@/components/Common/TextSizeAdjuster';
+import { ToastProvider } from '@/contexts/ToastContext';
 
 export default function RootLayout({
   children,
@@ -73,17 +74,19 @@ export default function RootLayout({
             }),
           }}
         />
-        {/* 클라이언트에서만 init() 실행 (SSR 레이아웃 유지) */}
-        <ClientAuthInit />
-        <div className="flex flex-col h-screen">
-          <NavBar />
-          <div className="flex-1  overflow-auto flex flex-col items-center">
-            {children}
+        <ToastProvider>
+          {/* 클라이언트에서만 init() 실행 (SSR 레이아웃 유지) */}
+          <ClientAuthInit />
+          <div className="flex flex-col h-screen">
+            <NavBar />
+            <div className="flex-1  overflow-auto flex flex-col items-center">
+              {children}
+            </div>
           </div>
-        </div>
-        <TextSizeAdjuster />
-        <Analytics />
-        <SpeedInsights />
+          <TextSizeAdjuster />
+          <Analytics />
+          <SpeedInsights />
+        </ToastProvider>
       </body>
     </html>
   );
