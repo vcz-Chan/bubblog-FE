@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
-import { askChatAPI, askChatAPIV2, type SearchPlan, type ContextItem } from '@/apis/aiApi'
+import { askChatAPI, askChatAPIV2, type SearchPlan, type ContextItem, updateSession, deleteSession } from '@/apis/aiApi'
 import type { ChatSessionMessage } from '@/utils/types'
 import { ProfileHeader } from '@/components/Chat/ProfileHeader'
 import { CategoryFilterButton } from '@/components/Category/CategoryFilterButton'
@@ -228,6 +228,42 @@ export default function ChatPage() {
     [syncSessionSelection]
   )
 
+  const handleSessionUpdate = useCallback(async (sessionId: number, title: string) => {
+    try {
+      await updateSession(sessionId, { title })
+      updateSessionMeta(sessionId, { title })
+      showBanner('success', '세션 이름이 변경되었습니다.')
+    } catch (error) {
+      console.error('Failed to update session:', error)
+      showBanner('error', '세션 이름 변경에 실패했습니다.')
+      throw error
+    }
+  }, [updateSessionMeta, showBanner])
+
+  const handleSessionDelete = useCallback(async (sessionId: number) => {
+    try {
+      await deleteSession(sessionId)
+
+      // 세션 목록 새로고침
+      resetSessions()
+      if (userId) {
+        fetchInitialSessions({ ownerUserId: userId, limit: 20 })
+      }
+
+      // 현재 세션이 삭제된 경우 새 세션으로 전환
+      if (sessionId === currentSessionId) {
+        syncSessionSelection(null, { preserveLiveMessages: true })
+        showBanner('info', '삭제된 세션입니다. 새 대화를 시작하세요.')
+      } else {
+        showBanner('success', '세션이 삭제되었습니다.')
+      }
+    } catch (error) {
+      console.error('Failed to delete session:', error)
+      showBanner('error', '세션 삭제에 실패했습니다.')
+      throw error
+    }
+  }, [currentSessionId, userId, updateSessionMeta, resetSessions, fetchInitialSessions, syncSessionSelection, showBanner])
+
   useEffect(() => {
     activeSessionIdRef.current = currentSessionId
     updateSessionQueryParam(currentSessionId)
@@ -346,16 +382,6 @@ export default function ChatPage() {
 
     const resolvedCategoryId = postId != null ? null : (selectedCategory?.id ?? null)
     const resolvedSessionId = activeSessionIdRef.current ?? null
-    console.log('[ChatPage] submitting question', {
-      version: askVersion,
-      resolvedSessionId,
-      activeSessionIdRef: activeSessionIdRef.current,
-      storeSessionId: currentSessionId,
-      postId,
-      categoryId: resolvedCategoryId,
-      personaId: selectedPersona?.id ?? -1,
-      viewerId,
-    })
 
     try {
       if (askVersion === 'v1') {
@@ -388,9 +414,30 @@ export default function ChatPage() {
             postId,
             sessionId: resolvedSessionId,
             requesterUserId: viewerId ?? null,
+            onSession: payload => {
+              upsertSessionFromStream(payload)
+              syncSessionSelection(payload.session_id, { keepPanel: true, preserveLiveMessages: true })
+              showBanner('info', '새 대화 세션을 시작했어요.')
+            },
+            onSessionSaved: payload => {
+              updateSessionMeta(payload.session_id, { updated_at: new Date().toISOString() })
+              fetchSessionMessages(payload.session_id, { direction: 'backward', mode: 'replace' }).finally(() => {
+                setLiveMessages([])
+              })
+              showBanner('success', payload.cached ? '이전 답변을 재사용했어요.' : '대화가 저장되었어요.')
+            },
+            onSessionError: payload => {
+              const message = payload.reason || payload.message || '세션 저장 중 오류가 발생했습니다.'
+              setLiveMessages(prev => {
+                const next = [...prev]
+                const msg = next.find(m => m.id === botId)
+                if (msg) msg.content = message
+                return next
+              })
+              showBanner('error', message)
+            },
           }
         )
-        showBanner('success', '답변이 완료되었어요.')
       } else {
         await askChatAPIV2(
           question,
@@ -539,7 +586,7 @@ export default function ChatPage() {
                 transition={{ duration: 0.2 }}
               />
               <div
-                className={`absolute left-0 w-80 max-w-md rounded-xl overflow-hidden`}
+                className={`absolute left-0 w-full sm:w-96 sm:max-w-md sm:rounded-xl overflow-hidden`}
                 style={{
                   top: PANEL_TOP_OFFSET,
                   bottom: 0,
@@ -557,6 +604,8 @@ export default function ChatPage() {
                   className="h-full"
                   onClose={handleClosePanel}
                   onRetry={retrySessions}
+                  onSessionUpdate={handleSessionUpdate}
+                  onSessionDelete={handleSessionDelete}
                 />
               </div>
             </div>

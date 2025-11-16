@@ -80,6 +80,12 @@ function normalizeContextArray(raw: any): ContextItem[] {
 /**
  * AI 서버에 질문을 보내고 SSE 스트림을 처리합니다. (v1)
  */
+export interface AskChatHandlers {
+  onSession?: (payload: AskSessionEventPayload) => void;
+  onSessionSaved?: (payload: AskSessionSavedPayload) => void;
+  onSessionError?: (payload: AskSessionErrorPayload) => void;
+}
+
 export async function askChatAPI(
   question: string,
   userId: string,
@@ -93,7 +99,7 @@ export async function askChatAPI(
     sessionId?: number | null;
     requesterUserId?: string | null;
     onExistInPostStatus?: (exists: boolean) => void;
-  }
+  } & AskChatHandlers
 ): Promise<void> {
   const body: any = {
     question,
@@ -175,6 +181,22 @@ export async function askChatAPI(
         } catch {
           // Ignore non-JSON-string chunks
         }
+      }
+      if (eventName === 'session') {
+        try {
+          const payload = JSON.parse(raw) as AskSessionEventPayload;
+          if (payload?.session_id != null) options?.onSession?.(payload);
+        } catch {}
+      } else if (eventName === 'session_saved') {
+        try {
+          const payload = JSON.parse(raw) as AskSessionSavedPayload;
+          if (payload?.session_id != null) options?.onSessionSaved?.(payload);
+        } catch {}
+      } else if (eventName === 'session_error') {
+        try {
+          const payload = JSON.parse(raw) as AskSessionErrorPayload;
+          options?.onSessionError?.(payload);
+        } catch {}
       }
       eventName = '';
     }
@@ -355,4 +377,53 @@ export async function askChatAPIV2(
       eventName = '';
     }
   }
+}
+
+// ============================================================
+// Session Management API
+// ============================================================
+
+/**
+ * 세션 제목 또는 메타데이터를 수정합니다.
+ * @param sessionId 세션 ID
+ * @param updates title과 metadata 중 하나 이상 필수
+ */
+export async function updateSession(
+  sessionId: number,
+  updates: { title?: string; metadata?: Record<string, any> }
+): Promise<any> {
+  const { aiFetch } = await import('@/apis/apiClient');
+
+  const res = await aiFetch(`/ai/v2/sessions/${sessionId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates),
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Failed to update session' }));
+    throw new Error(error.message || 'Failed to update session');
+  }
+
+  return res.json();
+}
+
+/**
+ * 세션을 삭제합니다 (cascade: 메시지, 임베딩 포함).
+ * @param sessionId 세션 ID
+ */
+export async function deleteSession(
+  sessionId: number
+): Promise<{ session_id: number; deleted: boolean }> {
+  const { aiFetch } = await import('@/apis/apiClient');
+
+  const res = await aiFetch(`/ai/v2/sessions/${sessionId}`, {
+    method: 'DELETE',
+  });
+
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ message: 'Failed to delete session' }));
+    throw new Error(error.message || 'Failed to delete session');
+  }
+
+  return res.json();
 }
