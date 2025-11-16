@@ -57,26 +57,47 @@ export function InspectorPanel({
   const [searchOpen, setSearchOpen] = useState(false)
   const [contextOpen, setContextOpen] = useState(false)
   const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="border border-gray-200 rounded-md p-3 bg-white">
-      <div className="text-xs font-semibold text-gray-600 mb-2">{title}</div>
+    <div className="
+      border border-gray-200 rounded-lg
+      p-3 sm:p-4
+      bg-white shadow-sm
+      hover:shadow-md transition-shadow duration-200
+    ">
+      <div className="text-xs font-bold text-blue-700 mb-2 sm:mb-3 uppercase tracking-wide">
+        {title}
+      </div>
       {children}
     </div>
   )
 
   const renderList = (items: ContextItem[]) => (
-    <ul className="list-disc ml-5 space-y-1">
+    <ul className="space-y-2">
       {items.map((it) => (
-        <li key={it.post_id}>
+        <li key={it.post_id} className="flex items-start gap-2">
+          <span className="text-blue-500 mt-1">•</span>
           {onItemClick ? (
             <button
               type="button"
-              className="text-left text-sm font-medium hover:text-green-600"
+              className="
+                text-left text-sm font-medium text-gray-700
+                hover:text-blue-600 hover:underline
+                transition-colors duration-150
+                flex-1
+              "
               onClick={() => onItemClick(it)}
             >
               {it.post_title}
             </button>
           ) : (
-            <Link href={`/post/${it.post_id}`} className="text-sm font-medium hover:text-green-600">
+            <Link
+              href={`/post/${it.post_id}`}
+              className="
+                text-sm font-medium text-gray-700
+                hover:text-blue-600 hover:underline
+                transition-colors duration-150
+                flex-1
+              "
+            >
               {it.post_title}
             </Link>
           )}
@@ -136,14 +157,24 @@ export function InspectorPanel({
       <motion.button
         type="button"
         onClick={onToggle}
-        className="px-3 py-1.5 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-800 flex items-center gap-2"
+        className="
+          px-3 sm:px-4 py-1.5 sm:py-2
+          text-sm font-medium rounded-lg
+          bg-gradient-to-r from-blue-600 to-blue-700
+          text-white shadow-md
+          hover:from-blue-700 hover:to-blue-800 hover:shadow-lg
+          flex items-center gap-2
+          transition-all duration-200
+          w-full sm:w-auto
+        "
         aria-expanded={visible}
-        whileHover={{ backgroundColor: 'rgb(31, 41, 55)' }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
+        transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
       >
         <motion.div
           animate={{ rotate: visible ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
         >
           <ChevronDown size={16} />
         </motion.div>
@@ -179,13 +210,21 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                    "
                     onClick={() => setPlanOpen((v) => !v)}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: planOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>
@@ -230,14 +269,23 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                     onClick={() => setRewritesOpen(v => !v)}
                     disabled={!v2RewritesReceived || (v2Rewrites?.length ?? 0) === 0}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(!v2RewritesReceived || (v2Rewrites?.length ?? 0) === 0) ? {} : { scale: 1.05 }}
+                    whileTap={(!v2RewritesReceived || (v2Rewrites?.length ?? 0) === 0) ? {} : { scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: rewritesOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>
@@ -269,14 +317,23 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                     onClick={() => setKeywordsOpen(v => !v)}
                     disabled={!v2KeywordsReceived || (v2Keywords?.length ?? 0) === 0}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(!v2KeywordsReceived || (v2Keywords?.length ?? 0) === 0) ? {} : { scale: 1.05 }}
+                    whileTap={(!v2KeywordsReceived || (v2Keywords?.length ?? 0) === 0) ? {} : { scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: keywordsOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>
@@ -308,14 +365,23 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                     onClick={() => setHybridOpen(v => !v)}
                     disabled={!v2HybridResultReceived || (v2HybridResult?.length ?? 0) === 0}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(!v2HybridResultReceived || (v2HybridResult?.length ?? 0) === 0) ? {} : { scale: 1.05 }}
+                    whileTap={(!v2HybridResultReceived || (v2HybridResult?.length ?? 0) === 0) ? {} : { scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: hybridOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>
@@ -347,14 +413,23 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                     onClick={() => setSearchOpen(v => !v)}
                     disabled={!v2SearchResultReceived || (v2SearchResult?.length ?? 0) === 0}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(!v2SearchResultReceived || (v2SearchResult?.length ?? 0) === 0) ? {} : { scale: 1.05 }}
+                    whileTap={(!v2SearchResultReceived || (v2SearchResult?.length ?? 0) === 0) ? {} : { scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: searchOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>
@@ -386,14 +461,23 @@ export function InspectorPanel({
                   </div>
                   <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
+                    className="
+                      text-xs px-2.5 py-1.5 rounded-md
+                      bg-blue-50 hover:bg-blue-100
+                      text-blue-700 font-medium
+                      flex items-center gap-1
+                      transition-colors duration-150
+                      disabled:opacity-50 disabled:cursor-not-allowed
+                    "
                     onClick={() => setContextOpen(v => !v)}
                     disabled={!v2ContextReceived || (v2Context?.length ?? 0) === 0}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={(!v2ContextReceived || (v2Context?.length ?? 0) === 0) ? {} : { scale: 1.05 }}
+                    whileTap={(!v2ContextReceived || (v2Context?.length ?? 0) === 0) ? {} : { scale: 0.95 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <motion.div
                       animate={{ rotate: contextOpen ? 180 : 0 }}
-                      transition={{ duration: 0.2 }}
+                      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                     >
                       <ChevronDown size={12} />
                     </motion.div>

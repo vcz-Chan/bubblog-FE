@@ -126,6 +126,7 @@ export default function ChatPage() {
   const [liveMessages, setLiveMessages] = useState<UIChatMessage[]>([])
   const [input, setInput] = useState('')
   const [askVersion, setAskVersion] = useState<'v1' | 'v2'>('v1')
+  const [inspectorOpenMap, setInspectorOpenMap] = useState<Map<number, boolean>>(new Map())
 
   const [isCatOpen, setIsCatOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<CategoryNode | null>(null)
@@ -196,7 +197,13 @@ export default function ChatPage() {
     }
     return transformed
   }, [historyMessages])
-  const combinedMessages = useMemo(() => [...historyUiMessages, ...liveMessages], [historyUiMessages, liveMessages])
+  const combinedMessages = useMemo(() => {
+    const applyOpenState = (msg: UIChatMessage): UIChatMessage => ({
+      ...msg,
+      inspector: msg.inspector ? { ...msg.inspector, open: inspectorOpenMap.get(msg.id) ?? false } : undefined
+    })
+    return [...historyUiMessages.map(applyOpenState), ...liveMessages.map(applyOpenState)]
+  }, [historyUiMessages, liveMessages, inspectorOpenMap])
   const showBanner = useCallback((type: 'info' | 'success' | 'error', message: string) => {
     if (bannerTimerRef.current) clearTimeout(bannerTimerRef.current)
     setBanner({ type, message })
@@ -685,7 +692,11 @@ export default function ChatPage() {
               hasMoreTop={Boolean(currentSessionId && historyPaging?.has_more)}
               onLoadMoreTop={currentSessionId ? loadOlder : undefined}
               onToggleInspector={(id) => {
-                setLiveMessages(prev => prev.map(m => (m.id === id && m.inspector) ? { ...m, inspector: { ...m.inspector, open: !m.inspector.open } } : m))
+                setInspectorOpenMap(prev => {
+                  const next = new Map(prev)
+                  next.set(id, !prev.get(id))
+                  return next
+                })
               }}
               onInspectorItemClick={(_id, item) => setModalPostId(item.post_id)}
             />
