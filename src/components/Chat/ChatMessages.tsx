@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { ChatBubble } from './ChatBubble'
 import { InspectorPanel } from '@/components/Chat/InspectorPanel'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
@@ -100,42 +101,44 @@ export function ChatMessages({
           <ThreeDotsLoader />
         </div>
       )}
-      {messages.map(msg => (
-        <div key={msg.id} className="space-y-2">
-          {msg.role === 'bot' && msg.inspector && (() => {
-            const ins = msg.inspector
-            const hasAnyData = ins.version === 'v1'
-              ? !!ins.v1ContextReceived
-              : !!(ins.v2PlanReceived || ins.v2RewritesReceived || ins.v2KeywordsReceived || ins.v2HybridResultReceived || ins.v2SearchResultReceived || ins.v2ContextReceived)
+      <AnimatePresence mode="popLayout">
+        {messages.map(msg => (
+          <div key={msg.id} className="space-y-2">
+            {msg.role === 'bot' && msg.inspector && (() => {
+              const ins = msg.inspector
+              const hasAnyData = ins.version === 'v1'
+                ? !!ins.v1ContextReceived
+                : !!(ins.v2PlanReceived || ins.v2RewritesReceived || ins.v2KeywordsReceived || ins.v2HybridResultReceived || ins.v2SearchResultReceived || ins.v2ContextReceived)
 
-            if (!hasAnyData) return null
+              if (!hasAnyData) return null
 
-            return (
-              <InspectorPanel
-                version={ins.version}
-                visible={ins.open}
-                onToggle={() => onToggleInspector?.(msg.id)}
-                v1Context={ins.v1Context}
-                v1ContextReceived={ins.v1ContextReceived}
-                v2Plan={ins.v2Plan}
-                v2PlanReceived={ins.v2PlanReceived}
-                v2Rewrites={ins.v2Rewrites}
-                v2RewritesReceived={ins.v2RewritesReceived}
-                v2Keywords={ins.v2Keywords}
-                v2KeywordsReceived={ins.v2KeywordsReceived}
-                v2HybridResult={ins.v2HybridResult}
-                v2HybridResultReceived={ins.v2HybridResultReceived}
-                v2SearchResult={ins.v2SearchResult}
-                v2SearchResultReceived={ins.v2SearchResultReceived}
-                v2Context={ins.v2Context}
-                v2ContextReceived={ins.v2ContextReceived}
-                onItemClick={onInspectorItemClick ? (item) => onInspectorItemClick(msg.id, item) : undefined}
-              />
-            )
-          })()}
-          <ChatBubble content={msg.content} role={msg.role} loading={msg.role === 'bot' && !msg.content} />
-        </div>
-      ))}
+              return (
+                <InspectorPanel
+                  version={ins.version}
+                  visible={ins.open}
+                  onToggle={() => onToggleInspector?.(msg.id)}
+                  v1Context={ins.v1Context}
+                  v1ContextReceived={ins.v1ContextReceived}
+                  v2Plan={ins.v2Plan}
+                  v2PlanReceived={ins.v2PlanReceived}
+                  v2Rewrites={ins.v2Rewrites}
+                  v2RewritesReceived={ins.v2RewritesReceived}
+                  v2Keywords={ins.v2Keywords}
+                  v2KeywordsReceived={ins.v2KeywordsReceived}
+                  v2HybridResult={ins.v2HybridResult}
+                  v2HybridResultReceived={ins.v2HybridResultReceived}
+                  v2SearchResult={ins.v2SearchResult}
+                  v2SearchResultReceived={ins.v2SearchResultReceived}
+                  v2Context={ins.v2Context}
+                  v2ContextReceived={ins.v2ContextReceived}
+                  onItemClick={onInspectorItemClick ? (item) => onInspectorItemClick(msg.id, item) : undefined}
+                />
+              )
+            })()}
+            <ChatBubble content={msg.content} role={msg.role} loading={msg.role === 'bot' && !msg.content} />
+          </div>
+        ))}
+      </AnimatePresence>
       <div ref={chatEndRef} />
     </div>
   )

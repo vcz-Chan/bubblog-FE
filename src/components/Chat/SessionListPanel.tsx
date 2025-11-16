@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion'
 import { ChatSession } from '@/utils/types'
 
 interface SessionListPanelProps {
@@ -44,7 +45,14 @@ export function SessionListPanel({
   onRetry,
 }: SessionListPanelProps) {
   return (
-    <aside className={`flex h-full w-full flex-col bg-white ${className}`}>
+    <motion.aside
+      className={`flex h-full w-full flex-col bg-white ${className}`}
+      initial={{ x: -320 }}
+      animate={{ x: 0 }}
+      exit={{ x: -320 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
+    >
       <div className="flex items-center justify-between border-b px-4 py-3">
         <p className="text-base font-semibold text-gray-900">대화 세션</p>
         {onClose && (
@@ -90,18 +98,21 @@ export function SessionListPanel({
         {sessions.map(session => {
           const isActive = selectedSessionId === session.session_id
           return (
-            <button
+            <motion.button
               key={session.session_id}
               type="button"
               onClick={() => onSelect(session.session_id)}
               className={`w-full rounded-md border px-3 py-3 text-left transition ${
                 isActive ? 'border-blue-500 bg-blue-50' : 'border-transparent hover:bg-gray-50'
               }`}
+              whileHover={{ scale: 1.02, boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)' }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ duration: 0.15 }}
             >
               <p className="text-sm font-semibold text-gray-900">{getSessionTitle(session)}</p>
               <p className="mt-1 text-xs text-gray-500">{formatTimestamp(session.updated_at)}</p>
               <p className="mt-1 text-xs text-gray-400">{session.message_count}개의 메시지</p>
-            </button>
+            </motion.button>
           )
         })}
 
@@ -133,6 +144,6 @@ export function SessionListPanel({
           </button>
         </div>
       )}
-    </aside>
+    </motion.aside>
   )
 }

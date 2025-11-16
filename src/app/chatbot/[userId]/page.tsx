@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, FormEvent, useCallback, useMemo } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import { getBlogById } from '@/apis/blogApi'
 import { getUserProfile, UserProfile } from '@/apis/userApi'
 import { askChatAPI, askChatAPIV2, type SearchPlan, type ContextItem } from '@/apis/aiApi'
@@ -389,6 +390,7 @@ export default function ChatPage() {
             requesterUserId: viewerId ?? null,
           }
         )
+        showBanner('success', '답변이 완료되었어요.')
       } else {
         await askChatAPIV2(
           question,
@@ -524,36 +526,42 @@ export default function ChatPage() {
   return (
     <div className='bg-[rgb(244,246,248)] w-full h-full'>
       <div className="flex max-h-full w-full">
-        {isSessionPanelOpen && (
-          <div className="fixed inset-0 z-40">
-            <div
-              className="absolute left-0 right-0 bg-black/30"
-              style={{ top: PANEL_TOP_OFFSET, bottom: 0 }}
-              onClick={handleClosePanel}
-            />
-            <div
-              className={`absolute left-0 w-80 max-w-md rounded-xl bg-white shadow-2xl transition-all`}
-              style={{
-                top: PANEL_TOP_OFFSET,
-                bottom: 0,
-              }}
-            >
-              <SessionListPanel
-                sessions={sessions}
-                loading={sessionsLoading}
-                loadingMore={sessionsLoadingMore}
-                error={sessionsError}
-                selectedSessionId={currentSessionId}
-                onSelect={handleSelectSession}
-                onLoadMore={loadMore}
-                hasMore={sessionsPaging?.has_more}
-                className="h-full"
-                onClose={handleClosePanel}
-                onRetry={retrySessions}
+        <AnimatePresence>
+          {isSessionPanelOpen && (
+            <div className="fixed inset-0 z-40">
+              <motion.div
+                className="absolute left-0 right-0 bg-black/30"
+                style={{ top: PANEL_TOP_OFFSET, bottom: 0, willChange: 'opacity' }}
+                onClick={handleClosePanel}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
               />
+              <div
+                className={`absolute left-0 w-80 max-w-md rounded-xl overflow-hidden`}
+                style={{
+                  top: PANEL_TOP_OFFSET,
+                  bottom: 0,
+                }}
+              >
+                <SessionListPanel
+                  sessions={sessions}
+                  loading={sessionsLoading}
+                  loadingMore={sessionsLoadingMore}
+                  error={sessionsError}
+                  selectedSessionId={currentSessionId}
+                  onSelect={handleSelectSession}
+                  onLoadMore={loadMore}
+                  hasMore={sessionsPaging?.has_more}
+                  className="h-full"
+                  onClose={handleClosePanel}
+                  onRetry={retrySessions}
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
 
         <div className="flex flex-1 flex-col items-center overflow-hidden px-4 pb-8 pt-6 sm:px-8 md:px-10 lg:px-16">
           <div className='flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl bg-[rgb(244,246,248)] pb-4 pt-2'>
@@ -602,6 +610,7 @@ export default function ChatPage() {
               isOpen={isPersonaOpen}
               onSelect={p => setSelectedPersona(p)}
               onClose={() => setIsPersonaOpen(false)}
+              selectedPersona={selectedPersona}
             />
 
             {historyError && (

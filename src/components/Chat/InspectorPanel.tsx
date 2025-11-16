@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ChevronDown } from 'lucide-react'
 import type { ContextItem, SearchPlan } from '@/apis/aiApi'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
 
@@ -131,17 +133,33 @@ export function InspectorPanel({
 
   return (
     <div className="mx-2 md:mx-4 mb-3">
-      <button
+      <motion.button
         type="button"
         onClick={onToggle}
-        className="px-3 py-1.5 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-800"
+        className="px-3 py-1.5 text-sm rounded-md bg-gray-700 text-white hover:bg-gray-800 flex items-center gap-2"
         aria-expanded={visible}
+        whileHover={{ backgroundColor: 'rgb(31, 41, 55)' }}
+        whileTap={{ scale: 0.98 }}
       >
+        <motion.div
+          animate={{ rotate: visible ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          <ChevronDown size={16} />
+        </motion.div>
         {visible ? '검색 과정 닫기' : '검색 과정 보기'}
-      </button>
+      </motion.button>
 
-      {visible && (
-        <div className="mt-3 space-y-3">
+      <AnimatePresence>
+        {visible && (
+          <motion.div
+            className="mt-3 space-y-3 overflow-hidden"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            style={{ willChange: 'height, opacity' }}
+          >
           {version === 'v1' ? (
             <Section title="Context">
               {v1ContextReceived ? (
@@ -159,30 +177,47 @@ export function InspectorPanel({
                   <div className="text-xs text-gray-700">
                     {v2PlanReceived ? (v2Summary || '계획 요약 없음') : <ThreeDotsLoader />}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1"
                     onClick={() => setPlanOpen((v) => !v)}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: planOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {planOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
                 <div className="mt-2">
                   {timeFilterView}
                 </div>
-                {planOpen && (
-                  v2PlanReceived ? (
-                    v2Plan ? (
-                      <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-48">
-                        {JSON.stringify(v2Plan, null, 2)}
-                      </pre>
-                    ) : (
-                      <div className="mt-2 text-sm text-gray-500">계획 없음</div>
-                    )
-                  ) : (
-                    <div className="mt-2"><ThreeDotsLoader /></div>
-                  )
-                )}
+                <AnimatePresence>
+                  {planOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      {v2PlanReceived ? (
+                        v2Plan ? (
+                          <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-h-48">
+                            {JSON.stringify(v2Plan, null, 2)}
+                          </pre>
+                        ) : (
+                          <div className="mt-2 text-sm text-gray-500">계획 없음</div>
+                        )
+                      ) : (
+                        <div className="mt-2"><ThreeDotsLoader /></div>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Section>
               <Section title="Rewrites">
                 <div className="flex items-center justify-between">
@@ -193,20 +228,35 @@ export function InspectorPanel({
                       <ThreeDotsLoader />
                     )}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
                     onClick={() => setRewritesOpen(v => !v)}
                     disabled={!v2RewritesReceived || (v2Rewrites?.length ?? 0) === 0}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: rewritesOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {rewritesOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
-                {rewritesOpen && v2RewritesReceived && v2Rewrites && v2Rewrites.length > 0 && (
-                  <ul className="mt-2 list-disc ml-5 space-y-1 text-sm">
-                    {v2Rewrites.map((s, i) => <li key={i}>{s}</li>)}
-                  </ul>
-                )}
+                <AnimatePresence>
+                  {rewritesOpen && v2RewritesReceived && v2Rewrites && v2Rewrites.length > 0 && (
+                    <motion.ul
+                      className="mt-2 list-disc ml-5 space-y-1 text-sm overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {v2Rewrites.map((s, i) => <li key={i}>{s}</li>)}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
               </Section>
               <Section title="Keywords">
                 <div className="flex items-center justify-between">
@@ -217,20 +267,35 @@ export function InspectorPanel({
                       <ThreeDotsLoader />
                     )}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
                     onClick={() => setKeywordsOpen(v => !v)}
                     disabled={!v2KeywordsReceived || (v2Keywords?.length ?? 0) === 0}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: keywordsOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {keywordsOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
-                {keywordsOpen && v2KeywordsReceived && v2Keywords && v2Keywords.length > 0 && (
-                  <ul className="mt-2 list-disc ml-5 space-y-1 text-sm">
-                    {v2Keywords.map((s, i) => <li key={i}>{s}</li>)}
-                  </ul>
-                )}
+                <AnimatePresence>
+                  {keywordsOpen && v2KeywordsReceived && v2Keywords && v2Keywords.length > 0 && (
+                    <motion.ul
+                      className="mt-2 list-disc ml-5 space-y-1 text-sm overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {v2Keywords.map((s, i) => <li key={i}>{s}</li>)}
+                    </motion.ul>
+                  )}
+                </AnimatePresence>
               </Section>
               <Section title="Hybrid Result">
                 <div className="flex items-center justify-between">
@@ -241,18 +306,35 @@ export function InspectorPanel({
                       <ThreeDotsLoader />
                     )}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
                     onClick={() => setHybridOpen(v => !v)}
                     disabled={!v2HybridResultReceived || (v2HybridResult?.length ?? 0) === 0}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: hybridOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {hybridOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
-                {hybridOpen && v2HybridResultReceived && v2HybridResult && v2HybridResult.length > 0 && (
-                  <div className="mt-2">{renderList(v2HybridResult)}</div>
-                )}
+                <AnimatePresence>
+                  {hybridOpen && v2HybridResultReceived && v2HybridResult && v2HybridResult.length > 0 && (
+                    <motion.div
+                      className="mt-2 overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {renderList(v2HybridResult)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Section>
               <Section title="Search Result">
                 <div className="flex items-center justify-between">
@@ -263,18 +345,35 @@ export function InspectorPanel({
                       <ThreeDotsLoader />
                     )}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
                     onClick={() => setSearchOpen(v => !v)}
                     disabled={!v2SearchResultReceived || (v2SearchResult?.length ?? 0) === 0}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: searchOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {searchOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
-                {searchOpen && v2SearchResultReceived && v2SearchResult && v2SearchResult.length > 0 && (
-                  <div className="mt-2">{renderList(v2SearchResult)}</div>
-                )}
+                <AnimatePresence>
+                  {searchOpen && v2SearchResultReceived && v2SearchResult && v2SearchResult.length > 0 && (
+                    <motion.div
+                      className="mt-2 overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {renderList(v2SearchResult)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Section>
               <Section title="Context">
                 <div className="flex items-center justify-between">
@@ -285,23 +384,41 @@ export function InspectorPanel({
                       <ThreeDotsLoader />
                     )}
                   </div>
-                  <button
+                  <motion.button
                     type="button"
-                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200"
+                    className="text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 flex items-center gap-1 disabled:opacity-50"
                     onClick={() => setContextOpen(v => !v)}
                     disabled={!v2ContextReceived || (v2Context?.length ?? 0) === 0}
+                    whileTap={{ scale: 0.95 }}
                   >
+                    <motion.div
+                      animate={{ rotate: contextOpen ? 180 : 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <ChevronDown size={12} />
+                    </motion.div>
                     {contextOpen ? '세부 접기' : '세부 보기'}
-                  </button>
+                  </motion.button>
                 </div>
-                {contextOpen && v2ContextReceived && v2Context && v2Context.length > 0 && (
-                  <div className="mt-2">{renderList(v2Context)}</div>
-                )}
+                <AnimatePresence>
+                  {contextOpen && v2ContextReceived && v2Context && v2Context.length > 0 && (
+                    <motion.div
+                      className="mt-2 overflow-hidden"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      {renderList(v2Context)}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Section>
             </>
           )}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

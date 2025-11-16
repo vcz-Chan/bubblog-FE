@@ -315,6 +315,7 @@ export function ChatWindow({ userId, postId, postTitle }: Props) {
         isOpen={isPersonaOpen}
         onSelect={p => setSelectedPersona(p)}
         onClose={() => setIsPersonaOpen(false)}
+        selectedPersona={selectedPersona}
       />
     </div>
   )

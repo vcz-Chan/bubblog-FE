@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
 
 interface Props {
@@ -23,14 +24,23 @@ export function ChatBubble({ content, role, loading = false }: Props) {
     : 'left-0 -translate-x-1/2'
 
   return (
-    <div className={`flex ${alignment} mb-4 px-4`}>
-      <div
+    <motion.div
+      className={`flex ${alignment} mb-4 px-4`}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      style={{ backfaceVisibility: 'hidden', perspective: 1000 }}
+    >
+      <motion.div
         className={`
           relative max-w-[75%] px-6 py-4
           ${bgColor} ${textColor}
           ${bubbleCorners}
           shadow
         `}
+        whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}
+        transition={{ duration: 0.2 }}
+        style={{ backfaceVisibility: 'hidden', WebkitFontSmoothing: 'antialiased' }}
       >
         {loading && !content ? (
           <div className="py-1"><ThreeDotsLoader colorClass={isUser ? 'bg-white/80' : 'bg-gray-500'} /></div>
@@ -45,7 +55,7 @@ export function ChatBubble({ content, role, loading = false }: Props) {
             rotate-45
           `}
         />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent } from 'react'
+import { motion } from 'framer-motion'
 import { PaperAirplaneIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 
 interface Props {
@@ -19,15 +20,16 @@ export function ChatInput({
   children
 }: Props) {
   return (
-    <div className="sticky flex flex-col justify-center w-full bottom-0 px-4 z-10 ">
-      <div className='pb-4 bg-[rgb(244,246,248)] rounded-t-3xl '>
-        <form
+    <div className="sticky flex flex-col justify-center w-full bottom-0 px-4 z-10">
+      <div className='pb-4 bg-[rgb(244,246,248)] rounded-t-3xl'>
+        <motion.form
           onSubmit={onSubmit}
           className="
             relative flex flex-col w-full
             border border-gray-200 bg-white
             rounded-3xl shadow px-4 py-2
           "
+          whileFocus={{ boxShadow: '0 0 0 3px rgba(147, 51, 234, 0.1)' }}
         >
           <input
             type="text"
@@ -47,25 +49,33 @@ export function ChatInput({
               {children}
             </div>
             )}
-            <button
+            <motion.button
               type="submit"
               disabled={disabled}
               className="
                 p-2 rounded-full
                 bg-purple-600 hover:bg-purple-700
                 disabled:opacity-50 disabled:cursor-not-allowed
-                transition
+                transition-colors
               "
+              whileHover={!disabled ? { scale: 1.05 } : {}}
+              whileTap={!disabled ? { scale: 0.95 } : {}}
+              transition={{ duration: 0.15 }}
             >
               {disabled ? (
                 <ArrowPathIcon className="h-5 w-5 text-white animate-spin" />
               ) : (
-                <PaperAirplaneIcon className="h-5 w-5 text-white rotate-90" />
+                <motion.div
+                  whileHover={{ rotate: 90 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <PaperAirplaneIcon className="h-5 w-5 text-white rotate-90" />
+                </motion.div>
               )}
-            </button>
+            </motion.button>
           </div>
-        </form>
-      </div>      
+        </motion.form>
+      </div>
     </div>
   )
 }

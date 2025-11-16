@@ -1,5 +1,7 @@
 'use client'
 
+import { motion } from 'framer-motion'
+
 interface Props {
   value: 'v1' | 'v2'
   onChange: (v: 'v1' | 'v2') => void
@@ -7,30 +9,52 @@ interface Props {
 }
 
 export function VersionToggle({ value, onChange, disabled }: Props) {
-  const base = 'px-3 py-1.5 text-sm rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2'
-  const active = 'bg-gray-900 text-white hover:bg-gray-800'
-  const inactive = 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-
   return (
-    <div className="inline-flex items-center gap-1" role="group" aria-label="Ask version">
-      <button
+    <div className="inline-flex items-center gap-0.5 p-1 bg-gray-100 rounded-lg relative" role="group" aria-label="Ask version">
+      {/* Sliding background pill */}
+      <motion.div
+        className="absolute top-1 bottom-1 left-1 bg-purple-600 rounded-md"
+        style={{ width: 'calc(50% - 6px)' }}
+        initial={false}
+        animate={{
+          x: value === 'v1' ? 0 : 'calc(100% + 4px)',
+        }}
+        transition={{
+          duration: 0.25,
+          ease: [0.4, 0, 0.2, 1],
+        }}
+      />
+
+      <motion.button
         type="button"
-        className={`${base} ${value === 'v1' ? active : inactive}`}
+        className={`
+          relative z-10 px-4 py-1.5 text-sm font-medium rounded-md
+          transition-colors duration-200
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+          ${value === 'v1' ? 'text-white' : 'text-gray-700 hover:text-gray-900'}
+        `}
         aria-pressed={value === 'v1'}
         onClick={() => !disabled && onChange('v1')}
         disabled={disabled}
+        whileTap={!disabled ? { scale: 0.97 } : {}}
       >
         v1
-      </button>
-      <button
+      </motion.button>
+      <motion.button
         type="button"
-        className={`${base} ${value === 'v2' ? active : inactive}`}
+        className={`
+          relative z-10 px-4 py-1.5 text-sm font-medium rounded-md
+          transition-colors duration-200
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+          ${value === 'v2' ? 'text-white' : 'text-gray-700 hover:text-gray-900'}
+        `}
         aria-pressed={value === 'v2'}
         onClick={() => !disabled && onChange('v2')}
         disabled={disabled}
+        whileTap={!disabled ? { scale: 0.97 } : {}}
       >
         v2
-      </button>
+      </motion.button>
     </div>
   )
 }

@@ -32,6 +32,24 @@ body {
   color: var(--foreground);
 }
 
+/* Animation Performance Optimization */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GPU Acceleration for animated elements */
+[data-motion] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
+
 /* Markdown Editor Toolbar Size Customization */
 .w-md-editor-toolbar {
   padding: 8px 10px !important;
