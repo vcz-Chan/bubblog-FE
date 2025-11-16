@@ -25,13 +25,13 @@ import { useSessionMessages } from '@/hooks/useSessionMessages'
 import { useAuthStore } from '@/store/AuthStore'
 import { useChatSessionStore } from '@/store/ChatSessionStore'
 import { ThreeDotsLoader } from '@/components/Common/ThreeDotsLoader'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const BANNER_STYLES: Record<'info' | 'success' | 'error', string> = {
   info: 'border-blue-200 bg-blue-50 text-blue-700',
   success: 'border-green-200 bg-green-50 text-green-700',
   error: 'border-red-200 bg-red-50 text-red-700',
 }
-const PANEL_TOP_OFFSET = 72 // px
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null
@@ -72,13 +72,20 @@ const buildInspectorFromHistoryMessage = (
   planOverride: SearchPlan | null
 ): InspectorData | undefined => {
   const meta = isPlainObject(message.retrieval_meta) ? message.retrieval_meta : null
-  const rewrites = toStringArray(pickMetaValue(meta, ['rewrites', 'rewrite_list', 'rewriteList']))
-  const keywords = toStringArray(pickMetaValue(meta, ['keywords', 'keyword_list', 'keywordList']))
+
+  // retrieval_meta에서 먼저 찾고, 없으면 search_plan에서 가져오기
+  const rewritesFromMeta = toStringArray(pickMetaValue(meta, ['rewrites', 'rewrite_list', 'rewriteList']))
+  const keywordsFromMeta = toStringArray(pickMetaValue(meta, ['keywords', 'keyword_list', 'keywordList']))
+
+  const rewrites = rewritesFromMeta.length > 0 ? rewritesFromMeta : toStringArray(planOverride?.rewrites)
+  const keywords = keywordsFromMeta.length > 0 ? keywordsFromMeta : toStringArray(planOverride?.keywords)
+
   const hybridResult = normalizeContextItems(pickMetaValue(meta, ['hybrid_result', 'hybridResult']))
   const searchResult = normalizeContextItems(pickMetaValue(meta, ['search_result', 'searchResult']))
   const contextItems = normalizeContextItems(pickMetaValue(meta, ['context', 'contexts']))
 
-  const hasData = Boolean(planOverride || rewrites.length || keywords.length || hybridResult.length || searchResult.length || contextItems.length)
+  // 실제 데이터가 있을 때만 인스펙션 표시
+  const hasData = Boolean(rewrites.length || keywords.length || hybridResult.length || searchResult.length || contextItems.length)
   if (!hasData) return undefined
 
   return {
@@ -87,15 +94,15 @@ const buildInspectorFromHistoryMessage = (
     v2Plan: planOverride,
     v2PlanReceived: Boolean(planOverride),
     v2Rewrites: rewrites,
-    v2RewritesReceived: rewrites.length > 0,
+    v2RewritesReceived: true,  // History에서 로드되었으므로 항상 true
     v2Keywords: keywords,
-    v2KeywordsReceived: keywords.length > 0,
+    v2KeywordsReceived: true,  // History에서 로드되었으므로 항상 true
     v2HybridResult: hybridResult,
-    v2HybridResultReceived: hybridResult.length > 0,
+    v2HybridResultReceived: true,  // History에서 로드되었으므로 항상 true
     v2SearchResult: searchResult,
-    v2SearchResultReceived: searchResult.length > 0,
+    v2SearchResultReceived: true,  // History에서 로드되었으므로 항상 true
     v2Context: contextItems,
-    v2ContextReceived: contextItems.length > 0,
+    v2ContextReceived: true,  // History에서 로드되었으므로 항상 true
     pending: false,
   }
 }
@@ -144,6 +151,10 @@ export default function ChatPage() {
   const bannerTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const activeSessionIdRef = useRef<number | null>(null)
   const viewerId = useAuthStore(state => state.userId)
+
+  const isMobile = useIsMobile();
+
+  const PANEL_TOP_OFFSET = isMobile ? 72 : 96 // px
 
   const {
     sessions,
