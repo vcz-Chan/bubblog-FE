@@ -82,7 +82,7 @@ export function RenameSessionModal({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="세션 이름을 입력하세요"
-                  className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm focus:border-purple-500 focus:outline-none transition-colors"
+                  className="w-full rounded-lg border-2 border-gray-200 px-4 py-3 text-sm focus:border-blue-500 focus:outline-none transition-colors"
                   autoFocus
                   disabled={loading}
                 />
@@ -102,7 +102,7 @@ export function RenameSessionModal({
                   <motion.button
                     type="submit"
                     disabled={loading || !title.trim() || title === currentTitle}
-                    className="rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     whileHover={!loading && title.trim() && title !== currentTitle ? { scale: 1.02 } : {}}
                     whileTap={!loading && title.trim() && title !== currentTitle ? { scale: 0.98 } : {}}
                   >

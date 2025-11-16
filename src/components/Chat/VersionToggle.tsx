@@ -13,7 +13,7 @@ export function VersionToggle({ value, onChange, disabled }: Props) {
     <div className="inline-flex items-center gap-0.5 p-1 bg-gray-100 rounded-lg relative" role="group" aria-label="Ask version">
       {/* Sliding background pill */}
       <motion.div
-        className="absolute top-1 bottom-1 left-1 bg-purple-600 rounded-md"
+        className="absolute top-1 bottom-1 left-1 bg-blue-600 rounded-md"
         style={{ width: 'calc(50% - 6px)' }}
         initial={false}
         animate={{
@@ -30,7 +30,7 @@ export function VersionToggle({ value, onChange, disabled }: Props) {
         className={`
           relative z-10 px-4 py-1.5 text-sm font-medium rounded-md
           transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
           ${value === 'v1' ? 'text-white' : 'text-gray-700 hover:text-gray-900'}
         `}
         aria-pressed={value === 'v1'}
@@ -45,7 +45,7 @@ export function VersionToggle({ value, onChange, disabled }: Props) {
         className={`
           relative z-10 px-4 py-1.5 text-sm font-medium rounded-md
           transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500
+          focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500
           ${value === 'v2' ? 'text-white' : 'text-gray-700 hover:text-gray-900'}
         `}
         aria-pressed={value === 'v2'}

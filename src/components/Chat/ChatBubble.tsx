@@ -14,7 +14,7 @@ export function ChatBubble({ content, role, loading = false }: Props) {
 
   // 조건부 클래스 분리
   const alignment = isUser ? 'justify-end' : 'justify-start'
-  const bgColor = isUser ? 'bg-purple-600' : 'bg-gray-200'
+  const bgColor = isUser ? 'bg-blue-600' : 'bg-gray-200'
   const textColor = isUser ? 'text-white' : 'text-gray-900'
   const bubbleCorners = isUser
     ? 'rounded-tl-lg rounded-tr-lg rounded-bl-lg rounded-br-none'

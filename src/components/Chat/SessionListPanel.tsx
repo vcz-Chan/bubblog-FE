@@ -106,9 +106,9 @@ export function SessionListPanel({
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
         style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
       >
-      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4 bg-gradient-to-r from-purple-50 to-blue-50">
+      <div className="flex items-center justify-between border-b border-gray-100 px-4 py-4 bg-gradient-to-r from-blue-50 to-blue-100">
         <div className="flex items-center gap-2">
-          <MessageSquare className="w-5 h-5 text-purple-600" />
+          <MessageSquare className="w-5 h-5 text-blue-600" />
           <p className="text-lg font-bold text-gray-900">대화 세션</p>
         </div>
         {onClose && (
@@ -129,7 +129,7 @@ export function SessionListPanel({
         <motion.button
           type="button"
           onClick={() => onSelect(null)}
-          className="w-full rounded-lg border-2 border-dashed border-purple-300 bg-purple-50/50 py-3 text-sm font-semibold text-purple-600 hover:bg-purple-100 hover:border-purple-400 transition-colors"
+          className="w-full rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-100 hover:border-blue-400 transition-colors"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -193,7 +193,7 @@ export function SessionListPanel({
                 aria-label={`세션 선택: ${getSessionTitle(session)}`}
                 className={`w-full rounded-xl border-2 px-4 py-3.5 text-left transition-all cursor-pointer ${
                   isActive
-                    ? 'border-purple-500 bg-gradient-to-r from-purple-50 to-blue-50 shadow-md'
+                    ? 'border-blue-500 bg-gradient-to-r from-blue-50 to-blue-100 shadow-md'
                     : 'border-gray-100 bg-white hover:bg-gray-50 hover:border-gray-200 hover:shadow-sm'
                 }`}
                 whileHover={{ scale: 1.01, y: -2 }}
@@ -203,8 +203,8 @@ export function SessionListPanel({
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
-                      <MessageSquare className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-purple-600' : 'text-gray-400'}`} />
-                      <p className={`text-sm font-semibold truncate ${isActive ? 'text-purple-900' : 'text-gray-900'}`}>
+                      <MessageSquare className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400'}`} />
+                      <p className={`text-sm font-semibold truncate ${isActive ? 'text-blue-900' : 'text-gray-900'}`}>
                         {getSessionTitle(session)}
                       </p>
                     </div>

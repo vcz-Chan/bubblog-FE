@@ -32,8 +32,8 @@ export function ChatInput({
             rounded-2xl sm:rounded-3xl shadow-lg
             px-3 sm:px-4 py-2
             transition-all duration-200 ease-[cubic-bezier(0.4,0,0.2,1)]
-            focus-within:border-purple-500 focus-within:shadow-xl
-            focus-within:shadow-purple-100/50
+            focus-within:border-blue-500 focus-within:shadow-xl
+            focus-within:shadow-blue-100/50
             hover:shadow-xl
           "
         >
@@ -66,8 +66,8 @@ export function ChatInput({
                 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0
                 flex items-center justify-center
                 ${hasInput && !disabled
-                  ? 'bg-purple-600 hover:bg-purple-700 shadow-md shadow-purple-200'
-                  : 'bg-purple-500 hover:bg-purple-600'
+                  ? 'bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200'
+                  : 'bg-blue-500 hover:bg-blue-600'
                 }
                 ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
               `}
