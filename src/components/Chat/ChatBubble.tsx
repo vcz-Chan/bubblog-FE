@@ -14,14 +14,9 @@ export function ChatBubble({ content, role, loading = false }: Props) {
 
   // 조건부 클래스 분리
   const alignment = isUser ? 'justify-end' : 'justify-start'
-  const bgColor = isUser ? 'bg-blue-600' : 'bg-gray-200'
-  const textColor = isUser ? 'text-white' : 'text-gray-900'
-  const bubbleCorners = isUser
-    ? 'rounded-tl-lg rounded-tr-lg rounded-bl-lg rounded-br-none'
-    : 'rounded-tl-none rounded-tr-lg rounded-br-lg rounded-bl-lg'
-  const trianglePos = isUser
-    ? 'right-0 translate-x-1/2'
-    : 'left-0 -translate-x-1/2'
+  const bgColor = isUser ? 'bg-white' : 'bg-gray-50'
+  const borderColor = isUser ? 'border-gray-300' : 'border-gray-200'
+  const textColor = 'text-gray-900'
 
   return (
     <motion.div
@@ -33,28 +28,44 @@ export function ChatBubble({ content, role, loading = false }: Props) {
     >
       <motion.div
         className={`
-          relative max-w-[75%] px-6 py-4
-          ${bgColor} ${textColor}
-          ${bubbleCorners}
-          shadow
+          relative max-w-[80%] px-5 py-3.5
+          ${bgColor} ${textColor} ${borderColor}
+          border-2 rounded-2xl
+          shadow-sm hover:shadow-md
+          transition-shadow duration-200
         `}
-        whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)' }}
-        transition={{ duration: 0.2 }}
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{
+          duration: 0.4,
+          ease: [0.4, 0, 0.2, 1],
+          opacity: { duration: 0.3 }
+        }}
         style={{ backfaceVisibility: 'hidden', WebkitFontSmoothing: 'antialiased' }}
       >
         {loading && !content ? (
-          <div className="py-1"><ThreeDotsLoader colorClass={isUser ? 'bg-white/80' : 'bg-gray-500'} /></div>
+          <div className="py-1"><ThreeDotsLoader colorClass="bg-gray-400" /></div>
         ) : (
-          <p className="whitespace-pre-wrap">{content}</p>
+          <div className="space-y-2">
+            <p className="whitespace-pre-wrap leading-relaxed text-[15px]">{content}</p>
+            {/* 타임스탬프 */}
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-xs text-gray-400">
+                {new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+              {!isUser && (
+                <motion.button
+                  className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => navigator.clipboard.writeText(content)}
+                >
+                  복사
+                </motion.button>
+              )}
+            </div>
+          </div>
         )}
-        {/* 꼬리 삼각형 */}
-        <div
-          className={`
-            absolute bottom-0 ${trianglePos}
-            w-3 h-3 ${bgColor}
-            rotate-45
-          `}
-        />
       </motion.div>
     </motion.div>
   )
