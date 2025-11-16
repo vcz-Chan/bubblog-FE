@@ -55,6 +55,7 @@ export function SessionContextMenu({
             top: position?.y ?? 0,
             right: 8,
           }}
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.95, y: -10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -10 }}

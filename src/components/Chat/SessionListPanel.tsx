@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { X, MessageSquare, Clock, Trash2, Edit3, MoreVertical } from 'lucide-react'
+import { X, MessageSquare, Clock, MoreVertical } from 'lucide-react'
 import { ChatSession } from '@/utils/types'
 import { SessionContextMenu } from './SessionContextMenu'
 import { RenameSessionModal } from './RenameSessionModal'
@@ -57,6 +57,14 @@ export function SessionListPanel({
   const [renameModalOpen, setRenameModalOpen] = useState<number | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<number | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+
+  const openRenameModal = (sessionId: number) => {
+    setTimeout(() => setRenameModalOpen(sessionId), 0)
+  }
+
+  const openDeleteDialog = (sessionId: number) => {
+    setTimeout(() => setDeleteDialogOpen(sessionId), 0)
+  }
 
   const handleRename = async (sessionId: number, newTitle: string) => {
     if (!onSessionUpdate) return
@@ -165,8 +173,13 @@ export function SessionListPanel({
 
         {sessions.map(session => {
           const isActive = selectedSessionId === session.session_id
+          const isContextMenuOpen = contextMenuOpen === session.session_id
           return (
-            <div key={session.session_id} className="relative group mb-2">
+            <div
+              key={session.session_id}
+              className="relative group mb-2"
+              style={{ zIndex: isContextMenuOpen ? 50 : undefined }}
+            >
               <motion.div
                 onClick={() => onSelect(session.session_id)}
                 onKeyDown={(e) => {
@@ -223,10 +236,10 @@ export function SessionListPanel({
                     </motion.button>
 
                     <SessionContextMenu
-                      isOpen={contextMenuOpen === session.session_id}
+                      isOpen={isContextMenuOpen}
                       onClose={() => setContextMenuOpen(null)}
-                      onRename={() => setRenameModalOpen(session.session_id)}
-                      onDelete={() => setDeleteDialogOpen(session.session_id)}
+                      onRename={() => openRenameModal(session.session_id)}
+                      onDelete={() => openDeleteDialog(session.session_id)}
                     />
                   </div>
                 </div>
