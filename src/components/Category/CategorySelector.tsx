@@ -21,6 +21,7 @@ import {
   MinusSmallIcon,
   CheckIcon,
   ArrowPathIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline'
 import { useAuthStore } from '@/store/AuthStore';
 import { ConfirmModal } from '@/components/Common/ConfirmModal'
@@ -309,8 +310,13 @@ export function CategorySelector({
         : {}
 
       // 공통 컨테이너 스타일: 테두리, 배경, 패딩, rounded
-      const baseClass = 'flex items-center gap-2 mb-1 rounded-md px-2 py-2 hover:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500'
-      const highlightClass = hoverTargetId === node.id ? 'ring-2 ring-indigo-300' : ''
+      const isSelected = selectedCategory?.id === node.id
+      const baseClass = `flex items-center gap-2 mb-1 rounded-lg px-3 py-2.5 transition-all duration-200 ${
+        isSelected
+          ? 'bg-blue-50 border-2 border-blue-500 shadow-sm'
+          : 'bg-white border-2 border-gray-200 hover:border-blue-300 hover:shadow-sm'
+      }`
+      const highlightClass = hoverTargetId === node.id ? 'ring-2 ring-blue-300' : ''
       const containerClass = `${baseClass} ${highlightClass}`
 
       const line: JSX.Element[] = []
@@ -391,9 +397,9 @@ export function CategorySelector({
                   }
                 }}
                 className={`flex-1 text-left text-sm py-1 outline-none ${
-                  selectedCategory?.id === node.id
-                    ? 'font-semibold text-indigo-700'
-                    : 'hover:underline text-gray-800'
+                  isSelected
+                    ? 'font-semibold text-blue-900'
+                    : 'text-gray-800'
                 }`}
                 data-cat-id={node.id}
               >
@@ -511,12 +517,15 @@ export function CategorySelector({
           </div>
 
           {loading && (
-            <div className="flex items-center justify-center py-6 text-gray-500">
-              <div className="h-5 w-5 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
-              로딩 중…
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-gray-800" />
             </div>
           )}
-          {error && <p className="text-center text-red-500 py-4">{error}</p>}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-600">
+              {error}
+            </div>
+          )}
 
           {!loading && !error && (
             <div>
@@ -524,18 +533,29 @@ export function CategorySelector({
                 <button
                   onClick={() => selectNode(null)}
                   className={`
-                    w-full
-                    px-5 py-2
-                    rounded-full
-                    text-sm font-medium
-                    transition
-                    ${selectedCategory
-                      ? 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                    w-full flex items-center gap-3 p-4 rounded-lg border-2
+                    transition-all duration-200
+                    ${selectedCategory === null
+                      ? 'border-blue-500 bg-blue-50 shadow-md'
+                      : 'border-gray-200 bg-gradient-to-br from-gray-50 to-white hover:border-blue-300 hover:shadow-sm'
                     }
                   `}
                 >
-                  {selectedCategory ? '클릭 시 카테고리 선택 해제' : '전체 카테고리 선택 중'}
+                  <div className="flex-shrink-0">
+                    {selectedCategory === null ? (
+                      <CheckCircleIcon className="h-6 w-6 text-blue-600" />
+                    ) : (
+                      <div className="h-6 w-6 rounded-full border-2 border-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className={`font-semibold ${selectedCategory === null ? 'text-blue-900' : 'text-gray-800'}`}>
+                      전체 카테고리
+                    </p>
+                    <p className={`text-sm ${selectedCategory === null ? 'text-blue-700' : 'text-gray-500'}`}>
+                      모든 글을 대상으로 대화합니다
+                    </p>
+                  </div>
                 </button>
               </div>
               {isOwner && (
@@ -618,10 +638,10 @@ export function CategorySelector({
           )}
 
           {/* Footer */}
-          <div className="mt-4 text-center">
+          <div className="mt-6 pt-4 border-t border-gray-200 flex justify-end">
             <button
               onClick={onClose}
-              className="px-4 py-1 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
             >
               닫기
             </button>
