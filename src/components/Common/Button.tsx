@@ -2,9 +2,10 @@
 
 import React from 'react'
 import { motion } from 'framer-motion'
+import type { HTMLMotionProps } from 'framer-motion'
 import { ArrowPathIcon } from '@heroicons/react/24/outline'
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends HTMLMotionProps<'button'> {
   variant?: 'solid' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   loading?: boolean
