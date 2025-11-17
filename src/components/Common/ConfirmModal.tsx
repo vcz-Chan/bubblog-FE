@@ -24,7 +24,7 @@ export function ConfirmModal({
   isDestructive = false,
 }: ConfirmModalProps) {
   return (
-    <Dialog open={isOpen} onClose={onCancel} className="relative z-50">
+    <Dialog open={isOpen} onClose={onCancel} className="relative z-[200]">
       <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <Dialog.Panel className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
