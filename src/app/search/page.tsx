@@ -1,7 +1,7 @@
 import SearchPageClient from '@/app/search/SearchPageClient';
 
 interface SearchPageProps {
-  searchParams?: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
 function parseNumber(param: string | string[] | undefined): number | null {
@@ -10,10 +10,11 @@ function parseNumber(param: string | string[] | undefined): number | null {
   return Number.isNaN(value) ? null : value;
 }
 
-export default function SearchPage({ searchParams = {} }: SearchPageProps) {
-  const queryParam = searchParams.query;
-  const pageParam = searchParams.page;
-  const categoryParam = searchParams.categoryId ?? searchParams.category_id;
+export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const params = await searchParams;
+  const queryParam = params?.query;
+  const pageParam = params?.page;
+  const categoryParam = params?.categoryId ?? params?.category_id;
 
   const query = typeof queryParam === 'string' ? queryParam : '';
   const page = parseNumber(pageParam) ?? 0;
