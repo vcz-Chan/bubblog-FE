@@ -158,7 +158,7 @@ export default function CommentItem({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="flex gap-3 md:gap-4 p-4 md:p-6 rounded-lg bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+      className="flex gap-3 md:gap-4 p-4 md:p-6 rounded-lg hover:bg-gray-50/50 dark:hover:bg-gray-800/20 transition-colors duration-200 border border-gray-200 dark:border-gray-700"
     >
         <UserInitialAvatar
           name={comment.writerNickname}
@@ -175,7 +175,7 @@ export default function CommentItem({
         {isEditing ? (
           <div className="mt-2">
             <textarea
-              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-950 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 resize-none"
+              className="w-full p-3 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 resize-none"
               rows={3}
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}

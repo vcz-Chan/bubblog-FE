@@ -2,7 +2,7 @@
 
 export default function CommentSkeleton() {
   return (
-    <div className="flex gap-3 md:gap-4 p-4 md:p-6 rounded-lg bg-gray-50/50 dark:bg-gray-900/50 animate-pulse">
+    <div className="flex gap-3 md:gap-4 p-4 md:p-6 rounded-lg border border-gray-200 dark:border-gray-700 animate-pulse">
       {/* Avatar skeleton */}
       <div className="flex-shrink-0">
         <div className="w-10 h-10 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
