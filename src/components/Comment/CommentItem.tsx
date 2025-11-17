@@ -6,6 +6,8 @@ import { useProfileStore } from '@/store/ProfileStore'
 import { updateComment, deleteComment, toggleCommentLike, getChildComments } from '@/apis/commentApi'
 import CommentForm from './CommentForm'
 import UserInitialAvatar from '@/components/Common/UserInitialAvatar'
+import { Heart, MessageCircle, Edit2, Trash2 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 // Helper function for relative time
 function timeAgo(date: string): string {
@@ -151,13 +153,19 @@ export default function CommentItem({
   };
 
   return (
-    <div className="flex space-x-4">
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      className="flex gap-3 md:gap-4 p-4 md:p-6 rounded-lg bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-colors duration-200"
+    >
         <UserInitialAvatar
           name={comment.writerNickname}
           imageUrl={comment.writerProfileImage}
           size={40}
         />
-      <div className="flex-1">
+      <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
           <span className="font-bold">{comment.writerNickname}</span>
           <span className="text-sm text-gray-500">
@@ -165,36 +173,87 @@ export default function CommentItem({
           </span>
         </div>
         {isEditing ? (
-          <div>
+          <div className="mt-2">
             <textarea
-              className="w-full p-2 border rounded-md mt-2"
+              className="w-full p-3 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-950 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 resize-none"
+              rows={3}
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
+              aria-label="댓글 수정"
             />
-            <div className="flex space-x-2 mt-2">
-              <button onClick={handleUpdate} className="px-3 py-1 bg-blue-500 text-white rounded-md">저장</button>
-              <button onClick={() => setIsEditing(false)} className="px-3 py-1 bg-gray-300 rounded-md">취소</button>
+            <div className="flex gap-2 mt-3">
+              <button
+                onClick={handleUpdate}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 min-h-[44px]"
+              >
+                저장
+              </button>
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 rounded-lg font-medium transition-colors duration-200 min-h-[44px]"
+              >
+                취소
+              </button>
             </div>
           </div>
         ) : (
           <div>
               <p className="mt-1">{comment.content}</p>
               <div className="flex items-center space-x-4 mt-2 text-sm">
-                <button
+                <motion.button
                   onClick={handleLike}
                   disabled={isDeleted}
-                  className={`flex items-center space-x-1 ${isDeleted ? 'text-gray-300 cursor-not-allowed' : isLiked ? 'text-red-500 hover:text-red-500' : 'text-gray-500 hover:text-red-500'}`}
+                  whileTap={!isDeleted ? { scale: 0.9 } : {}}
+                  whileHover={!isDeleted ? { scale: 1.05 } : {}}
+                  className={`flex items-center gap-1.5 px-2 py-1.5 rounded-md transition-all duration-200 min-h-[44px] md:min-h-0 ${
+                    isDeleted
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : isLiked
+                      ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20'
+                      : 'text-gray-500 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800'
+                  }`}
+                  aria-label={isLiked ? '좋아요 취소' : '좋아요'}
+                  aria-pressed={isLiked}
                 >
-                  <span>♥</span>
-                  <span>{likeCount}</span>
-                </button>
+                  <motion.div
+                    animate={isLiked ? { scale: [1, 1.3, 1] } : {}}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  >
+                    <Heart
+                      size={18}
+                      className={`transition-transform ${isLiked ? 'fill-current' : ''}`}
+                    />
+                  </motion.div>
+                  <span className="font-medium">{likeCount}</span>
+                </motion.button>
               {!isReply && (
-                <button onClick={() => setShowReplyForm(!showReplyForm)} className="text-gray-500 hover:text-gray-700">답글 달기</button>
+                <button
+                  onClick={() => setShowReplyForm(!showReplyForm)}
+                  className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 min-h-[44px] md:min-h-0"
+                  aria-label="답글 달기"
+                >
+                  <MessageCircle size={16} />
+                  <span>답글</span>
+                </button>
               )}
               {isAuthor && (
-                <div className="flex space-x-2">
-                  <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-gray-700">수정</button>
-                  <button onClick={handleDelete} className="text-gray-500 hover:text-gray-700">삭제</button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 min-h-[44px] md:min-h-0"
+                    aria-label="댓글 수정"
+                  >
+                    <Edit2 size={16} />
+                    <span>수정</span>
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex items-center gap-1.5 px-2 py-1.5 rounded-md text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 min-h-[44px] md:min-h-0"
+                    aria-label="댓글 삭제"
+                  >
+                    <Trash2 size={16} />
+                    <span>삭제</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -202,34 +261,57 @@ export default function CommentItem({
             {/* 대댓글(답글) 관련 UI는 루트 댓글에만 표시 */}
             {!isReply && (
               <>
-                {showReplyForm && (
-                  <div className="mt-4 pl-8">
-                    <CommentForm 
-                      postId={postId} 
-                      parentId={comment.id} 
-                      onSuccess={handleReplySuccess} 
-                      placeholder={`${comment.writerNickname}님에게 답글 남기기`}
-                      buttonText='답글 등록'
-                    />
-                  </div>
-                )}
+                <AnimatePresence>
+                  {showReplyForm && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="mt-4 pl-4 md:pl-8 overflow-hidden"
+                    >
+                      <CommentForm
+                        postId={postId}
+                        parentId={comment.id}
+                        onSuccess={handleReplySuccess}
+                        placeholder={`${comment.writerNickname}님에게 답글 남기기`}
+                        buttonText='답글 등록'
+                      />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {replyCount > 0 && (
-                  <button onClick={toggleShowChildren} className="text-sm text-blue-500 mt-2">
+                  <motion.button
+                    onClick={toggleShowChildren}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="flex items-center gap-1.5 mt-3 px-2 py-1.5 rounded-md text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200"
+                    aria-expanded={showChildren}
+                  >
+                    <MessageCircle size={14} />
                     {showChildren ? '답글 숨기기' : `답글 ${replyCount}개 보기`}
-                  </button>
+                  </motion.button>
                 )}
-                {showChildren && (
-                  <div className="mt-4 pl-8 border-l-2">
-                    {childComments.map(child => (
-                      <CommentItem key={child.id} postId={postId} comment={child} onCommentUpdate={onCommentUpdate} onCommentDelete={onCommentDelete} onReplyCreated={onReplyCreated} isReply={true} />
-                    ))}
-                  </div>
-                )}
+                <AnimatePresence>
+                  {showChildren && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                      className="mt-4 pl-4 md:pl-8 border-l-2 border-blue-200 dark:border-blue-800 space-y-3 overflow-hidden"
+                    >
+                      {childComments.map(child => (
+                        <CommentItem key={child.id} postId={postId} comment={child} onCommentUpdate={onCommentUpdate} onCommentDelete={onCommentDelete} onReplyCreated={onReplyCreated} isReply={true} />
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </>
             )}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

@@ -40,17 +40,19 @@ export default function CommentForm({
   return (
     <form onSubmit={handleSubmit} className="my-6">
       <textarea
-        className="w-full p-3 border rounded-md focus:ring-2 focus:ring-gray-900 focus:border-transparent transition resize-none"
+        className="w-full p-4 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-950 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-all duration-200 resize-none placeholder:text-gray-400 dark:placeholder:text-gray-500"
         rows={3}
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder={placeholder}
+        aria-label="댓글 입력"
       />
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-3">
         <Button
           type="submit"
           variant="solid"
-          className="mt-2"
+          className="px-6 py-2.5 min-h-[44px]"
+          disabled={!content.trim()}
         >
           {buttonText}
         </Button>

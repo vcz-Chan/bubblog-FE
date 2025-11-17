@@ -6,6 +6,8 @@ import { Comment } from '@/utils/types'
 import { useAuthStore, selectIsLogin } from '@/store/AuthStore'
 import CommentItem from './CommentItem'
 import CommentForm from './CommentForm'
+import CommentSkeleton from './CommentSkeleton'
+import CommentEmpty from './CommentEmpty'
 
 interface CommentListProps {
   postId: string
@@ -14,6 +16,7 @@ interface CommentListProps {
 export default function CommentList({ postId }: CommentListProps) {
   const [comments, setComments] = useState<Comment[]>([])
   const [count, setCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const isLogin = useAuthStore(selectIsLogin)
 
   const refreshCommentCount = useCallback(async () => {
@@ -30,6 +33,7 @@ export default function CommentList({ postId }: CommentListProps) {
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
+        setIsLoading(true);
         const commentsResponse = await getComments(postId)
 
         if (commentsResponse.success) {
@@ -39,6 +43,8 @@ export default function CommentList({ postId }: CommentListProps) {
         await refreshCommentCount()
       } catch (error) {
         console.error('Error fetching comments data:', error)
+      } finally {
+        setIsLoading(false);
       }
     }
     fetchInitialData()
@@ -80,19 +86,28 @@ export default function CommentList({ postId }: CommentListProps) {
       ) : (
         <p className="mb-6">댓글을 작성하려면 로그인이 필요합니다.</p>
       )}
-      <div className="space-y-4">
-        {comments.map(comment => (
-          <div key={comment.id} className="border-b border-gray-200 py-4">
+      {isLoading ? (
+        <div className="space-y-3">
+          {[1, 2, 3].map(i => (
+            <CommentSkeleton key={i} />
+          ))}
+        </div>
+      ) : comments.length === 0 ? (
+        <CommentEmpty />
+      ) : (
+        <div className="space-y-3">
+          {comments.map(comment => (
             <CommentItem
+              key={comment.id}
               postId={postId}
               comment={comment}
               onCommentUpdate={onCommentUpdate}
               onCommentDelete={onCommentDelete}
               onReplyCreated={onReplyCreated}
             />
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
