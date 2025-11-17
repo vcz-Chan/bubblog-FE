@@ -589,7 +589,7 @@ export default function ChatPage() {
   if (!profile)    return null
 
   return (
-    <div className='bg-[rgb(244,246,248)] w-full h-full'>
+    <div className='bg-gray-50 w-full h-full'>
       <div className="flex max-h-full w-full">
         <AnimatePresence>
           {isSessionPanelOpen && (
@@ -631,7 +631,7 @@ export default function ChatPage() {
         </AnimatePresence>
 
         <div className="flex flex-1 flex-col items-center overflow-hidden px-4 pb-8 pt-6 sm:px-8 md:px-10 lg:px-16">
-          <div className='flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl bg-[rgb(244,246,248)] pb-4 pt-2'>
+          <div className='flex w-full max-w-5xl flex-wrap items-center justify-between gap-2 rounded-2xl bg-gray-50 pb-4 pt-2'>
             <div className="flex items-center gap-2">
               <button
                 type="button"

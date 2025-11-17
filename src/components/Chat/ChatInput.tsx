@@ -23,7 +23,7 @@ export function ChatInput({
 
   return (
     <div className="sticky flex flex-col justify-center w-full bottom-0 px-3 sm:px-4 z-10">
-      <div className='pb-3 sm:pb-4 bg-[rgb(244,246,248)] rounded-t-3xl'>
+      <div className='pb-3 sm:pb-4 bg-gray-50 rounded-t-3xl'>
         <motion.form
           onSubmit={onSubmit}
           className="

@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, selectIsLogin, selectUserId, selectLogout } from '@/store/AuthStore'
 import SearchBar from './SearchBar'
 import { useRouter } from 'next/navigation'
@@ -49,7 +50,7 @@ export default function NavBar() {
   }
 
   return (
-    <header className="bg-[rgb(244,246,248)] shadow-md sticky top-0 z-50">
+    <header className="bg-gray-50 shadow-md sticky top-0 z-50">
       <div className="md:px-16 p-3 flex justify-between items-center">
         {/* 로고 */}
         <Link href="/" className="hidden md:flex items-center mr-16">
@@ -88,49 +89,57 @@ export default function NavBar() {
               </button>
 
               {/* 드롭다운 메뉴 */}
-              {menuOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10">
-                  <Link
-                    href={`/blog/${userId}`}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMenuOpen(false)}
+              <AnimatePresence>
+                {menuOpen && (
+                  <motion.div
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-10"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
                   >
-                    <UserIcon className="h-5 w-5" />
-                    <span>내 블로그</span>
-                  </Link>
-                  <Link
-                    href="/write"
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <PencilIcon className="h-5 w-5" />
-                    <span>글쓰기</span>
-                  </Link>
-                  <Link
-                    href={`/settings/${userId}`}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <Cog6ToothIcon className="h-5 w-5" />
-                    <span>블로그 설정</span>
-                  </Link>
-                  <Link
-                    href={`/chatbot/${userId}`}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                    onClick={() => setMenuOpen(false)}
-                  >
-                    <ChatBubbleLeftRightIcon className="h-5 w-5" />
-                    <span>내 챗봇</span>
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                    <span>로그아웃</span>
-                  </button>
-                </div>
-              )}
+                    <Link
+                      href={`/blog/${userId}`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <UserIcon className="h-5 w-5" />
+                      <span>내 블로그</span>
+                    </Link>
+                    <Link
+                      href="/write"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <PencilIcon className="h-5 w-5" />
+                      <span>글쓰기</span>
+                    </Link>
+                    <Link
+                      href={`/settings/${userId}`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <Cog6ToothIcon className="h-5 w-5" />
+                      <span>블로그 설정</span>
+                    </Link>
+                    <Link
+                      href={`/chatbot/${userId}`}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                      <span>내 챗봇</span>
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                      <span>로그아웃</span>
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <>

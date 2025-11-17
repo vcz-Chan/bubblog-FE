@@ -1,7 +1,8 @@
 // components/SettingsPage.tsx
 'use client'
 
-import React, { useState, useEffect, FormEvent } from 'react'
+import React, { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useAuthStore, selectUserId, selectLogout } from '@/store/AuthStore'
 import {
   getUserProfile,
@@ -12,6 +13,10 @@ import {
 import { PersonaManager } from '@/components/Persona/PersonaManager'
 import ImageUploader from '@/components/Common/ImageUploader'
 import { Button } from '@/components/Common/Button'
+import { ProfilePreviewCard } from '@/components/Settings/ProfilePreviewCard'
+import { SettingsTabs, SettingsTab } from '@/components/Settings/SettingsTabs'
+import { DeleteAccountModal } from '@/components/Settings/DeleteAccountModal'
+import SettingsSkeleton from '@/components/Skeletons/SettingsSkeleton'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/contexts/ToastContext'
@@ -21,6 +26,9 @@ export default function SettingsPage() {
   const logout = useAuthStore(selectLogout);
   const router = useRouter()
   const toast = useToast()
+
+  // 탭 상태
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 
   // 프로필 상태
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -77,108 +85,164 @@ export default function SettingsPage() {
     }
   }
 
-  return (
-    <div className="max-w-3xl mx-auto p-6 space-y-8">
-      {/* 프로필 설정 섹션 */}
-      <section className="bg-white rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-4 border-b pb-2">
-          프로필 설정
-        </h2>
+  // 로딩 상태
+  if (loadingProfile) {
+    return <SettingsSkeleton />
+  }
 
-        {loadingProfile ? (
-          <p className="text-center text-gray-500">로딩 중…</p>
-        ) : errorProfile ? (
-          <p className="text-red-600">{errorProfile}</p>
-        ) : profile ? (
-          <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* 닉네임 입력 */}
-              <div>
-                <label className="block mb-2 text-sm font-medium text-gray-700">
-                  닉네임
-                </label>
-                <input
-                  type="text"
-                  value={nickname}
-                  onChange={e => setNickname(e.target.value)}
-                  className="
-                    w-full rounded-md border border-gray-200
-                    px-4 py-2 text-gray-800
-                    focus:outline-none focus:ring-2 focus:ring-blue-300
-                  "
-                />
+  // 탭 콘텐츠 렌더링
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'profile':
+        return (
+          <motion.div
+            key="profile"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-6"
+          >
+            {errorProfile ? (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-600">{errorProfile}</p>
               </div>
-
-              {/* 프로필 이미지 업로더 */}
-              <div className="flex flex-col items-start">
-                <label className="block mb-2 text-sm font-medium text-gray-700">
-                  프로필 이미지
-                </label>
-                {profileImageUrl && (
-                  <Image
-                    src={profileImageUrl}
-                    alt="프로필 미리보기"
-                    width={100}
-                    height={100}
-                    className="rounded-full object-cover border mb-2"
+            ) : profile ? (
+              <>
+                {/* 닉네임 입력 */}
+                <div>
+                  <label className="block mb-2 text-sm font-semibold text-gray-700">
+                    닉네임
+                  </label>
+                  <input
+                    type="text"
+                    value={nickname}
+                    onChange={e => setNickname(e.target.value)}
+                    maxLength={20}
+                    className="
+                      w-full rounded-lg border border-gray-300
+                      px-4 py-3 text-gray-800
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                      transition-all
+                    "
+                    placeholder="닉네임을 입력하세요"
                   />
-                )}
-                <ImageUploader
-                  folder="profile-images"
-                  onUploaded={url => setProfileImageUrl(url)}
+                  <p className="mt-1 text-xs text-gray-500">
+                    {nickname.length}/20자
+                  </p>
+                </div>
+
+                {/* 프로필 이미지 업로더 */}
+                <div>
+                  <label className="block mb-3 text-sm font-semibold text-gray-700">
+                    프로필 이미지
+                  </label>
+                  <ImageUploader
+                    folder="profile-images"
+                    onUploaded={url => setProfileImageUrl(url)}
+                  />
+                </div>
+
+                {/* 저장 / 탈퇴 버튼 */}
+                <div className="flex flex-col sm:flex-row justify-between gap-4 pt-6 border-t">
+                  <Button
+                    variant="outline"
+                    className="text-red-600 hover:bg-red-50 border-red-200"
+                    onClick={() => setConfirmOpen(true)}
+                  >
+                    계정 탈퇴
+                  </Button>
+                  <Button
+                    onClick={saveProfile}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    변경사항 저장
+                  </Button>
+                </div>
+              </>
+            ) : null}
+          </motion.div>
+        )
+
+      case 'persona':
+        return (
+          <motion.div
+            key="persona"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+          >
+            {userId && <PersonaManager userId={userId} />}
+          </motion.div>
+        )
+
+      case 'security':
+        return (
+          <motion.div
+            key="security"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.3 }}
+            className="text-center py-16"
+          >
+            <p className="text-gray-500">보안 설정은 준비 중입니다.</p>
+          </motion.div>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen py-8"
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* 사이드바 - 프로필 미리보기 */}
+          <aside className="lg:col-span-4">
+            <div className="lg:sticky lg:top-8">
+              {profile && (
+                <ProfilePreviewCard
+                  profile={profile}
+                  profileImageUrl={profileImageUrl}
                 />
+              )}
+            </div>
+          </aside>
+
+          {/* 메인 콘텐츠 */}
+          <main className="lg:col-span-8">
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+              {/* 탭 네비게이션 */}
+              <SettingsTabs
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
+
+              {/* 탭 콘텐츠 */}
+              <div className="p-6 sm:p-8">
+                <AnimatePresence mode="wait">
+                  {renderTabContent()}
+                </AnimatePresence>
               </div>
             </div>
-
-            {/* 저장 / 탈퇴 버튼 */}
-            <div className="flex justify-end gap-4">
-              <Button
-                variant="outline"
-                className="text-red-600 hover:bg-red-50"
-                onClick={() => setConfirmOpen(true)}
-              >
-                탈퇴
-              </Button>
-              <Button onClick={saveProfile}>저장</Button>
-            </div>
-          </div>
-        ) : null}
-      </section>
-
-      {/* 페르소나 설정 섹션 */}
-      <section className="bg-white rounded-xl shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-4 border-b pb-2">
-          페르소나 설정
-        </h2>
-        {userId && <PersonaManager userId={userId} />}
-      </section>
+          </main>
+        </div>
+      </div>
 
       {/* 탈퇴 확인 모달 */}
-      {confirmOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg p-6 w-80 space-y-4">
-            <h3 className="text-lg font-semibold">정말 계정을 삭제하시겠습니까?</h3>
-            <p className="text-sm text-gray-600">
-              삭제된 계정은 복구할 수 없습니다.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                className="text-gray-700 hover:bg-gray-100"
-                onClick={() => setConfirmOpen(false)}
-              >
-                취소
-              </Button>
-              <Button
-                className="bg-red-600 hover:bg-red-700"
-                onClick={handleWithdraw}
-              >
-                삭제
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <DeleteAccountModal
+        isOpen={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleWithdraw}
+      />
+    </motion.div>
   )
 }

@@ -50,7 +50,7 @@ export function DraggableModal({
           topRight: true, bottomRight: true, bottomLeft: true, topLeft: true,
         }}
         dragHandleClassName="modal-header"
-        className="pointer-events-auto bg-[rgb(244,246,248)] border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
+        className="pointer-events-auto bg-gray-50 border border-gray-200 rounded-lg shadow-2xl overflow-hidden"
         style={{ zIndex: 1000 }}
       >
         <div

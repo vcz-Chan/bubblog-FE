@@ -14,7 +14,7 @@ export function PostCard({ post }: { post: Blog }) {
       className="w-full h-full"
     >
       <Link href={`/post/${id}`} className="block w-full h-full">
-        <div className="bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-full overflow-hidden border border-gray-200">
+        <div className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col h-full overflow-hidden border border-gray-200">
           <div className="relative h-48 w-full overflow-hidden">
             <Image
               src={thumbnailUrl || '/logo.png'}

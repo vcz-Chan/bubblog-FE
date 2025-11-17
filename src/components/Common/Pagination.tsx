@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 export interface PaginationProps {
@@ -68,45 +69,61 @@ export function Pagination({
   const isLast = page >= totalPages - 1;
 
   return (
-    <nav className={`py-4 flex justify-center space-x-2 ${className}`} aria-label="Pagination">
+    <nav className={`py-4 flex justify-center items-center gap-2 ${className}`} aria-label="Pagination">
       {!isFirst && (
-        <button
+        <motion.button
           type="button"
           onClick={() => onChange(page - 1)}
-          className="px-3 py-1 border rounded"
+          className="px-4 py-2 min-h-[44px] bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 hover:shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label="Previous page"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
         >
           {prevLabel}
-        </button>
+        </motion.button>
       )}
 
       {items.map((item, idx) =>
         item === 'ellipsis' ? (
-          <span key={`e-${idx}`} className="px-3 py-1 text-gray-400 select-none">…</span>
+          <span key={`e-${idx}`} className="px-2 text-gray-400 select-none font-bold">…</span>
         ) : (
-          <button
+          <motion.button
             key={item}
             type="button"
             onClick={() => onChange(item)}
             aria-current={item === page ? 'page' : undefined}
-            className={`px-3 py-1 border rounded ${
-              item === page ? 'font-bold underline text-blue-600' : ''
-            }`}
+            className={`
+              px-4 py-2 min-h-[44px] min-w-[44px] rounded-lg font-medium
+              transition-colors duration-200
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+              ${
+                item === page
+                  ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:shadow-md'
+              }
+            `}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
           >
             {item + 1}
-          </button>
+          </motion.button>
         )
       )}
 
       {!isLast && (
-        <button
+        <motion.button
           type="button"
           onClick={() => onChange(page + 1)}
-          className="px-3 py-1 border rounded"
+          className="px-4 py-2 min-h-[44px] bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 hover:shadow-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label="Next page"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
         >
           {nextLabel}
-        </button>
+        </motion.button>
       )}
     </nav>
   );

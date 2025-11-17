@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { motion, AnimatePresence } from 'framer-motion';
+import { MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import SearchHistoryList from './SearchHistoryList';
 
 export default function SearchBar() {
@@ -58,10 +59,10 @@ export default function SearchBar() {
     <div ref={ref} className="relative sm:w-full max-w-md pr-2">
       <form
         onSubmit={handleSubmit}
-        className="flex items-center bg-white rounded-full px-4 py-2"
+        className="flex items-center bg-white rounded-full px-4 py-2 gap-2"
         style={{ boxShadow: "0 1px 6px 0 rgba(0,0,0,0.2)" }}
       >
-        <MagnifyingGlassIcon className="h-5 w-5 text-gray-500" />
+        <MagnifyingGlassIcon className="h-5 w-5 text-gray-500 flex-shrink-0" />
         <input
           type="text"
           value={input}
@@ -70,8 +71,26 @@ export default function SearchBar() {
           onCompositionStart={() => setIsComposing(true)}
           onCompositionEnd={() => setIsComposing(false)}
           placeholder="검색어를 입력하세요"
-          className="flex-1 ml-2 outline-none bg-transparent text-gray-800 placeholder-gray-500"
+          className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-500"
         />
+        <AnimatePresence>
+          {input && (
+            <motion.button
+              type="button"
+              onClick={() => setInput('')}
+              className="flex-shrink-0 p-1 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="검색어 지우기"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.15 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <XMarkIcon className="h-4 w-4 text-gray-500" />
+            </motion.button>
+          )}
+        </AnimatePresence>
       </form>
 
       {showHistory && history.length > 0 && (
