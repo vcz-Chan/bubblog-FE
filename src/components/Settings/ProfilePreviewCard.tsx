@@ -68,18 +68,20 @@ export function ProfilePreviewCard({
         </div>
 
         {/* Additional Info */}
-        <div className="mt-6 pt-6 border-t border-gray-100">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">가입일</span>
-            <span className="text-gray-900 font-medium">
-              {new Date(profile.createdAt).toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
+        {profile.createdAt && (
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-500">가입일</span>
+              <span className="text-gray-900 font-medium">
+                {new Date(profile.createdAt).toLocaleDateString('ko-KR', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

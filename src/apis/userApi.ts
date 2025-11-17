@@ -9,6 +9,7 @@ export interface UserProfile {
   userId: string;
   nickname: string;
   profileImageUrl: string | null;
+  createdAt?: string;
 }
 
 /**
