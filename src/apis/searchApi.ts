@@ -62,7 +62,7 @@ export async function searchHybrid(options: {
     params.category_id = String(categoryId);
   }
 
-  const res = await aiFetch('/search/hybrid', {
+  const res = await aiFetch('/ai/search/hybrid', {
     method: 'GET',
     params,
     signal,
