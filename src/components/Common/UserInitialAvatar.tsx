@@ -29,7 +29,8 @@ export default function UserInitialAvatar({
         alt={name ? `${name}의 프로필 이미지` : '프로필 이미지'}
         width={size}
         height={size}
-        className={`rounded-full object-cover ${className}`}
+        style={{ width: size, height: size }}
+        className={`rounded-full object-cover flex-shrink-0 ${className}`}
       />
     )
   }

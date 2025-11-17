@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Comment } from '@/utils/types'
 import { useProfileStore } from '@/store/ProfileStore'
 import { updateComment, deleteComment, toggleCommentLike, getChildComments } from '@/apis/commentApi'
@@ -34,7 +34,7 @@ interface CommentItemProps {
   isReply?: boolean // 대댓글 여부를 나타내는 prop
 }
 
-export default function CommentItem({ 
+export default function CommentItem({
   postId,
   comment,
   onCommentUpdate,
@@ -49,6 +49,18 @@ export default function CommentItem({
   const [likeCount, setLikeCount] = useState(comment.likeCount)
   const replyCount = comment.replyCount ?? 0
   const isDeleted = comment.deleted
+
+  // 실시간 시간 업데이트를 위한 state
+  const [relativeTime, setRelativeTime] = useState(() => timeAgo(comment.createdAt))
+
+  // 1분마다 시간 업데이트
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRelativeTime(timeAgo(comment.createdAt))
+    }, 60000) // 60초마다 업데이트
+
+    return () => clearInterval(interval)
+  }, [comment.createdAt])
   // useState의 lazy initializer를 사용하여 클라이언트에서만 localStorage에 접근
   const [isLiked, setIsLiked] = useState(() => {
     if (typeof window === 'undefined') {
@@ -149,7 +161,7 @@ export default function CommentItem({
         <div className="flex items-center space-x-2">
           <span className="font-bold">{comment.writerNickname}</span>
           <span className="text-sm text-gray-500">
-            {timeAgo(comment.createdAt)}
+            {relativeTime}
           </span>
         </div>
         {isEditing ? (
