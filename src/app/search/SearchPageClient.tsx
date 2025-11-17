@@ -120,6 +120,70 @@ export default function SearchPageClient({ query, page, categoryId }: SearchPage
         </button>
       </form>
 
+      {query && result?.plan && (
+        <section className="mb-6 rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50/80 to-purple-50/60 p-6 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">검색 계획</p>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {result.plan.mode?.toUpperCase() || 'PLAN'}
+              </h2>
+              <p className="text-sm text-gray-600">
+                {result.plan.hybrid?.enabled ? '하이브리드 검색 활성화' : '기본 검색 모드'}
+                {result.plan.hybrid?.retrieval_bias ? ` · ${result.plan.hybrid.retrieval_bias}` : ''}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 text-sm text-gray-700">
+              {typeof result.plan.top_k === 'number' && (
+                <span className="rounded-full bg-white/70 px-4 py-1 font-semibold shadow-sm">
+                  Top-K {result.plan.top_k}
+                </span>
+              )}
+              {typeof result.plan.threshold === 'number' && (
+                <span className="rounded-full bg-white/70 px-4 py-1 font-semibold shadow-sm">
+                  Threshold {result.plan.threshold}
+                </span>
+              )}
+              {typeof result.plan.limit === 'number' && (
+                <span className="rounded-full bg-white/70 px-4 py-1 font-semibold shadow-sm">
+                  Limit {result.plan.limit}
+                </span>
+              )}
+              {typeof result.plan.rewrites_len === 'number' && (
+                <span className="rounded-full bg-white/70 px-4 py-1 font-semibold shadow-sm">
+                  Rewrites {result.plan.rewrites_len}
+                </span>
+              )}
+              {typeof result.plan.keywords_len === 'number' && (
+                <span className="rounded-full bg-white/70 px-4 py-1 font-semibold shadow-sm">
+                  Keywords {result.plan.keywords_len}
+                </span>
+              )}
+            </div>
+          </div>
+          <dl className="mt-4 grid gap-3 text-sm text-gray-700 md:grid-cols-2">
+            {result.plan.weights && (
+              <div className="rounded-2xl bg-white/70 p-3">
+                <dt className="font-semibold text-gray-900">가중치</dt>
+                <dd>
+                  chunk {result.plan.weights.chunk ?? '-'} / title {result.plan.weights.title ?? '-'}
+                </dd>
+              </div>
+            )}
+            {result.plan.time && (
+              <div className="rounded-2xl bg-white/70 p-3">
+                <dt className="font-semibold text-gray-900">시간 범위</dt>
+                <dd className="text-sm text-gray-700">
+                  {result.plan.time.type || 'unknown'}
+                  {result.plan.time.from ? ` · from ${result.plan.time.from}` : ''}
+                  {result.plan.time.to ? ` · to ${result.plan.time.to}` : ''}
+                </dd>
+              </div>
+            )}
+          </dl>
+        </section>
+      )}
+
       {!query && (
         <div className="rounded-xl bg-gray-50 p-6 text-gray-600">
           검색어를 입력하면 Bubblog 전역에서 관련 게시글을 찾아드립니다.
@@ -132,6 +196,11 @@ export default function SearchPageClient({ query, page, categoryId }: SearchPage
             <span>
               총 <strong>{result?.total_posts ?? 0}</strong>건
             </span>
+            {categoryId != null && (
+              <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                카테고리 #{categoryId}
+              </span>
+            )}
             {result?.plan?.hybrid?.enabled && (
               <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 하이브리드 검색
@@ -163,24 +232,37 @@ export default function SearchPageClient({ query, page, categoryId }: SearchPage
           )}
 
           {!loading && !error && result && result.posts.length > 0 && (
-            <ul className="space-y-4">
+            <ul className="space-y-5">
               {result.posts.map(post => (
                 <li
                   key={post.postId}
-                  className="rounded-2xl border border-gray-100 bg-white p-5 shadow hover:shadow-md transition-shadow"
+                  className="rounded-3xl border border-gray-100 bg-gradient-to-r from-white to-blue-50/50 p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg"
                 >
-                  <Link
-                    href={`/post/${post.postId}`}
-                    className="text-xl font-semibold text-gray-900 hover:text-blue-600 transition-colors"
-                  >
-                    {post.postTitle}
-                  </Link>
-                  <div className="mt-1 text-sm text-gray-500">
-                    {new Date(post.createdAt).toLocaleDateString('ko-KR')} · 점수 {post.score.toFixed(2)}
+                  <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <Link
+                        href={`/post/${post.postId}`}
+                        className="text-2xl font-semibold text-gray-900 hover:text-blue-600 transition-colors"
+                      >
+                        {post.postTitle}
+                      </Link>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-gray-500">
+                        <span className="rounded-full bg-gray-100 px-3 py-1">
+                          {new Date(post.createdAt).toLocaleDateString('ko-KR')}
+                        </span>
+                        <span className="rounded-full bg-blue-100 px-3 py-1 text-blue-700 font-semibold">
+                          점수 {post.score.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                    <Link
+                      href={`/post/${post.postId}`}
+                      className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50"
+                    >
+                      자세히 보기
+                      <span aria-hidden>→</span>
+                    </Link>
                   </div>
-                  {post.best?.snippet && (
-                    <p className="mt-3 text-gray-700 break-words">{post.best.snippet}</p>
-                  )}
                 </li>
               ))}
             </ul>
@@ -195,52 +277,6 @@ export default function SearchPageClient({ query, page, categoryId }: SearchPage
             />
           )}
 
-          {result?.plan && (
-            <div className="mt-10 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-3">검색 계획</h2>
-              <dl className="grid gap-2 text-sm text-gray-600 sm:grid-cols-2">
-                {result.plan.hybrid && (
-                  <div>
-                    <dt className="font-medium text-gray-800">하이브리드</dt>
-                    <dd>
-                      {result.plan.hybrid.enabled ? '사용' : '미사용'}
-                      {result.plan.hybrid.retrieval_bias && ` · ${result.plan.hybrid.retrieval_bias}`}
-                    </dd>
-                  </div>
-                )}
-                {typeof result.plan.top_k === 'number' && (
-                  <div>
-                    <dt className="font-medium text-gray-800">Top-K</dt>
-                    <dd>{result.plan.top_k}</dd>
-                  </div>
-                )}
-                {typeof result.plan.threshold === 'number' && (
-                  <div>
-                    <dt className="font-medium text-gray-800">Threshold</dt>
-                    <dd>{result.plan.threshold}</dd>
-                  </div>
-                )}
-                {result.plan.weights && (
-                  <div>
-                    <dt className="font-medium text-gray-800">가중치</dt>
-                    <dd>
-                      chunk {result.plan.weights.chunk ?? '-'} / title {result.plan.weights.title ?? '-'}
-                    </dd>
-                  </div>
-                )}
-                {result.plan.time && (
-                  <div className="sm:col-span-2">
-                    <dt className="font-medium text-gray-800">시간 범위</dt>
-                    <dd>
-                      {result.plan.time.type}{' '}
-                      {result.plan.time.from ? `from ${result.plan.time.from}` : ''}{' '}
-                      {result.plan.time.to ? `to ${result.plan.time.to}` : ''}
-                    </dd>
-                  </div>
-                )}
-              </dl>
-            </div>
-          )}
         </>
       )}
     </div>
