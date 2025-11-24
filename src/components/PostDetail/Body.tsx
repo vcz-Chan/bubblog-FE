@@ -5,7 +5,7 @@ import rehypeHighlight from 'rehype-highlight';
 
 export function PostDetailBody({ content }: { content: string }) {
   return (
-    <div data-color-mode="light" className="prose prose-sm sm:prose-base max-w-none p-6 font-sans">
+    <div data-color-mode="light" className="prose prose-sm sm:prose-base max-w-none md:p-6 font-sans">
       <Markdown
         source={content}
         rehypePlugins={[[rehypeHighlight, { detect: true }]]}
