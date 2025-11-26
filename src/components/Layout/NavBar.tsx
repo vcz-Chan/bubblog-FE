@@ -27,8 +27,19 @@ export default function NavBar() {
   const router = useRouter()
   const [search, setSearch] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
 
   const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  // Scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   useEffect(() => {
     if (!userId) return
@@ -50,11 +61,33 @@ export default function NavBar() {
   }
 
   return (
-    <header className="bg-gray-50 shadow-md sticky top-0 z-50">
-      <div className="md:px-16 p-3 flex justify-between items-center">
+    <motion.header
+      className="bg-gray-50 sticky top-0 z-50"
+      initial={{ height: 'auto', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}
+      animate={{
+        height: isScrolled ? 56 : 'auto',
+        boxShadow: isScrolled
+          ? '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+          : '0 1px 3px 0 rgb(0 0 0 / 0.1)',
+      }}
+      transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+    >
+      <div
+        className="md:px-16 p-3 flex justify-between items-center transition-all duration-200"
+        style={{ padding: isScrolled ? '0.5rem 1rem' : undefined }}
+      >
         {/* 로고 */}
-        <Link href="/" className="hidden md:flex items-center mr-16">
-          <div className="text-2xl font-bold text-gray-800 font-logo">Bubblog</div>
+        <Link href="/" className="flex items-center mr-4 md:mr-16">
+          <motion.div
+            className="font-bold text-gray-800 font-logo"
+            animate={{
+              fontSize: isScrolled ? '1.25rem' : undefined,
+            }}
+            transition={{ duration: 0.2 }}
+          >
+            <span className="md:hidden">B</span>
+            <span className="hidden md:inline text-xl md:text-2xl">Bubblog</span>
+          </motion.div>
         </Link>
 
         {/* 검색창 */}
@@ -161,6 +194,6 @@ export default function NavBar() {
           )}
         </nav>
       </div>
-    </header>
+    </motion.header>
   )
 }
