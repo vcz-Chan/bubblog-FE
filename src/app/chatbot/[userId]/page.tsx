@@ -132,7 +132,7 @@ export default function ChatPage() {
 
   const [liveMessages, setLiveMessages] = useState<UIChatMessage[]>([])
   const [input, setInput] = useState('')
-  const [askVersion, setAskVersion] = useState<'v1' | 'v2'>('v1')
+  const [askVersion, setAskVersion] = useState<'v1' | 'v2'>('v2')
   const [inspectorOpenMap, setInspectorOpenMap] = useState<Map<number, boolean>>(new Map())
 
   const [isCatOpen, setIsCatOpen] = useState(false)
