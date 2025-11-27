@@ -31,11 +31,6 @@ export function CategoryFilterButton({
             ? `카테고리: ${selectedCategory.name}`
             : '카테고리 선택'}
         </span>
-        <span className=" text-xs inline md:hidden">
-          {selectedCategory
-            ? `${selectedCategory.name}`
-            : '카테고리'}
-        </span>
       </Button>
     </div>
   )

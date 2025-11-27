@@ -26,11 +26,6 @@ export function PersonaFilterButton({
           ? `말투: ${selectedPersona.name}`
           : '말투 선택'}
         </span>
-        <span className=" text-xs inline md:hidden">
-          {selectedPersona
-          ? `${selectedPersona.name}`
-          : '말투'}
-        </span>
       </Button>
     </div>
   )

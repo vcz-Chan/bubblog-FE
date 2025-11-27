@@ -738,7 +738,7 @@ export default function ChatPage() {
               onSubmit={handleSubmit}
               disabled={isSending}
             >
-              <div className='flex items-center md:mr-4 md:gap-4'>
+              <div className='flex items-center gap-1 md:mr-4 md:gap-4'>
                 <VersionToggle value={askVersion} onChange={setAskVersion} disabled={isSending} />
                 {postId == null && (
                   <CategoryFilterButton
